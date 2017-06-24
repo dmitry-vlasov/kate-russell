@@ -1,0 +1,59 @@
+/*****************************************************************************/
+/* Project name:    Kate plugin for Russell prover integration               */
+/* File Name:       plugin_kate_russell.dpp                                  */
+/* Description:     class declaration for a Russell support plugin for Kate  */
+/* Copyright:       (c) 2011 Dmitri Vlasov                                   */
+/* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
+/* Email:           vlasov at academ.org                                     */
+/* Based on:        (C) 2006-2011 by Kåre Särs <kare.sars@iki.fi>            */
+/* Based on:        (C) 2011 by Ian Wakeling <ian.wakeling@ntlworld.com>     */
+/* URL:             http://mathdevlanguage.sourceforge.net                   */
+/* Modified by:                                                              */
+/* License:         GNU General Public License Version 3                     */
+/*****************************************************************************/
+
+#ifndef PLUGIN_KATE_RUSSELL_DPP_
+#define PLUGIN_KATE_RUSSELL_DPP_
+
+namespace plugin {
+namespace kate {
+namespace russell {
+
+namespace config {
+
+	//#define DEBUG_CONFIG
+
+	class Combinations;
+	class Config;
+	class Indexes;
+	class Session;
+	class Ui;
+}
+	using config :: Config;
+
+namespace mdl {
+
+	class Client;
+	class Launcher;
+	class Server;
+}
+
+	//#define DEBUG_CREATE_DESTROY
+
+	class ErrorParser;
+	class Icon;
+	class LatexToUnicode;
+	class Navigation;
+	class Outline;
+	class Proof;
+	class Plugin;
+	class Server;
+	class Structure;
+	class TypeSystem;
+	class View;
+}
+}
+}
+
+#endif /* PLUGIN_KATE_RUSSELL_DPP_ */
+

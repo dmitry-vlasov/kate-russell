@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Service
+ServiceTypes=KTextEditor/Plugin
+X-KDE-Library=katerussellplugin
+Name=Russell Plugin
+Comment=Prove and verify Russell theorems 

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="Russell" version="0.06" section="Scientific" casesensitive="1"
+          kateversion="5.0" extensions="*.rus" identer="cstyle" mimetype="text/x-russell-src" 
+          author="Dmitri Vlasov(vlasov@academ.org)" license="GPL" >
+	<highlighting>
+		<list name="keywords">
+			<!-- external keywords -->
+			<item>import</item>
+			
+			<!-- theory (blocks, classes) -->
+			<item>theory</item>
+			<item>contents</item>
+			<item>of</item>
+			
+			<!-- constant -->
+			<item>constant</item>
+			<item>symbol</item>
+			<item>ascii</item>
+			<item>latex</item>
+			
+			<!-- Syntactic formation rule -->
+			<item>type</item>
+			<item>rule</item>
+			<item>term</item>
+			
+			<!-- Definitions -->
+			<item>definition</item>
+			<item>notation</item>
+			<item>defiendum</item>
+			<item>definiens</item>
+			
+			<!-- Disjointed variables -->
+			<item>disjointed</item>
+			
+			<!-- Assertion -->
+			<item>axiom</item>
+			<item>theorem</item>
+			<item>problem</item>
+			<item>proof</item>
+			
+			<!-- proof keywords-->
+			<item>hyp</item>
+			<item>prop</item>
+			<item>qed</item>
+			<item>var</item>
+			<item>step</item>
+			<item>claim</item>
+		</list>
+		<list name="eval_keywords">
+			<!-- evaluation keywords-->
+			<item>evaluation</item>
+			<item>w_sum</item>
+			<item>sum</item>
+			<item>mult</item>
+			<item>sub_cplx</item>
+			<item>exp_cplx</item>
+			<item>exp_avg</item>
+			<item>exp_sim</item>
+			<item>exp_disp</item>
+			<item>forking</item>
+			<item>lexp</item>
+			<item>const</item>
+			<item>barrier</item>
+		</list>
+		<contexts>
+			<context attribute="MdlNormal" lineEndContext="#stay" name="Normal">
+				<StringDetect attribute="MdlKeyword" context="Import" String="import" />
+				<StringDetect attribute="MdlKeyword" context="Type" String="type" />
+				<StringDetect attribute="MdlKeyword" context="Theory" String="theory" />
+				<StringDetect attribute="MdlKeyword" context="Theory" String="of" />
+				<StringDetect attribute="MdlKeyword" context="Expression" String="symbol" />
+				<keyword attribute="MdlKeyword" context="#stay" String="keywords"/>
+				<keyword attribute="MdlEvalKeyword" context="#stay" String="eval_keywords"/>
+				<Detect2Chars attribute="Normal Text" context="Expression" char="|" char1="-"/>
+				<DetectChar attribute="MdlNormal" context="Expression" char="#"/>
+				<Detect2Chars attribute="MdlComment" context="Commentar 1" char="/" char1="/"/>
+				<Detect2Chars attribute="MdlComment" context="Commentar 2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="MdlNormal" context="#stay" char="{" beginRegion="Brace1"/>
+				<DetectChar attribute="MdlNormal" context="#stay" char="}" endRegion="Brace1"/>
+				<DetectChar attribute="MdlNormal" context="Type" char=":"/>				
+				<RegExpr attribute="MdlForm" context="#stay" String="\b[_\w][_-\w\d]*(?=[\s]*[(])" />
+			</context>
+			<context attribute="MdlExpression" name="Expression">
+				<LineContinue attribute="String" context="#stay"/>
+				<HlCStringChar attribute="String Char" context="#stay"/>
+				<Detect2Chars attribute="MdlNormal" context="#pop" char=";" char1=";"/>
+			</context>
+			<context attribute="MdlType" name="Type">
+				<DetectChar attribute="MdlNormal" context="#pop" char="="/>
+				<DetectChar attribute="MdlNormal" context="#pop" char=","/>
+				<DetectChar attribute="MdlNormal" context="#pop" char=";"/>
+				<DetectChar attribute="MdlNormal" context="#pop" char=")"/>
+			</context>
+			<context attribute="MdlTheory" name="Theory">
+				<DetectChar attribute="MdlNormal" context="#pop" char="{"/>
+				<DetectChar attribute="MdlNormal" context="#pop" char=";"/>
+			</context>
+			<context attribute="MdlImport" lineEndContext="#pop" name="Import">
+				<RegExpr attribute="MdlImport" context="#pop" String="\s*.*$" />
+			</context>
+			<context attribute="MdlComment" lineEndContext="#pop" name="Commentar 1"/>
+			<context attribute="MdlComment" lineEndContext="#stay" name="Commentar 2">
+				<Detect2Chars attribute="MdlComment" context="#pop" char="*" char1="/" endRegion="Comment"/>
+			</context>
+		</contexts>
+		<itemDatas>
+			<itemData name="MdlNormal" defStyleNum="dsNormal"/>
+			<itemData name="MdlKeyword" defStyleNum="dsOthers" color="#0095FF" selColor="#FFFFFF" bold="1" italic="0"/>
+			<itemData name="MdlEvalKeyword" defStyleNum="dsOthers" color="#0095FF" selColor="#FFFFFF" bold="0" italic="0"/>
+			<itemData name="MdlForm" defStyleNum="dsFunction" color="#000080" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="MdlType" defStyleNum="dsDataType" color="#1E00A2" selColor="#ffffff" bold="0" italic="1"/>
+			<itemData name="MdlTheory" defStyleNum="dsDataType" color="#1E00A2" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="MdlImport" defStyleNum="dsOthers" color="#808000" selColor="#ffffff" bold="0" italic="1"/>
+			<itemData name="MdlExpression" defStyleNum="dsString" color="#2F00FF" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="MdlComment" defStyleNum="dsComment"/>
+		</itemDatas>
+	</highlighting>
+	<general>
+		<comments>
+			<comment name="singleLine" start="//" />
+			<comment name="multiLine" start="/*" end="*/"/>
+		</comments>
+		<keywords casesensitive="1"/>
+	</general>
+</language>

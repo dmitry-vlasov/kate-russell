@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="Metamath" version="0.04" section="Scientific" kateversion="5.0" extensions="*.mm" identer="cstyle" mimetype="text/x-mm" author="Dmitri Vlasov(vlasov@academ.org)" license="GPL" >
+	<highlighting>
+		<list name="keywords">
+			<item>$c</item>
+			<item>$v</item>
+			<item>$f</item>
+			<item>$e</item>
+			<item>$d</item>
+			<item>$a</item>
+			<item>$p</item>
+			<item>$=</item>
+			<item>$.</item>
+		</list>
+		<list name="basic_types">
+			<item> wff </item>
+			<item> set </item>
+			<item> class </item>
+		</list>
+		<contexts>
+			<context attribute="Normal Text" lineEndContext="#stay" name="Normal">
+				<keyword attribute="Keyword" context="Expression" String="keywords"/>
+				<keyword attribute="Data Type" context="#stay" String="basic_types"/>
+				<Detect2Chars attribute="String" context="Expression" char="$" char1="a"/>
+				<Detect2Chars attribute="String" context="Expression" char="$" char1="e"/>
+				<Detect2Chars attribute="String" context="Expression" char="$" char1="p"/>
+				<Detect2Chars attribute="Comment" context="Commentar" char="$" char1="(" beginRegion="Comment"/>
+				<Detect2Chars attribute="Keyword" context="#stay" char="$" char1="{" beginRegion="Brace1"/>
+				<Detect2Chars attribute="Keyword" context="#stay" char="$" char1="}" endRegion="Brace1"/>
+				<Detect2Chars attribute="Inclusion" context="InInclusion" char="$" char1="["/>
+				<AnyChar attribute="Symbol" context="#stay" String=":!%&amp;()+,-/.*&lt;=&gt;?[]|~^&#59;"/>
+			</context>
+			<context attribute="String" name="Expression">
+				<LineContinue attribute="String" context="#stay"/>
+				<!-- <HlCStringChar attribute="String Char" context="#stay"/> -->
+				<Detect2Chars attribute="Keyword" context="Proof" char="$" char1="=" String="keywords"/>
+				<Detect2Chars attribute="Keyword" context="#pop" char="$" char1="." String="keywords"/>
+			</context>
+			<context attribute="String" name="InInclusion">
+				<LineContinue attribute="String" context="#stay"/>
+				<!-- <HlCStringChar attribute="String Char" context="#stay"/> -->
+				<Detect2Chars attribute="Inclusion" context="#pop" char="$" char1="]"/>
+			</context>
+			<context attribute="ProofLabel" name="Proof">
+				<LineContinue attribute="ProofLabel" context="#stay"/>
+				<Detect2Chars attribute="Keyword" context="Normal" char="$" char1="." String="keywords"/>
+			</context>
+			<!--
+			<context attribute="Normal Text" lineEndContext="#pop" name="Member" fallthrough="true" fallthroughContext="#pop">
+				<RegExpr attribute="Function" context="#pop" String="\b[_\w][_-\w\d]*(?=[\s]*)" />
+			</context>
+			-->
+			<context attribute="Comment" lineEndContext="#stay" name="Commentar">
+				<Detect2Chars attribute="Comment" context="#pop" char="$" char1=")" endRegion="Comment"/>
+			</context>
+		</contexts>
+		<itemDatas>
+			<itemData name="Normal Text"  defStyleNum="dsNormal"/>
+			<itemData name="Keyword" defStyleNum="dsKeyword" color="#0095FF" selColor="#FFFFFF" bold="1" italic="0"/>
+			<itemData name="Data Type" defStyleNum="dsString" color="#1E00A2" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="String" defStyleNum="dsString" color="#2F00FF" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="ProofLabel" defStyleNum="dsString" color="#992BFF" selColor="#ffffff" bold="0" italic="1"/>
+			<itemData name="Inclusion" defStyleNum="dsString" color="#FF540A" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="Comment" defStyleNum="dsComment"/>
+			<itemData name="Symbol" defStyleNum="dsNormal"/>
+		</itemDatas>
+	</highlighting>
+	<general>
+		<comments>
+			<comment name="multiLine" start="$(" end="$)"/>
+		</comments>
+		<keywords casesensitive="1"/>
+	</general>
+</language>

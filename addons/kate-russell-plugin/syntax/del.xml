@@ -1,0 +1,102 @@
+<?xml version="1.01" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="del" version="0.02" section="Scientific" casesensitive="1"
+          kateversion="5.0" extensions="*.del" identer="cstyle" mimetype="text/x-del" 
+          author="Dmitri Vlasov(vlasov@academ.org)" license="GPL" >
+	<highlighting>
+		<list name="keywords">
+			<!-- keywords -->
+			<item>theory</item>
+			<item>signature</item>
+			<item>does</item>
+			<item>solution</item>
+			<item>concept</item>
+			<item>relation</item>
+			<item>decompose</item>
+			<item>decomposition_of</item>
+			<item>assert</item>
+		</list>
+		<contexts>
+			<context attribute="delNormal" lineEndContext="#stay" name="Normal">				
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="#stay" char="{" beginRegion="Brace1"/>
+				<DetectChar attribute="delNormal" context="#stay" char="}" endRegion="Brace1"/>
+				<StringDetect attribute="delKeyword" context="Decompose" String="decompose" />
+				<StringDetect attribute="delKeyword" context="Decompose" String="decomposition_of" />
+				<StringDetect attribute="delKeyword" context="Signature" String="signature" />				
+				<StringDetect attribute="delKeyword" context="Theory" String="theory" />
+				<StringDetect attribute="delKeyword" context="Symbol" String="concept" />
+				<StringDetect attribute="delKeyword" context="Symbol" String="relation" />
+				<StringDetect attribute="delAssert" context="#stay" String="assert" />
+				<keyword attribute="delKeyword" context="#stay" String="keywords"/>
+				<DetectChar attribute="delNormal" context="Formulas" char="⊨"/>
+				<DetectChar attribute="delNormal" context="Formulas" char="⊭"/>
+			</context>
+			<context attribute="delTheory" name="Theory">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="OpenBrace" char="="/>
+			</context>
+			<context attribute="delNormal" name="OpenBrace">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="Formulas" char="{" beginRegion="Brace1"/>t"/>
+			</context>
+			<context attribute="delFormulas" name="Formulas">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="#pop#pop#pop" char="}" endRegion="Brace1"/>
+				<DetectChar attribute="delNormal" context="#stay" char=","/>
+				<DetectChar attribute="delNormal" context="#pop" char="!"/>
+				<DetectChar attribute="delNormal" context="#pop" char="?"/>
+			</context>
+			<context attribute="delFormulas" name="Symbol">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="#pop" char="}" endRegion="Brace1"/>
+				<DetectChar attribute="delNormal" context="#pop" char=","/>
+			</context>
+			<context attribute="delSignature" name="Signature">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="#pop" char="="/>
+			</context>
+
+			<context attribute="delNormal" name="Decompose">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<StringDetect attribute="delKeyword" context="#stay" String="signature" />				
+				<StringDetect attribute="delKeyword" context="#stay" String="theory" />
+				<DetectChar attribute="delNormal" context="Arguments" char="("/>
+			</context>
+			<context attribute="delNormal" name="Arguments">
+				<Detect2Chars attribute="delComment" context="Comment_1" char="/" char1="/"/>
+				<Detect2Chars attribute="delComment" context="Comment_2" char="/" char1="*" beginRegion="Comment"/>
+				<DetectChar attribute="delNormal" context="#pop#pop" char=")"/>
+			</context>
+			<context attribute="delComment" lineEndContext="#pop" name="Comment_1"/>
+			<context attribute="delComment" lineEndContext="#stay" name="Comment_2">
+				<Detect2Chars attribute="delComment" context="#pop" char="*" char1="/" endRegion="Comment"/>
+			</context>
+		</contexts>
+		<itemDatas>
+			<itemData name="delNormal" defStyleNum="dsNormal"/>
+			<itemData name="delKeyword" defStyleNum="dsOthers" color="#0090FF" selColor="#FFFFFF" bold="1" italic="0"/>
+			<!-- <itemData name="delTheory" defStyleNum="dsDataType" color="#1E00A2" selColor="#ffffff" bold="0" italic="0"/> -->
+			<itemData name="delTheory" defStyleNum="dsNormal" bold="0" italic="1"/>
+			<!-- <itemData name="delSignature" defStyleNum="dsDataType" color="#1E00A2" selColor="#ffffff" bold="0" italic="1"/> -->
+			<itemData name="delSignature" defStyleNum="dsNormal" bold="0" italic="1"/>
+			<itemData name="delFormulas" defStyleNum="dsString" color="#0000FF" selColor="#ffffff" bold="0" italic="0"/>
+			<itemData name="delAssert" defStyleNum="dsString" color="#FF0000" selColor="#ffffff" bold="1" italic="0"/>
+			<itemData name="delComment" defStyleNum="dsComment"/>
+		</itemDatas>
+	</highlighting>
+	<general>
+		<comments>
+			<comment name="singleLine" start="//" />
+			<comment name="multiLine" start="/*" end="*/"/>
+		</comments>
+		<keywords casesensitive="1"/>
+	</general>
+</language>
