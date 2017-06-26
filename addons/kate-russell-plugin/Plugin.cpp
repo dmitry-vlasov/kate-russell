@@ -16,11 +16,12 @@
 #define PLUGIN_KATE_RUSSELL_PLUGIN_CPP_
 
 #include <kpluginfactory.h>
-#include "plugin_kate_russell.hpp"
+
+#include "russell.hpp"
 
 K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<plugin::kate::russell::Plugin>();)
 
-#include "plugin_kate_russell_Plugin.moc"
+#include "Plugin.moc"
 
 namespace plugin {
 namespace kate {

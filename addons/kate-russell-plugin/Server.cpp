@@ -17,7 +17,7 @@
 
 #include <QByteArray>
 
-#include "plugin_kate_russell.hpp"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

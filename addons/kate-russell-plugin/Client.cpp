@@ -20,7 +20,8 @@
 #include <QtNetwork>
 #include <QMetaObject>
 #include <cstring>
-#include "plugin_kate_russell.hpp"
+
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

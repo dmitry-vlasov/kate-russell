@@ -14,8 +14,8 @@
 #ifndef PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_CPP_
 #define PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_CPP_
 
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell_TypeSystem.moc"
+#include "TypeSystem.moc"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

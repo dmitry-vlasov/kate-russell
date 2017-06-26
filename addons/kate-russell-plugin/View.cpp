@@ -16,8 +16,8 @@
 #define PLUGIN_KATE_RUSSELL_VIEW_CPP_
 
 #include <KXMLGUIFactory>
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell_View.moc"
+#include "View.moc"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

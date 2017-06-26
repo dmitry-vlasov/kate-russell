@@ -15,7 +15,7 @@
 #ifndef PLUGIN_KATE_RUSSELL_ERROR_PARSER_CPP_
 #define PLUGIN_KATE_RUSSELL_ERROR_PARSER_CPP_
 
-#include "plugin_kate_russell.hpp"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

@@ -1,7 +1,7 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_Structure.hpp                        */
-/* Description:     a structure view for a Russell support plugin for Kate   */
+/* File Name:       plugin_kate_russell_Outline.hpp                          */
+/* Description:     an outline view for a Russell support plugin for Kate    */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
 /* Email:           vlasov at academ.org                                     */
@@ -11,30 +11,30 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
-#define PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
+#ifndef PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
+#define PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
 
-#include "plugin_kate_russell_Navigation.hpp"
+#include "Navigation.hpp"
 
 namespace plugin {
 namespace kate {
 namespace russell {
 
-class Structure : public Navigation {
+class Outline : public Navigation {
 Q_OBJECT
 public:
-	Structure (KTextEditor::MainWindow*, View*);
-	virtual ~ Structure();
+	Outline (KTextEditor::MainWindow*, View*);
+	virtual ~ Outline();
 
 	void update();
 
 public Q_SLOTS:
-	virtual void refresh();
+	void refresh();
 };
 
 }
 }
 }
 
-#endif /* PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_ */
+#endif /* PLUGIN_KATE_RUSSELL_OUTLINE_HPP_ */
 

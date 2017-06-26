@@ -1,40 +1,24 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_Outline.hpp                          */
-/* Description:     an outline view for a Russell support plugin for Kate    */
+/* File Name:       plugin_kate_russell_x_russell.cpp                        */
+/* Description:     total sources for a Russell plugin in one file           */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
 /* Email:           vlasov at academ.org                                     */
-/* Based on:        (C) 2003 by Massimo Callegari <massimocallegari@yahoo.it>*/
+/* Based on:        (C) 2006-2011 by Kåre Särs <kare.sars@iki.fi>            */
+/* Based on:        (C) 2011 by Ian Wakeling <ian.wakeling@ntlworld.com>     */
 /* URL:             http://mathdevlanguage.sourceforge.net                   */
 /* Modified by:                                                              */
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
-#define PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
+#ifndef PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
+#define PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
 
-#include "plugin_kate_russell_Navigation.hpp"
+#include "plugin_kate_russell.dpp"
+#include "russell.cpp"
+#include "russell.hpp"
+#include "x_include.hpp"
 
-namespace plugin {
-namespace kate {
-namespace russell {
-
-class Outline : public Navigation {
-Q_OBJECT
-public:
-	Outline (KTextEditor::MainWindow*, View*);
-	virtual ~ Outline();
-
-	void update();
-
-public Q_SLOTS:
-	void refresh();
-};
-
-}
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_OUTLINE_HPP_ */
+#endif /* PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_ */
 

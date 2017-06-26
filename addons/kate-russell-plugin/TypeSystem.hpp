@@ -1,25 +1,40 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_x_russell.cpp                        */
-/* Description:     total sources for a Russell plugin in one file           */
+/* File Name:       plugin_kate_russell_TypeSystem.hpp                       */
+/* Description:     a type system view for a Russell support plugin for Kate */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
 /* Email:           vlasov at academ.org                                     */
-/* Based on:        (C) 2006-2011 by Kåre Särs <kare.sars@iki.fi>            */
-/* Based on:        (C) 2011 by Ian Wakeling <ian.wakeling@ntlworld.com>     */
+/* Based on:        (C) 2003 by Massimo Callegari <massimocallegari@yahoo.it>*/
 /* URL:             http://mathdevlanguage.sourceforge.net                   */
 /* Modified by:                                                              */
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
-#define PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
+#ifndef PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
+#define PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
 
-#include "plugin_kate_russell_x_include.hpp"
+#include "Navigation.hpp"
 
-#include "plugin_kate_russell.dpp"
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell.cpp"
+namespace plugin {
+namespace kate {
+namespace russell {
 
-#endif /* PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_ */
+class TypeSystem : public Navigation {
+Q_OBJECT
+public:
+	TypeSystem (KTextEditor::MainWindow*, View*);
+	virtual ~ TypeSystem();
+
+	void update();
+
+public Q_SLOTS:
+	virtual void refresh();
+};
+
+}
+}
+}
+
+#endif /* PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_ */
 

@@ -15,8 +15,8 @@
 #ifndef PLUGIN_KATE_PROVE_CONFIG_UI_CPP_
 #define PLUGIN_KATE_PROVE_CONFIG_UI_CPP_
 
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell_config_Ui.moc"
+#include "Ui.moc"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

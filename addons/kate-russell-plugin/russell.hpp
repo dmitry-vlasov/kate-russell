@@ -15,33 +15,33 @@
 #ifndef PLUGIN_KATE_RUSSELL_HPP_
 #define PLUGIN_KATE_RUSSELL_HPP_
 
-#include "plugin_kate_russell_x_include.hpp"
+#include "x_include.hpp"
 
 
 #define OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT true
 
 
-#include "plugin_kate_russell_Kind.hpp"
+#include "Kind.hpp"
 
-#include "plugin_kate_russell_config_Combinations.hpp"
-#include "plugin_kate_russell_config_Config.hpp"
-#include "plugin_kate_russell_config_Indexes.hpp"
-#include "plugin_kate_russell_config_Session.hpp"
-#include "plugin_kate_russell_config_Ui.hpp"
+#include "Combinations.hpp"
+#include "Config.hpp"
+#include "Indexes.hpp"
+#include "Session.hpp"
+#include "Ui.hpp"
 
-#include "plugin_kate_russell_ErrorParser.hpp"
-#include "plugin_kate_russell_Icon.hpp"
-#include "plugin_kate_russell_LatexToUnicode.hpp"
-#include "plugin_kate_russell_mdl_Client.hpp"
-#include "plugin_kate_russell_mdl_Launcher.hpp"
-#include "plugin_kate_russell_mdl_Server.hpp"
-#include "plugin_kate_russell_Navigation.hpp"
-#include "plugin_kate_russell_Outline.hpp"
-#include "plugin_kate_russell_Plugin.hpp"
-#include "plugin_kate_russell_Structure.hpp"
-#include "plugin_kate_russell_TypeSystem.hpp"
-#include "plugin_kate_russell_Proof.hpp"
-#include "plugin_kate_russell_View.hpp"
+#include "ErrorParser.hpp"
+#include "Icon.hpp"
+#include "LatexToUnicode.hpp"
+#include "Client.hpp"
+#include "Launcher.hpp"
+#include "Server.hpp"
+#include "Navigation.hpp"
+#include "Outline.hpp"
+#include "Plugin.hpp"
+#include "Structure.hpp"
+#include "TypeSystem.hpp"
+#include "Proof.hpp"
+#include "View.hpp"
 
 #endif /* PLUGIN_KATE_RUSSELL_HPP_ */
 

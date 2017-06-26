@@ -14,8 +14,8 @@
 #ifndef PLUGIN_KATE_RUSSELL_OUTLINE_CPP_
 #define PLUGIN_KATE_RUSSELL_OUTLINE_CPP_
 
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell_Outline.moc"
+#include "Outline.moc"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

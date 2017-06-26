@@ -14,8 +14,8 @@
 #ifndef PLUGIN_KATE_RUSSELL_PROOF_CPP_
 #define PLUGIN_KATE_RUSSELL_PROOF_CPP_
 
-#include "plugin_kate_russell.hpp"
-#include "plugin_kate_russell_Proof.moc"
+#include "Proof.moc"
+#include "russell.hpp"
 
 namespace plugin {
 namespace kate {

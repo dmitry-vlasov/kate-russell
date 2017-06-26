@@ -13,27 +13,27 @@ add_subdirectory(icons)
 add_subdirectory(syntax)
 
 set (katerussell_SRC 
-	plugin_kate_russell_config_Combinations.cpp
-	plugin_kate_russell_config_Config.cpp
-	plugin_kate_russell_config_Indexes.cpp
-	plugin_kate_russell_config_Session.cpp
-	plugin_kate_russell_config_Ui.cpp
+	Combinations.cpp
+	Config.cpp
+	Indexes.cpp
+	Session.cpp
+	Ui.cpp
 	
-	plugin_kate_russell_ErrorParser.cpp
-	plugin_kate_russell_Icon.cpp
-	plugin_kate_russell_LatexToUnicode.cpp
+	ErrorParser.cpp
+	Icon.cpp
+	LatexToUnicode.cpp
 	
-	plugin_kate_russell_mdl_Client.cpp
-	plugin_kate_russell_mdl_Launcher.cpp
-	plugin_kate_russell_mdl_Server.cpp
+	Client.cpp
+	Launcher.cpp
+	Server.cpp
 	
-	plugin_kate_russell_Navigation.cpp
-	plugin_kate_russell_Outline.cpp
-	plugin_kate_russell_Structure.cpp
-	plugin_kate_russell_TypeSystem.cpp
-	plugin_kate_russell_Proof.cpp
-	plugin_kate_russell_View.cpp
-	plugin_kate_russell_Plugin.cpp
+	Navigation.cpp
+	Outline.cpp
+	Structure.cpp
+	TypeSystem.cpp
+	Proof.cpp
+	View.cpp
+	Plugin.cpp
 )
 
 set (syntaxhighlighting
@@ -59,10 +59,4 @@ target_link_libraries (katerussellplugin
 )
 
 install (TARGETS katerussellplugin DESTINATION ${PLUGIN_INSTALL_DIR}/ktexteditor)
-
-#install (FILES ui.rc  DESTINATION  ${DATA_INSTALL_DIR}/kate/plugins/kate-russell)
-#install (FILES katerussellplugin.desktop  DESTINATION  ${SERVICES_INSTALL_DIR})
-
-
-
 

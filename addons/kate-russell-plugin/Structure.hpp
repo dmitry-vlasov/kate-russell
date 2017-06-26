@@ -1,7 +1,7 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_TypeSystem.hpp                       */
-/* Description:     a type system view for a Russell support plugin for Kate */
+/* File Name:       plugin_kate_russell_Structure.hpp                        */
+/* Description:     a structure view for a Russell support plugin for Kate   */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
 /* Email:           vlasov at academ.org                                     */
@@ -11,20 +11,20 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
-#define PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
+#ifndef PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
+#define PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
 
-#include "plugin_kate_russell_Navigation.hpp"
+#include "Navigation.hpp"
 
 namespace plugin {
 namespace kate {
 namespace russell {
 
-class TypeSystem : public Navigation {
+class Structure : public Navigation {
 Q_OBJECT
 public:
-	TypeSystem (KTextEditor::MainWindow*, View*);
-	virtual ~ TypeSystem();
+	Structure (KTextEditor::MainWindow*, View*);
+	virtual ~ Structure();
 
 	void update();
 
@@ -36,5 +36,5 @@ public Q_SLOTS:
 }
 }
 
-#endif /* PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_ */
+#endif /* PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_ */
 

@@ -48,7 +48,7 @@ class KatePluginSymbolViewerConfigPage : public KTextEditor::ConfigPage
 
   public:
     explicit KatePluginSymbolViewerConfigPage (QObject* parent = 0L, QWidget *parentWidget = 0L);
-    ~KatePluginSymbolViewerConfigPage ();
+    virtual ~KatePluginSymbolViewerConfigPage ();
 
     /**
      * Reimplemented from KTextEditor::ConfigPage
