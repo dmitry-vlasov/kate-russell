@@ -15,8 +15,8 @@
 #ifndef PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
 #define PLUGIN_KATE_RUSSELL_X_RUSSELL_CPP_
 
-#include "plugin_kate_russell.dpp"
 #include "russell.cpp"
+#include "russell.dpp"
 #include "russell.hpp"
 #include "x_include.hpp"
 

@@ -17,7 +17,8 @@
 
 #include <QProcess>
 #include <QTcpSocket>
-#include "plugin_kate_russell.dpp"
+
+#include "russell.dpp"
 
 namespace plugin {
 namespace kate {

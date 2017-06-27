@@ -15,7 +15,7 @@
 #define PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_
 
 #include "Kind.hpp"
-#include "plugin_kate_russell.dpp"
+#include "russell.dpp"
 #include "x_include.hpp"
 
 namespace plugin {

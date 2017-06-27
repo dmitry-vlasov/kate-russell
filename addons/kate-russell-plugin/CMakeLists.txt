@@ -15,6 +15,7 @@ add_subdirectory(syntax)
 set (katerussell_SRC 
 	Combinations.cpp
 	ProjectConfig.cpp
+	RussellConfig.cpp
 	Indexes.cpp
 	Session.cpp
 	Ui.cpp
@@ -42,7 +43,7 @@ set (syntaxhighlighting
 	syntax/mm.xml
 )
 
-ki18n_wrap_ui(katerussell_SRC bottom.ui config.ui)
+ki18n_wrap_ui(katerussell_SRC BottomTab.ui RussellConfig.ui)
 
 qt5_add_resources(katerussell_SRC plugin.qrc)
 

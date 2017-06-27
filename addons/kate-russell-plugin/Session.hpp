@@ -15,7 +15,7 @@
 #ifndef PLUGIN_KATE_RUSSELL_CONFIG_SESSION_HPP_
 #define PLUGIN_KATE_RUSSELL_CONFIG_SESSION_HPP_
 
-#include "plugin_kate_russell.dpp"
+#include "russell.dpp"
 
 namespace plugin {
 namespace kate {

@@ -53,6 +53,7 @@
 #include <QSizePolicy>
 #include <QTextEdit>
 #include <QLineEdit>
+#include <QProcess>
 
 #include <QComboBox>
 #include <QFrame>

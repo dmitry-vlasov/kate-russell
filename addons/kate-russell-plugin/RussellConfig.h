@@ -1,26 +1,18 @@
-#ifndef KATE_CTAGS_PLUGIN_H
-#define KATE_CTAGS_PLUGIN_H
-/* Description : Kate CTags plugin
- *
- * Copyright (C) 2008-2011 by Kare Sars <kare.sars@iki.fi>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) version 3, or any
- * later version accepted by the membership of KDE e.V. (or its
- * successor approved by the membership of KDE e.V.), which shall
- * act as a proxy defined in Section 6 of version 3 of the license.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/*****************************************************************************/
+/* Project name:    Kate plugin for Russell prover integration               */
+/* File Name:       plugin_kate_russell_mdl_Server.hpp                       */
+/* Description:     an mdl server launcher                                   */
+/* Copyright:       (c) 2011 Dmitri Vlasov                                   */
+/* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
+/* Email:           vlasov at academ.org                                     */
+/* Based on:        (C) 2006-2011 by Kåre Särs <kare.sars@iki.fi>            */
+/* Based on:        (C) 2011 by Ian Wakeling <ian.wakeling@ntlworld.com>     */
+/* URL:             http://mathdevlanguage.sourceforge.net                   */
+/* Modified by:                                                              */
+/* License:         GNU General Public License Version 3                     */
+/*****************************************************************************/
 
+#pragma once
 
 #include <ktexteditor/view.h>
 #include <ktexteditor/document.h>
@@ -30,33 +22,20 @@
 #include <KTextEditor/ConfigPage>
 #include <KTextEditor/Plugin>
 
-#include "kate_ctags_view.h"
-#include "ui_CTagsGlobalConfig.h"
+#include "x_include.hpp"
+#include "ui_RussellConfig.h"
 
-//******************************************************************/
-class KateCTagsPlugin : public KTextEditor::Plugin
-{
-    Q_OBJECT
+namespace plugin {
+namespace kate {
+namespace russell {
 
-    public:
-        explicit KateCTagsPlugin(QObject* parent = 0, const QList<QVariant> & = QList<QVariant>());
-        virtual ~KateCTagsPlugin() {}
+class Plugin;
 
-        QObject *createView(KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
-   
-        int configPages() const Q_DECL_OVERRIDE { return 1; };
-        KTextEditor::ConfigPage *configPage (int number = 0, QWidget *parent = 0) Q_DECL_OVERRIDE;
-        void readConfig();
-        
-        KateCTagsView *m_view;
-};
-
-//******************************************************************/
-class KateCTagsConfigPage : public KTextEditor::ConfigPage {
+class RussellConfigPage : public KTextEditor::ConfigPage {
     Q_OBJECT
 public:
-    explicit KateCTagsConfigPage( QWidget* parent = 0, KateCTagsPlugin *plugin = 0 );
-    ~KateCTagsConfigPage() {}
+    explicit RussellConfigPage(QWidget* parent = nullptr, Plugin *plugin = nullptr);
+    ~RussellConfigPage() {}
 
     QString name() const Q_DECL_OVERRIDE;
     QString fullName() const Q_DECL_OVERRIDE;
@@ -76,10 +55,11 @@ private:
 
     bool listContains(const QString &target);
 
-    QProcess              m_proc;
-    KateCTagsPlugin      *m_plugin;
-    Ui_CTagsGlobalConfig  m_confUi;
+    QProcess         process;
+    Plugin*          plugin;
+    Ui_RussellConfig configUi;
 };
 
-#endif
+}}}
+
 

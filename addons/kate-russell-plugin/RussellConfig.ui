@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CTagsGlobalConfig</class>
- <widget class="QWidget" name="CTagsGlobalConfig">
+ <class>RussellConfig</class>
+ <widget class="QWidget" name="RussellConfig">
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QGroupBox" name="groupBox">

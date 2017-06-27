@@ -18,7 +18,8 @@
 #include <QTcpSocket>
 #include <QListWidgetItem>
 #include <QString>
-#include "plugin_kate_russell.dpp"
+
+#include "russell.dpp"
 
 namespace plugin {
 namespace kate {

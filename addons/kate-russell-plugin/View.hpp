@@ -17,7 +17,8 @@
 
 #include "ui_bottom.h"
 #include <ktexteditor/sessionconfiginterface.h>
-#include "plugin_kate_russell.dpp"
+
+#include "russell.dpp"
 
 namespace plugin {
 namespace kate {
