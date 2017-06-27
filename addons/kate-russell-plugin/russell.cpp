@@ -17,7 +17,6 @@
 
 #include "Client.cpp"
 #include "Combinations.cpp"
-#include "Config.cpp"
 #include "ErrorParser.cpp"
 #include "Icon.cpp"
 #include "Indexes.cpp"
@@ -26,6 +25,7 @@
 #include "Navigation.cpp"
 #include "Outline.cpp"
 #include "Plugin.cpp"
+#include "ProjectConfig.cpp"
 #include "Proof.cpp"
 #include "Server.cpp"
 #include "Session.cpp"
