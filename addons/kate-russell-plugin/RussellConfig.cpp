@@ -17,17 +17,21 @@
 #include <kpluginloader.h>
 #include <kaboutdata.h>
 
-#define DEFAULT_CTAGS_CMD QStringLiteral("AAAA")
-
 namespace plugin {
 namespace kate {
 namespace russell {
 
+const QString& default_host() { static QString host = QStringLiteral("localhost"); return host; }
+int            default_port() { return 808011; }
+const QString& default_invocation() { static QString invoc = QStringLiteral("mdl -d"); return invoc; }
+bool           default_autostart() { return false; }
+
 RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin(plug)
 {
-    configUi.setupUi(this);
-    configUi.cmdEdit->setText(DEFAULT_CTAGS_CMD);
-
+	 configUi.setupUi(this);
+//    configUi.setupUi(this);
+//    configUi.cmdEdit->setText(DEFAULT_CTAGS_CMD);
+/*
     configUi.addButton->setToolTip(i18n("Add a directory to index."));
     configUi.addButton->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
 
@@ -40,10 +44,15 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     connect(configUi.updateDB,  SIGNAL(clicked()), this, SLOT(updateGlobalDB()));
     connect(configUi.addButton, SIGNAL(clicked()), this, SLOT(addGlobalTagTarget()));
     connect(configUi.delButton, SIGNAL(clicked()), this, SLOT(delGlobalTagTarget()));
+*/
+	connect(configUi.resetButton, SIGNAL(clicked()), this, SLOT(resetConfig()));
+	connect(configUi.startButton, SIGNAL(clicked()), this, SLOT(startDaemon()));
+	connect(configUi.stopButton, SIGNAL(clicked()), this, SLOT(stopDaemon()));
+	connect(configUi.checkButton, SIGNAL(clicked()), this, SLOT(checkDaemon()));
 
-    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
+/*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
             this,    SLOT(updateDone(int,QProcess::ExitStatus)));
-    
+*/
     reset();
 }
 
@@ -59,24 +68,49 @@ QIcon RussellConfigPage::icon() const {
     return QIcon::fromTheme(QStringLiteral("text-x-csrc"));
 }
 
+QString RussellConfigPage::host() {
+	KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
+	return config.hasKey(QStringLiteral("DaemonHost")) ? config.readEntry(QStringLiteral("DaemonHost")) : default_host();
+}
+
+int RussellConfigPage::port() {
+	KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
+	if (config.hasKey(QStringLiteral("DaemonPort"))) {
+		QString port_str = config.readEntry(QStringLiteral("DaemonPort"));
+		bool ok = true;
+		int port = port_str.toInt(&ok);
+		if (!ok) {
+			KMessageBox::error(0, i18n("Port \"%1\" is not a decimal number", port_str));
+		}
+		return ok ? port : default_port();
+	} else {
+		return default_port();
+	}
+}
+
+
 void RussellConfigPage::apply() {
     KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
-    config.writeEntry("GlobalCommand", configUi.cmdEdit->text());
-
-    config.writeEntry("GlobalNumTargets", configUi.targetList->count());
-    
+    config.writeEntry("DaemonHost", configUi.hostEdit->text());
+    config.writeEntry("DaemonPort", configUi.portEdit->text());
+    config.writeEntry("DaemonInvocation", configUi.invocationEdit->text());
+    config.writeEntry("DaemonAutostart", configUi.autostartCheckBox->isChecked());
+    /*
     QString nr;
     for (int i=0; i<configUi.targetList->count(); i++) {
         nr = QStringLiteral("%1").arg(i,3);
         config.writeEntry(QStringLiteral("GlobalTarget_")+nr, configUi.targetList->item(i)->text());
-    }
+    }*/
     config.sync();
 }
 
 void RussellConfigPage::reset() {
     KConfigGroup config(KSharedConfig::openConfig(), "Russell");
-    configUi.cmdEdit->setText(config.readEntry(QStringLiteral("GlobalCommand"), DEFAULT_CTAGS_CMD));
-
+    configUi.hostEdit->setText(config.readEntry(QStringLiteral("DaemonHost"), default_host()));
+    configUi.portEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
+    configUi.invocationEdit->setText(config.readEntry(QStringLiteral("DaemonInvocation"), default_invocation()));
+    configUi.autostartCheckBox->setChecked(config.readEntry(QStringLiteral("DaemonAutostart"), default_autostart()));
+/*
     int numEntries = config.readEntry(QStringLiteral("GlobalNumTargets"), 0);
     QString nr;
     QString target;
@@ -87,10 +121,23 @@ void RussellConfigPage::reset() {
             new QListWidgetItem(target, configUi.targetList);
         }
     }
+*/
     config.sync();
 }
 
-void RussellConfigPage::addGlobalTagTarget() {
+void RussellConfigPage::defaults() {
+	configUi.hostEdit->setText(default_host());
+	configUi.portEdit->setText(QString::number(default_port()));
+	configUi.invocationEdit->setText(default_invocation());
+	configUi.autostartCheckBox->setChecked(default_autostart());
+}
+
+void RussellConfigPage::resetConfig() {
+	configUi.hostEdit->setText(default_host());
+	configUi.portEdit->setText(QString::number(default_port()));
+	configUi.invocationEdit->setText(default_invocation());
+	configUi.autostartCheckBox->setChecked(default_autostart());
+/*
     QFileDialog dialog;
     dialog.setFileMode(QFileDialog::Directory);
     //dialog.setMode(KFile::Directory | KFile::Files | KFile::ExistingOnly | KFile::LocalOnly);
@@ -116,29 +163,45 @@ void RussellConfigPage::addGlobalTagTarget() {
             new QListWidgetItem(urls[i], configUi.targetList);
         }
     }
-
+*/
 }
 
-void RussellConfigPage::delGlobalTagTarget() {
-    delete configUi.targetList->currentItem ();
+void RussellConfigPage::startDaemon() {
+    //delete configUi.targetList->currentItem ();
+
+	//QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
+	QString command = configUi.invocationEdit->text();
+    process.start(command);
+
+    if(!process.waitForStarted(500)) {
+        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, process.exitStatus()));
+        return;
+    }
+    QApplication :: setOverrideCursor (QCursor (Qt :: BusyCursor));
 }
 
-bool RussellConfigPage::listContains(const QString &target) {
-    for (int i=0; i<configUi.targetList->count(); i++) {
+void RussellConfigPage::stopDaemon() {
+    /*for (int i=0; i<configUi.targetList->count(); i++) {
         if (configUi.targetList->item(i)->text() == target) {
             return true;
         }
     }
     return false;
+    */
+	process.terminate();
 }
 
-void RussellConfigPage::updateGlobalDB() {
+bool RussellConfigPage::checkDaemon() {
+	configUi.aliveEdit->setText(QStringLiteral("is not running"));
+	return false;
+/*
     if (process.state() != QProcess::NotRunning) {
         return;
     }
 
     QString targets;
     QString target;
+
     for (int i=0; i<configUi.targetList->count(); i++) {
         target = configUi.targetList->item(i)->text();
         if (target.endsWith(QLatin1Char('/')) || target.endsWith(QLatin1Char('\\'))) {
@@ -146,6 +209,7 @@ void RussellConfigPage::updateGlobalDB() {
         }
         targets += target + QLatin1Char(' ');
     }
+
 
     QString file = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QLatin1String("/katectags");
     QDir().mkpath(file);
@@ -164,9 +228,11 @@ void RussellConfigPage::updateGlobalDB() {
         return;
     }
     configUi.updateDB->setDisabled(true);
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-}
 
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+ */
+}
+/*
 void RussellConfigPage::updateDone(int exitCode, QProcess::ExitStatus status) {
     if (status == QProcess::CrashExit) {
         KMessageBox::error(this, i18n("The CTags executable crashed."));
@@ -175,9 +241,9 @@ void RussellConfigPage::updateDone(int exitCode, QProcess::ExitStatus status) {
         KMessageBox::error(this, i18n("The CTags command exited with code %1", exitCode));
     }
     
-    configUi.updateDB->setDisabled(false);
+   // configUi.updateDB->setDisabled(false);
     QApplication::restoreOverrideCursor();
 }
-
+*/
 }}}
 

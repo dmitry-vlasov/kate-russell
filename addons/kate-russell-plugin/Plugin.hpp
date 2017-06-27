@@ -37,8 +37,8 @@ public:
 	QObject *createView (KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
 
 	int configPages() const Q_DECL_OVERRIDE { return 1; };
+
 	KTextEditor::ConfigPage* configPage (int number = 0, QWidget *parent = nullptr) Q_DECL_OVERRIDE;
-	void readConfig();
 };
 
 }

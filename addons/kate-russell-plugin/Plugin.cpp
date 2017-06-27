@@ -54,8 +54,6 @@ namespace russell {
 		if (number != 0) return nullptr;
 		return new RussellConfigPage(parent, this);
 	}
-
-	void Plugin::readConfig() { }
 }
 }
 }

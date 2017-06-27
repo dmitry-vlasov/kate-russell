@@ -43,13 +43,16 @@ public:
     
     void apply() Q_DECL_OVERRIDE;
     void reset() Q_DECL_OVERRIDE;
-    void defaults() Q_DECL_OVERRIDE {}
+    void defaults() Q_DECL_OVERRIDE;
+
+    static QString host();
+    static int     port();
 
 private Q_SLOTS:
-    void addGlobalTagTarget();
-    void delGlobalTagTarget();
-    void updateGlobalDB();
-    void updateDone(int exitCode, QProcess::ExitStatus status);
+    void resetConfig();
+    void startDaemon();
+    void stopDaemon();
+    bool checkDaemon();
 
 private:
 
