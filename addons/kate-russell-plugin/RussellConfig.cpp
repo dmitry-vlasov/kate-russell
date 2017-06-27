@@ -1,3 +1,5 @@
+#include "RussellConfig.hpp"
+
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCheckBox>
@@ -14,7 +16,6 @@
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
 #include <kaboutdata.h>
-#include "RussellConfig.h"
 
 #define DEFAULT_CTAGS_CMD QStringLiteral("AAAA")
 

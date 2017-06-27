@@ -18,6 +18,7 @@
 #include <kpluginfactory.h>
 
 #include "russell.hpp"
+#include "RussellConfig.hpp"
 
 K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<plugin::kate::russell::Plugin>();)
 
@@ -32,25 +33,29 @@ namespace russell {
 	 ****************************/
 
 	Plugin :: Plugin (QObject *parent, const VariantList&) :
-	KTextEditor::Plugin (parent)
-	{
+	KTextEditor::Plugin (parent) {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "Plugin :: Plugin (QObject *parent, const VariantList&):" << std :: endl;
 		#endif
 		//KGlobal :: locale()->insertCatalog ("kate-russell-plugin");
 	}
-	Plugin :: ~ Plugin()
-	{
+	Plugin :: ~ Plugin() {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "Plugin :: ~ Plugin()" << std :: endl;
 		#endif
 	}
 	
 	QObject*
-	Plugin :: createView (KTextEditor::MainWindow* mainWindow)
-	{
+	Plugin :: createView (KTextEditor::MainWindow* mainWindow) {
 		return new View (mainWindow, this);
 	}
+
+	KTextEditor::ConfigPage* Plugin::configPage(int number, QWidget *parent) {
+		if (number != 0) return nullptr;
+		return new RussellConfigPage(parent, this);
+	}
+
+	void Plugin::readConfig() { }
 }
 }
 }
