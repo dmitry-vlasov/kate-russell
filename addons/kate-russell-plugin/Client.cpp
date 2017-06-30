@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "russell.hpp"
+#include "RussellConfig.hpp"
 
 namespace plugin {
 namespace kate {
@@ -32,16 +33,13 @@ namespace mdl{
 	 *	Public members
 	 ****************************/
 
-	Client :: Client (View* view, const Config* config):
+	Client :: Client (View* view):
 	view_ (view),
-	config_ (config),
 	tcpSocket_ (new QTcpSocket (view)),
 	isConnected_ (false),
 	isRunning_ (false),
 	data_ (),
-	messages_ (),
-	host_(),
-	port_ () {
+	messages_ () {
 		setupSlotsAndSignals();
 	}
 	Client ::  ~ Client() {
@@ -90,21 +88,14 @@ namespace mdl{
 			std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
-		host_ = config_->getServerHost();
-		const QString& portString = config_->getServerPort();
-		bool ok = true;
-		port_ = portString.toInt (&ok);
-		if (!ok) {
-			port_ = -1;
-			std :: cout << "non-numeric connection port" << std :: endl;
-			isConnected_ = false;
-		}
-		tcpSocket_->connectToHost (host_, port_);
+		QString host = russell::RussellConfigPage::host();
+		int port = russell::RussellConfigPage::port();
+		tcpSocket_->connectToHost (host, port);
 		isConnected_ = tcpSocket_->waitForConnected();
 		if (!isConnected_) {
 			std :: cout << "not connected to server:" << std :: endl;
 			QTextStream (stdout) << "\t" << tcpSocket_->errorString() << "\n";
-			QTextStream (stdout) << "\thost: " << host_ << "\n";
+			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}
 		return isConnected_;
 	}
@@ -123,12 +114,12 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		if (!Launcher :: checkLocal (config_->getSourceRoot())) {
+		/*if (!Launcher :: checkLocal (config_->getSourceRoot())) {
 			return;
-		}
+		}*/
 		QString globalSourcePath (url.toLocalFile());
 		QString sourcePath = QStringLiteral("./");
-		sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
 
 		QString command = QStringLiteral("setup ");
 		command += QStringLiteral(" --in ");
@@ -143,12 +134,12 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		if (!Launcher :: checkLocal (config_->getSourceRoot())) {
+		/*if (!Launcher :: checkLocal (config_->getSourceRoot())) {
 			return;
-		}
+		}*/
 		QString globalSourcePath (url.toLocalFile());
 		QString sourcePath = QStringLiteral("./");
-		sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
 
 		QString command = QStringLiteral("setup ");
 		command += QStringLiteral(" -w ");

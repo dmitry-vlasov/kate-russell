@@ -15,9 +15,16 @@
 #ifndef PLUGIN_KATE_RUSSELL_DPP_
 #define PLUGIN_KATE_RUSSELL_DPP_
 
+#include <cstdint>
+
 namespace plugin {
 namespace kate {
 namespace russell {
+
+typedef std::uint8_t  uchar;
+typedef std::uint16_t ushort;
+typedef std::uint32_t uint;
+typedef std::uint64_t ulong;
 
 namespace config {
 

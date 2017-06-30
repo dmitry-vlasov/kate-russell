@@ -12,11 +12,9 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_
-#define PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_
+#pragma once
 
 #include <QTcpSocket>
-#include <QListWidgetItem>
 #include <QString>
 
 #include "russell.dpp"
@@ -26,48 +24,31 @@ namespace kate {
 namespace russell {
 namespace mdl {
 
-class Client : public QObject {
-Q_OBJECT
+class Connection : public QObject {
 public :
-	Client (View*);
-	virtual ~ Client();
-	
-	void ready();
-	void execute (const QString&);
-	const QString& getData() const;
-	const QString& getMessages() const;
+	static const Connection& get() { return mod(); }
+	static Connection& mod() { static Connection conn; return conn; }
+
+	void  execute (const QString&);
+	bool  success() const;
+	const QString& data() const;
+	const QString& messages() const;
 	bool connect();
 	void disconnect();
 
-	void readFile();
-	void checkFile();
-	void writeFile();
-	void setupInFile();
-	void setupOutFile();
-	void setupPosition (const int line, const int column);
-	void setupIndex (const int index);
-	void startProving();
-	void expandNode (const long);
-
-Q_SIGNALS:
-	void showServerMessages (QString);
-
-public Q_SLOTS:
-	void executeCommand();
-	void clearConsole();
-
 private :
-	void setupSlotsAndSignals();
+	Connection();
+	virtual ~ Connection();
+
 	void runCommand (const QString&);
 	void readOutput ();
 
-	View*         view_;
-	QTcpSocket*   tcpSocket_;
+	QTcpSocket* tcpSocket_;
 	bool isConnected_;
 	bool isRunning_;
-
 	QString data_;
 	QString messages_;
+	bool    success_;
 };
 
 }
@@ -75,5 +56,4 @@ private :
 }
 }
 
-#endif /* PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_ */
 

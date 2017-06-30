@@ -69,7 +69,7 @@ namespace russell {
 	proof_ (new Proof (mainWindow_, this)),
 
 	launcher_ (new mdl :: Launcher (this, config_)),
-	client_ (new mdl :: Client (this, config_)),
+	client_ (new mdl :: Client (this)),
 	server_ (new mdl :: Server (this, config_)),
 
 	errorParser_ (new ErrorParser (this)),

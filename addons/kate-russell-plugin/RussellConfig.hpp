@@ -53,6 +53,7 @@ private Q_SLOTS:
     void startDaemon();
     void stopDaemon();
     bool checkDaemon();
+    void checkPort(QString&);
 
 private:
 

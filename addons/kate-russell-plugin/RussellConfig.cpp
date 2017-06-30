@@ -1,5 +1,3 @@
-#include "RussellConfig.hpp"
-
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCheckBox>
@@ -16,6 +14,9 @@
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
 #include <kaboutdata.h>
+
+#include "RussellConfig.hpp"
+#include "Connection.hpp"
 
 namespace plugin {
 namespace kate {
@@ -49,6 +50,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi.startButton, SIGNAL(clicked()), this, SLOT(startDaemon()));
 	connect(configUi.stopButton, SIGNAL(clicked()), this, SLOT(stopDaemon()));
 	connect(configUi.checkButton, SIGNAL(clicked()), this, SLOT(checkDaemon()));
+	connect(configUi.portEdit, SIGNAL(textEdited(QString())), this, SLOT(checkPort()));
 
 /*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
             this,    SLOT(updateDone(int,QProcess::ExitStatus)));
@@ -87,7 +89,6 @@ int RussellConfigPage::port() {
 		return default_port();
 	}
 }
-
 
 void RussellConfigPage::apply() {
     KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
@@ -192,8 +193,15 @@ void RussellConfigPage::stopDaemon() {
 }
 
 bool RussellConfigPage::checkDaemon() {
-	configUi.aliveEdit->setText(QStringLiteral("is not running"));
-	return false;
+	mdl::Connection::mod().execute(QStringLiteral("status"));
+	QString status = mdl::Connection::get().messages();
+	if (status.isEmpty()) {
+		configUi.aliveEdit->setText(QStringLiteral("is not running"));
+		return false;
+	} else {
+		configUi.aliveEdit->setText(status);
+		return true;
+	}
 /*
     if (process.state() != QProcess::NotRunning) {
         return;
@@ -231,6 +239,14 @@ bool RussellConfigPage::checkDaemon() {
 
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
  */
+}
+
+void RussellConfigPage::checkPort(QString& port_str) {
+	bool ok = true;
+	port_str.toInt(&ok);
+	if (!ok) {
+		KMessageBox::error(0, i18n("Port \"%1\" is not a decimal number", port_str));
+	}
 }
 /*
 void RussellConfigPage::updateDone(int exitCode, QProcess::ExitStatus status) {
