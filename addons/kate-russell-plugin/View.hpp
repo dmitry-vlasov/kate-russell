@@ -15,7 +15,7 @@
 #ifndef PLUGIN_KATE_RUSSELL_VIEW_HPP_
 #define PLUGIN_KATE_RUSSELL_VIEW_HPP_
 
-#include "ui_bottom.h"
+#include "ui_BottomTab.h"
 #include <ktexteditor/sessionconfiginterface.h>
 
 #include "russell.dpp"
