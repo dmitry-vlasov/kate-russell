@@ -16,6 +16,7 @@
 
 #include "Proof.moc"
 #include "russell.hpp"
+#include "Connection.hpp"
 
 namespace plugin {
 namespace kate {
@@ -124,7 +125,7 @@ namespace russell {
 		russellView_->client()->execute (QString(QStringLiteral("info")));
 		root_ = NULL;
 		proofs_.clear();
-		const QString& output = russellView_->client()->getData();
+		const QString& output =  mdl::Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
@@ -160,7 +161,7 @@ namespace russell {
 
 		// request for the result of grow operation
 		russellView_->client()->execute (QString(QStringLiteral("info")));
-		const QString& output = russellView_->client()->getData();
+		const QString& output = mdl::Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
@@ -219,7 +220,7 @@ namespace russell {
 		russellView_->client()->execute (options);
 		russellView_->client()->execute (QString(QStringLiteral("info")));
 		QString nodeXML;
-		nodeXML += russellView_->client()->getData();
+		nodeXML += mdl::Connection::get().data(); //russellView_->client()->getData();
 		updateXML (nodeXML);
 	}
 	void

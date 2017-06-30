@@ -30,15 +30,8 @@ class Client : public QObject {
 Q_OBJECT
 public :
 	Client (View*);
-	virtual ~ Client();
 	
-	void ready();
-	void execute (const QString&);
-	const QString& getData() const;
-	const QString& getMessages() const;
-	bool connect();
-	void disconnect();
-
+	bool execute(const QString&);
 	void readFile();
 	void checkFile();
 	void writeFile();
@@ -58,16 +51,7 @@ public Q_SLOTS:
 
 private :
 	void setupSlotsAndSignals();
-	void runCommand (const QString&);
-	void readOutput ();
-
-	View*         view_;
-	QTcpSocket*   tcpSocket_;
-	bool isConnected_;
-	bool isRunning_;
-
-	QString data_;
-	QString messages_;
+	View* view_;
 };
 
 }

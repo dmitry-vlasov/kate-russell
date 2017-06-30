@@ -23,6 +23,7 @@
 
 #include "russell.hpp"
 #include "RussellConfig.hpp"
+#include "Connection.hpp"
 
 namespace plugin {
 namespace kate {
@@ -34,76 +35,13 @@ namespace mdl{
 	 ****************************/
 
 	Client :: Client (View* view):
-	view_ (view),
-	tcpSocket_ (new QTcpSocket (view)),
-	isConnected_ (false),
-	isRunning_ (false),
-	data_ (),
-	messages_ () {
+	view_ (view) {
 		setupSlotsAndSignals();
-	}
-	Client ::  ~ Client() {
-		delete tcpSocket_;
-	}
-
-	void
-	Client :: execute (const QString& command)
-	{
-		if (!connect()) {
-			return;
-		}
-#if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
-		QTextStream (stdout) << "========================================\n";
-		QTextStream (stdout) << " about to execute:\n";
-		QTextStream (stdout) << " \t" << command << "\n";
-		QTextStream (stdout) << "========================================\n\n";
-#endif
-		QString consoleCommand = QStringLiteral("> ");
-		consoleCommand += command;
-		QListWidgetItem* commandItem = new QListWidgetItem (consoleCommand);
-		view_->getBottomUi().serverListWidget->addItem (commandItem);
-
-		data_.clear();
-		messages_.clear();
-		runCommand (command);
-		readOutput();
-		disconnect();
-#if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
-		QTextStream (stdout) << "\n\n\n";
-#endif
-	}
-	const QString&
-	Client :: getData() const {
-		return data_;
-	}
-	const QString&
-	Client :: getMessages() const {
-		return messages_;
 	}
 
 	bool
-	Client :: connect()
-	{
-		if (isConnected_) {
-			std :: cout << "already connected to server" << std :: endl;
-			return true;
-		}
-		QString host = russell::RussellConfigPage::host();
-		int port = russell::RussellConfigPage::port();
-		tcpSocket_->connectToHost (host, port);
-		isConnected_ = tcpSocket_->waitForConnected();
-		if (!isConnected_) {
-			std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << tcpSocket_->errorString() << "\n";
-			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
-		}
-		return isConnected_;
-	}
-	void
-	Client :: disconnect()
-	{
-		tcpSocket_->disconnectFromHost();
-		isConnected_ = false;
+	Client :: execute(const QString& command) {
+		return Connection::mod().execute (command);
 	}
 
 	void
@@ -124,7 +62,7 @@ namespace mdl{
 		QString command = QStringLiteral("setup ");
 		command += QStringLiteral(" --in ");
 		command += sourcePath;
-		execute (command);
+		Connection::mod().execute (command);
 	}
 	void
 	Client :: setupOutFile()
@@ -145,7 +83,7 @@ namespace mdl{
 		command += QStringLiteral(" -w ");
 		command += QStringLiteral(" --out ");
 		command += sourcePath;
-		execute (command);
+		Connection::mod().execute (command);
 	}
 	void
 	Client :: setupPosition (const int line, const int column)
@@ -156,7 +94,7 @@ namespace mdl{
 		command += QStringLiteral(" --column ");
 		command += QString :: number (column + 1);
 		command += QStringLiteral(" ");
-		execute (command);
+		Connection::mod().execute (command);
 	}
 	void
 	Client :: setupIndex (const int index)
@@ -165,14 +103,14 @@ namespace mdl{
 		command += QStringLiteral(" --index ");
 		command += QString :: number (index);
 		command += QStringLiteral(" ");
-		execute (command);
+		Connection::mod().execute (command);
 	}
 	void
 	Client :: expandNode (const long node)
 	{
 		QString command = QStringLiteral("expand ");
 		command += QString::number(node);
-		execute (command);
+		Connection::mod().execute (command);
 	}
 
 	/****************************
@@ -213,9 +151,9 @@ namespace mdl{
 			view_->proof()->fell();
 		} else if (reloadProverCommand (command)) {
 			view_->proof()->fell();
-			execute (command);
+			Connection::mod().execute (command);
 		} else {
-			execute (command);
+			Connection::mod().execute (command);
 		}
 	}
 	void
@@ -251,66 +189,6 @@ namespace mdl{
 			this,
 			SLOT (clearConsole())
 		);
-	}
-	void
-	Client :: runCommand (const QString& command)
-	{
-		char *asciiCommand = new char [command.length() + 1];
-		for (int i = 0; i < command.length(); ++ i) {
-			const QChar qch = command[i];
-			asciiCommand [i] = qch.toLatin1();
-		}
-		asciiCommand [command.length()] = '\0';
-		tcpSocket_->write (asciiCommand);
-		if (tcpSocket_->waitForBytesWritten()) {
-			isRunning_ = true;
-		}
-		delete[] asciiCommand;
-	}
-	void
-	Client :: readOutput()
-	{
-		if (tcpSocket_->waitForReadyRead (300000)) {
-			QByteArray read;
-			bool start = true;
-			while (true) {
-				size_t bytesAvailable = 0;
-				if (start || tcpSocket_->waitForReadyRead (3000)) {
-					bytesAvailable = tcpSocket_->bytesAvailable();
-					read.append (tcpSocket_->read (bytesAvailable));
-				}
-				start = false;
-				if (bytesAvailable == 0) {
-					break;
-				}
- 			}
-			const char* buffer = read.data();
-			const size_t size  = read.size();
-
-			// Data is the first part of the received chunk of bytes
-			data_ += QString :: fromUtf8 (buffer);
-			// Messages are the second part of the received chunk of bytes
-			const char* messages = buffer;
-			while (*messages != '\0') {
-				++ messages;
-			}
-			// Shift on one byte, because it is a delimiter: '\0'
-			if (messages != buffer + size) {
-				++ messages;
-				messages_ += QString :: fromUtf8 (messages);
-			}
-#if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
-			QTextStream (stdout) << "read from server: " << size << " bytes \n";
-			QTextStream (stdout) << "------------------\n";
-			QTextStream (stdout) << "data: " << data_.size() <<  " bytes \n";
-			QTextStream (stdout) << data_ << "\n";
-			QTextStream (stdout) << "messages: " << messages_.size() << " bytes  \n";
-			QTextStream (stdout) << messages_ << "\n";
-			QTextStream (stdout) << "------------------\n";
-#endif
-			showServerMessages (messages_);
-		}
-		isRunning_ = false;
 	}
 }
 }

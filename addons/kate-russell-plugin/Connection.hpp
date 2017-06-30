@@ -29,26 +29,24 @@ public :
 	static const Connection& get() { return mod(); }
 	static Connection& mod() { static Connection conn; return conn; }
 
-	void  execute (const QString&);
-	bool  success() const;
-	const QString& data() const;
-	const QString& messages() const;
-	bool connect();
-	void disconnect();
+	bool execute (const QString&);
+	bool success() const { return !code_; }
+	const QString& data() const { return data_; }
+	const QString& messages() const { return messages_; }
+	uint code() const { return code_; }
 
 private :
 	Connection();
 	virtual ~ Connection();
 
-	void runCommand (const QString&);
-	void readOutput ();
+	bool connect();
+	bool runCommand (const QString&);
+	bool readOutput();
 
 	QTcpSocket* tcpSocket_;
-	bool isConnected_;
-	bool isRunning_;
 	QString data_;
 	QString messages_;
-	bool    success_;
+	uint    code_;
 };
 
 }

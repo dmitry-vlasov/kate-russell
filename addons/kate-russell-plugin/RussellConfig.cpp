@@ -50,12 +50,15 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi.startButton, SIGNAL(clicked()), this, SLOT(startDaemon()));
 	connect(configUi.stopButton, SIGNAL(clicked()), this, SLOT(stopDaemon()));
 	connect(configUi.checkButton, SIGNAL(clicked()), this, SLOT(checkDaemon()));
-	connect(configUi.portEdit, SIGNAL(textEdited(QString())), this, SLOT(checkPort()));
+	connect(configUi.portEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPort()));
 
 /*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
             this,    SLOT(updateDone(int,QProcess::ExitStatus)));
 */
     reset();
+    if (configUi.autostartCheckBox->isChecked() && configUi.startButton->isEnabled()) {
+    	startDaemon();
+    }
 }
 
 QString RussellConfigPage::name() const {
@@ -111,6 +114,7 @@ void RussellConfigPage::reset() {
     configUi.portEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
     configUi.invocationEdit->setText(config.readEntry(QStringLiteral("DaemonInvocation"), default_invocation()));
     configUi.autostartCheckBox->setChecked(config.readEntry(QStringLiteral("DaemonAutostart"), default_autostart()));
+
 /*
     int numEntries = config.readEntry(QStringLiteral("GlobalNumTargets"), 0);
     QString nr;
@@ -124,6 +128,7 @@ void RussellConfigPage::reset() {
     }
 */
     config.sync();
+    checkDaemon();
 }
 
 void RussellConfigPage::defaults() {
@@ -131,6 +136,7 @@ void RussellConfigPage::defaults() {
 	configUi.portEdit->setText(QString::number(default_port()));
 	configUi.invocationEdit->setText(default_invocation());
 	configUi.autostartCheckBox->setChecked(default_autostart());
+	checkDaemon();
 }
 
 void RussellConfigPage::resetConfig() {
@@ -138,6 +144,7 @@ void RussellConfigPage::resetConfig() {
 	configUi.portEdit->setText(QString::number(default_port()));
 	configUi.invocationEdit->setText(default_invocation());
 	configUi.autostartCheckBox->setChecked(default_autostart());
+	checkDaemon();
 /*
     QFileDialog dialog;
     dialog.setFileMode(QFileDialog::Directory);
@@ -174,14 +181,18 @@ void RussellConfigPage::startDaemon() {
 	QString command = configUi.invocationEdit->text();
     process.start(command);
 
-    if(!process.waitForStarted(500)) {
+    if(!process.waitForStarted(100)) {
         KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, process.exitStatus()));
         return;
     }
-    QApplication :: setOverrideCursor (QCursor (Qt :: BusyCursor));
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    sleep(1);
+    QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+    checkDaemon();
 }
 
 void RussellConfigPage::stopDaemon() {
+	mdl::Connection::mod().execute(QStringLiteral("exit"));
     /*for (int i=0; i<configUi.targetList->count(); i++) {
         if (configUi.targetList->item(i)->text() == target) {
             return true;
@@ -189,19 +200,16 @@ void RussellConfigPage::stopDaemon() {
     }
     return false;
     */
-	process.terminate();
+	//process.terminate();
+	checkDaemon();
 }
 
 bool RussellConfigPage::checkDaemon() {
-	mdl::Connection::mod().execute(QStringLiteral("status"));
-	QString status = mdl::Connection::get().messages();
-	if (status.isEmpty()) {
-		configUi.aliveEdit->setText(QStringLiteral("is not running"));
-		return false;
-	} else {
-		configUi.aliveEdit->setText(status);
-		return true;
-	}
+	bool ret = mdl::Connection::mod().execute(QStringLiteral("status"));
+	configUi.aliveEdit->setText(ret ? mdl::Connection::get().messages() : QStringLiteral("is not running"));
+	configUi.stopButton->setEnabled(ret);
+	configUi.startButton->setEnabled(!ret);
+	return ret;
 /*
     if (process.state() != QProcess::NotRunning) {
         return;

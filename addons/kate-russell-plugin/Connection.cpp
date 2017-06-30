@@ -82,21 +82,19 @@ struct Return {
 
 	Connection :: Connection():
 	tcpSocket_ (new QTcpSocket()),
-	isConnected_ (false),
-	isRunning_ (false),
 	data_ (),
 	messages_ (),
-	success_(true) {
+	code_(0) {
 	}
 	Connection ::  ~ Connection() {
 		delete tcpSocket_;
 	}
 
-	void
+	bool
 	Connection :: execute (const QString& command)
 	{
 		if (!connect()) {
-			return;
+			return false;
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "========================================\n";
@@ -104,57 +102,45 @@ struct Return {
 		QTextStream (stdout) << " \t" << command << "\n";
 		QTextStream (stdout) << "========================================\n\n";
 #endif
-		QString consoleCommand = QStringLiteral("> ");
-		consoleCommand += command;
-
 		data_.clear();
 		messages_.clear();
-		runCommand (command);
-		readOutput();
-		//disconnect();
+		code_ = 1;
+		if (!runCommand(command)) return false;
+		if (!readOutput()) return false;
+		if (command == QStringLiteral("exit")) {
+			tcpSocket_->disconnectFromHost();
+		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "\n\n\n";
 #endif
-	}
-	const QString&
-	Connection :: data() const {
-		return data_;
-	}
-	const QString&
-	Connection :: messages() const {
-		return messages_;
+		return !code_;
 	}
 
 	bool
 	Connection :: connect()
 	{
-		if (isConnected_) {
+		if (tcpSocket_->state() == QTcpSocket::SocketState::ConnectedState) {
 			std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
+		tcpSocket_->disconnectFromHost();
 		QString host = russell::RussellConfigPage::host();
 		int port = russell::RussellConfigPage::port();
 		tcpSocket_->connectToHost (host, port);
-		isConnected_ = tcpSocket_->waitForConnected();
-		if (!isConnected_) {
+		bool isConnected = tcpSocket_->waitForConnected(100);
+		if (!isConnected) {
 			std :: cout << "not connected to server:" << std :: endl;
 			QTextStream (stdout) << "\t" << tcpSocket_->errorString() << "\n";
 			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}
-		return isConnected_;
-	}
-	void
-	Connection :: disconnect()
-	{
-		tcpSocket_->disconnectFromHost();
-		isConnected_ = false;
+		return isConnected;
 	}
 
 	/****************************
 	 *	Private members
 	 ****************************/
 
-	void
+	bool
 	Connection :: runCommand (const QString& command)
 	{
 		uint msg_len = command.length() + sizeof(uint);
@@ -165,20 +151,19 @@ struct Return {
 			asciiCommand [i + sizeof(uint)] = qch.toLatin1();
 		}
 		tcpSocket_->write (asciiCommand, msg_len);
-		if (tcpSocket_->waitForBytesWritten()) {
-			isRunning_ = true;
-		}
+		bool written = tcpSocket_->waitForBytesWritten(100);
 		delete[] asciiCommand;
+		return written;
 	}
-	void
+	bool
 	Connection :: readOutput()
 	{
-		if (tcpSocket_->waitForReadyRead (3000)) {
+		if (tcpSocket_->waitForReadyRead (100)) {
 			QByteArray read;
 			bool start = true;
 			while (true) {
 				size_t bytesAvailable = 0;
-				if (start || tcpSocket_->waitForReadyRead (3000)) {
+				if (start || tcpSocket_->waitForReadyRead (100)) {
 					bytesAvailable = tcpSocket_->bytesAvailable();
 					read.append (tcpSocket_->read (bytesAvailable));
 				}
@@ -189,9 +174,9 @@ struct Return {
  			}
 			std::string str(read.data() + sizeof(uint), read.size() - sizeof(uint));
 			Return ret = Return::from_string(str);
-			success_ = ret.success();
 			data_ += QString :: fromUtf8(ret.data.c_str(), ret.data.size());
 			messages_ += QString :: fromUtf8(ret.msg.c_str(), ret.msg.size());
+			code_ = ret.code;
 
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 			QTextStream (stdout) << "read from server: " << read.size() << " bytes \n";
@@ -203,8 +188,9 @@ struct Return {
 			QTextStream (stdout) << "------------------\n";
 #endif
 			//showServerMessages (messages_);
+			return true;
 		}
-		isRunning_ = false;
+		return false;
 	}
 }
 }
