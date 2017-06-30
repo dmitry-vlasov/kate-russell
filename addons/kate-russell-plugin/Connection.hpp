@@ -34,6 +34,7 @@ public :
 	const QString& data() const { return data_; }
 	const QString& messages() const { return messages_; }
 	uint code() const { return code_; }
+	bool established() { return execute(QStringLiteral("status")); }
 
 private :
 	Connection();
