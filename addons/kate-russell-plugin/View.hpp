@@ -151,7 +151,6 @@ private:
 
 	mdl :: Launcher* launcher_;
 	mdl :: Client*   client_;
-	mdl :: Server*   server_;
 
 	ErrorParser* errorParser_;
 	QString      output_;

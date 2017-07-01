@@ -27,21 +27,14 @@ namespace mdl {
 
 class Server {
 public :
-	Server (View*, const Config*);
-	virtual ~ Server();
-
-	bool start();
-	bool stop();
-	KProcess* process();
-	bool isRun() const;
+	static bool start();
+	static bool stop();
+	static KProcess& process() { return mod().process_; }
+	static bool is_running() { return mod().process_.state() == QProcess::Running; }
 
 private :
-	bool lookForRunning();
-
-	View*         view_;
-	const Config* config_;
-	KProcess*     process_;
-	bool          isRun_;
+	static Server& mod() { static Server server; return server; }
+	KProcess process_;
 };
 
 }

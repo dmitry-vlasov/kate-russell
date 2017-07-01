@@ -18,6 +18,8 @@
 #include <QByteArray>
 
 #include "russell.hpp"
+#include "Connection.hpp"
+#include "RussellConfig.hpp"
 
 namespace plugin {
 namespace kate {
@@ -28,25 +30,24 @@ namespace mdl {
 	 *	Public members
 	 ****************************/
 
-	Server :: Server (View* view, const Config* config):
-	view_ (view),
-	config_ (config),
-	process_ (new KProcess()),
-	isRun_ (false) {
-	}
-	Server ::  ~ Server() {
-		if (process_ != NULL) {
-			delete process_;
-		}
-	}
-
 	bool
 	Server :: start()
 	{
-		if (lookForRunning()) {
+		if (Connection::mod().established() || mod().process_.state() != QProcess::NotRunning) {
 			return true;
 		}
-		QString directory (config_->getSourceRoot());
+		QString command = RussellConfig::daemon_invocation();
+		mod().process_.setShellCommand (command);
+		mod().process_.start();
+
+		if(!mod().process_.waitForStarted(100)) {
+			KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, mod().process_.exitStatus()));
+			mod().process_.terminate();
+			return false;
+		}
+		return true;
+/*
+		QString invocation  (config_->getSourceRoot());
 		QString command (config_->getProver());
 		if (command.isEmpty()) {
 			KMessageBox :: sorry (0, i18n ("No prover is specified."));
@@ -72,34 +73,22 @@ namespace mdl {
 		}
 		isRun_ = true;
 		return true;
+*/
 	}
 	bool
 	Server :: stop()
 	{
-		isRun_ = false;
-		if (process_->state() != QProcess :: NotRunning) {
-			process_->terminate();
+		if (mod().process_.state() != QProcess :: NotRunning) {
+			mod().process_.terminate();
 			return true;
 		}
 		return false;
 	}
-	KProcess*
-	Server :: process() {
-		return process_;
-	}
-	bool
-	Server :: isRun() const {
-		return isRun_;
-	}
-
-	/****************************
-	 *	Public slots
-	 ****************************/
 
 	/****************************
 	 *	Private members
 	 ****************************/
-
+/*
 	bool
 	Server :: lookForRunning()
 	{
@@ -128,6 +117,7 @@ namespace mdl {
 		}
 		return false;
 	}
+*/
 }
 }
 }

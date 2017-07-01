@@ -47,6 +47,7 @@ public:
 
     static QString host();
     static int     port();
+    static QString daemon_invocation();
 
 private Q_SLOTS:
     void resetConfig();
@@ -59,9 +60,8 @@ private:
 
     bool listContains(const QString &target);
 
-    QProcess         process;
-    Plugin*          plugin;
-    Ui_RussellConfig configUi;
+    Plugin*          plugin_;
+    Ui_RussellConfig configUi_;
 };
 
 }}}

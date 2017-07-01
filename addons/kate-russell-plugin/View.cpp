@@ -70,7 +70,6 @@ namespace russell {
 
 	launcher_ (new mdl :: Launcher (this, config_)),
 	client_ (new mdl :: Client (this)),
-	server_ (new mdl :: Server (this, config_)),
 
 	errorParser_ (new ErrorParser (this)),
 	output_ (),
@@ -116,7 +115,6 @@ namespace russell {
 
 		delete launcher_;
 		delete client_;
-		delete server_;
 
 		delete errorParser_;
 	}
@@ -154,10 +152,6 @@ namespace russell {
 	mdl :: Client*
 	View :: client() {
 		return client_;
-	}
-	mdl :: Server*
-	View :: server() {
-		return server_;
 	}
 	Proof*
 	View :: proof() {
@@ -347,7 +341,7 @@ namespace russell {
 	View :: slotProveInteractive()
 	{
 		config_->synchronize();
-		if (server_->isRun()) {
+		if (mdl::Server::is_running()) {
 			state_ = PROVING;
 			client_->execute(QStringLiteral("option --in prop.rus"));
 			client_->execute(QStringLiteral("read"));
@@ -413,7 +407,7 @@ namespace russell {
 	{
 		config_->synchronize();
 
-		if (!server_->isRun() && !server_->start()) {
+		if (!mdl::Server::is_running()) {
 			KMessageBox :: sorry (0, i18n ("Server cound not start."));
 			return;
 		}
@@ -431,7 +425,7 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		if (!server_->isRun()) {
+		if (!mdl::Server::is_running()) {
 			KMessageBox :: sorry (0, i18n ("Server could not start."));
 			return;
 		}
@@ -450,13 +444,13 @@ namespace russell {
 	View :: slotManageServer()
 	{
 		QAction* action = NULL;
-		if (server_->isRun()) {
-			server_->stop();
+		if (mdl::Server::is_running()) {
+			mdl::Server::stop();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Start mdl server"));
 			action->setIcon (QIcon (QStringLiteral("go-next")));
 		} else {
-			server_->start();
+			mdl::Server::start();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Stop mdl server"));
 			action->setIcon (QIcon (QStringLiteral("application-exit")));
@@ -668,7 +662,7 @@ namespace russell {
 	void
 	View :: slotReadServerStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (server_->process()->readAllStandardOutput());
+		QString serverStdOut = QString :: fromUtf8 (mdl::Server::process().readAllStandardOutput());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
 		int row = bottomUi_.serverListWidget->count();
 		bottomUi_.serverListWidget->insertItems (row, newLines);
@@ -678,7 +672,7 @@ namespace russell {
 	void 
 	View :: slotReadServerStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (server_->process()->readAllStandardError());
+		QString serverStdOut = QString :: fromUtf8 (mdl::Server::process().readAllStandardError());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
 		int row = bottomUi_.serverListWidget->count();
 		bottomUi_.serverListWidget->insertItems (row - 1, newLines);
@@ -1030,8 +1024,8 @@ namespace russell {
 		connect (launcher_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
 		connect (launcher_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
 
-		connect (server_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
-		connect (server_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));
+		connect (&mdl::Server::process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
+		connect (&mdl::Server::process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));
 		connect (client_, SIGNAL (showServerMessages(QString)), this, SLOT (slotShowServerMessages(QString)));
 
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
