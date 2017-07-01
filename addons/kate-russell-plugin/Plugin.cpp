@@ -52,7 +52,7 @@ namespace russell {
 
 	KTextEditor::ConfigPage* Plugin::configPage(int number, QWidget *parent) {
 		if (number != 0) return nullptr;
-		return new RussellConfigPage(parent, this);
+		return new RussellConfig(parent, this);
 	}
 }
 }

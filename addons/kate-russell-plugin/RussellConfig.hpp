@@ -31,11 +31,11 @@ namespace russell {
 
 class Plugin;
 
-class RussellConfigPage : public KTextEditor::ConfigPage {
+class RussellConfig : public KTextEditor::ConfigPage {
     Q_OBJECT
 public:
-    explicit RussellConfigPage(QWidget* parent = nullptr, Plugin *plugin = nullptr);
-    ~RussellConfigPage() {}
+    explicit RussellConfig(QWidget* parent = nullptr, Plugin *plugin = nullptr);
+    ~RussellConfig() {}
 
     QString name() const Q_DECL_OVERRIDE;
     QString fullName() const Q_DECL_OVERRIDE;

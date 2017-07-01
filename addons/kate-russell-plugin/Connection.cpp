@@ -124,8 +124,8 @@ struct Return {
 			return true;
 		}
 		tcpSocket_->disconnectFromHost();
-		QString host = russell::RussellConfigPage::host();
-		int port = russell::RussellConfigPage::port();
+		QString host = russell::RussellConfig::host();
+		int port = russell::RussellConfig::port();
 		tcpSocket_->connectToHost (host, port);
 		bool isConnected = tcpSocket_->waitForConnected(100);
 		if (!isConnected) {

@@ -27,7 +27,7 @@ int            default_port() { return 808011; }
 const QString& default_invocation() { static QString invoc = QStringLiteral("mdl -d"); return invoc; }
 bool           default_autostart() { return false; }
 
-RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin(plug)
+RussellConfig::RussellConfig(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin(plug)
 {
 	 configUi.setupUi(this);
 //    configUi.setupUi(this);
@@ -61,24 +61,24 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     }
 }
 
-QString RussellConfigPage::name() const {
+QString RussellConfig::name() const {
     return i18n("Russell");
 }
 
-QString RussellConfigPage::fullName() const {
+QString RussellConfig::fullName() const {
     return i18n("Russell Settings");
 }
 
-QIcon RussellConfigPage::icon() const {
+QIcon RussellConfig::icon() const {
     return QIcon::fromTheme(QStringLiteral("text-x-csrc"));
 }
 
-QString RussellConfigPage::host() {
+QString RussellConfig::host() {
 	KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
 	return config.hasKey(QStringLiteral("DaemonHost")) ? config.readEntry(QStringLiteral("DaemonHost")) : default_host();
 }
 
-int RussellConfigPage::port() {
+int RussellConfig::port() {
 	KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
 	if (config.hasKey(QStringLiteral("DaemonPort"))) {
 		QString port_str = config.readEntry(QStringLiteral("DaemonPort"));
@@ -93,7 +93,7 @@ int RussellConfigPage::port() {
 	}
 }
 
-void RussellConfigPage::apply() {
+void RussellConfig::apply() {
     KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
     config.writeEntry("DaemonHost", configUi.hostEdit->text());
     config.writeEntry("DaemonPort", configUi.portEdit->text());
@@ -108,7 +108,7 @@ void RussellConfigPage::apply() {
     config.sync();
 }
 
-void RussellConfigPage::reset() {
+void RussellConfig::reset() {
     KConfigGroup config(KSharedConfig::openConfig(), "Russell");
     configUi.hostEdit->setText(config.readEntry(QStringLiteral("DaemonHost"), default_host()));
     configUi.portEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
@@ -131,7 +131,7 @@ void RussellConfigPage::reset() {
     checkDaemon();
 }
 
-void RussellConfigPage::defaults() {
+void RussellConfig::defaults() {
 	configUi.hostEdit->setText(default_host());
 	configUi.portEdit->setText(QString::number(default_port()));
 	configUi.invocationEdit->setText(default_invocation());
@@ -139,7 +139,7 @@ void RussellConfigPage::defaults() {
 	checkDaemon();
 }
 
-void RussellConfigPage::resetConfig() {
+void RussellConfig::resetConfig() {
 	configUi.hostEdit->setText(default_host());
 	configUi.portEdit->setText(QString::number(default_port()));
 	configUi.invocationEdit->setText(default_invocation());
@@ -174,7 +174,7 @@ void RussellConfigPage::resetConfig() {
 */
 }
 
-void RussellConfigPage::startDaemon() {
+void RussellConfig::startDaemon() {
     //delete configUi.targetList->currentItem ();
 
 	//QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
@@ -191,7 +191,7 @@ void RussellConfigPage::startDaemon() {
     checkDaemon();
 }
 
-void RussellConfigPage::stopDaemon() {
+void RussellConfig::stopDaemon() {
 	mdl::Connection::mod().execute(QStringLiteral("exit"));
     /*for (int i=0; i<configUi.targetList->count(); i++) {
         if (configUi.targetList->item(i)->text() == target) {
@@ -204,7 +204,7 @@ void RussellConfigPage::stopDaemon() {
 	checkDaemon();
 }
 
-bool RussellConfigPage::checkDaemon() {
+bool RussellConfig::checkDaemon() {
 	bool ret = mdl::Connection::mod().execute(QStringLiteral("status"));
 	configUi.aliveEdit->setText(ret ? mdl::Connection::get().messages() : QStringLiteral("is not running"));
 	configUi.stopButton->setEnabled(ret);
@@ -249,7 +249,7 @@ bool RussellConfigPage::checkDaemon() {
  */
 }
 
-void RussellConfigPage::checkPort(QString& port_str) {
+void RussellConfig::checkPort(QString& port_str) {
 	bool ok = true;
 	port_str.toInt(&ok);
 	if (!ok) {
