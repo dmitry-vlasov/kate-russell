@@ -42,7 +42,7 @@ public :
 
 private :
 	friend class Ui;
-	friend class Config;
+	friend class ConfigOld;
 
 	void writeCombinations (KConfigGroup& configGroup) const;
 	void readCombinations (const KConfigGroup& configGroup);

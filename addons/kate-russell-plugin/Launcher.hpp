@@ -24,7 +24,7 @@ namespace mdl {
 
 class Launcher { 
 public :
-	Launcher (View*, const Config*);
+	Launcher (View*, const ConfigOld*);
 	virtual ~ Launcher();
 	
 	bool prove (const bool clearOutput = true);
@@ -52,7 +52,7 @@ private :
 	bool startProcess (const QString&, const QString&);
 
 	View*         view_;
-	const Config* config_;
+	const ConfigOld* config_;
 	KProcess*     process_;
 };
 

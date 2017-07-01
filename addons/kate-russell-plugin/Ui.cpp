@@ -31,7 +31,7 @@ namespace config {
 	(
 		View* view,
 		QWidget* parent,
-		Config* config,
+		ConfigOld* config,
 		Combinations* combs
 	):
 	QWidget (parent),
@@ -742,7 +742,7 @@ namespace config {
 		const QString newUniverse
 		(
 			currentUniverse.isEmpty() ?
-			QFileDialog :: getOpenFileName (this, i18n("Source Universe"), Config :: defaultSourceUniverse_) :
+			QFileDialog :: getOpenFileName (this, i18n("Source Universe"), ConfigOld :: defaultSourceUniverse_) :
 			QFileDialog :: getOpenFileName (this, i18n("Source Universe"), currentUniverse)
 		);
 		sourceUniverses_->setItemText (currentIndex, newUniverse);
@@ -757,7 +757,7 @@ namespace config {
 		const QString newProver
 		(
 			currentProver.isEmpty() ?
-			QFileDialog :: getOpenFileName (this, i18n("Prover"), Config :: defaultProver_) :
+			QFileDialog :: getOpenFileName (this, i18n("Prover"), ConfigOld :: defaultProver_) :
 			QFileDialog :: getOpenFileName (this, i18n("Prover"), currentProver)
 		);
 		provers_->setItemText (currentIndex, newProver);
@@ -772,7 +772,7 @@ namespace config {
 		const QString newVerifier
 		(
 			currentVerifier.isEmpty() ?
-			QFileDialog :: getOpenFileName (this, i18n("Verifier"), Config :: defaultVerifier_) :
+			QFileDialog :: getOpenFileName (this, i18n("Verifier"), ConfigOld :: defaultVerifier_) :
 			QFileDialog :: getOpenFileName (this, i18n("Verifier"), currentVerifier)
 		);
 		verifiers_->setItemText (currentIndex, newVerifier);

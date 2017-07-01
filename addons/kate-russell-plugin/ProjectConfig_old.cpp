@@ -26,7 +26,7 @@ namespace config {
 	 *	Public members
 	 ****************************/
 
-	Config :: Config() :
+	ConfigOld :: ConfigOld() :
 	ui_ (NULL),
 	sourceRootList_(),
 	targetRootList_(),
@@ -42,12 +42,12 @@ namespace config {
 	serverPortList_ (),
 	indexes_ (new Indexes ()) {
 	}
-	Config :: ~ Config() {
+	ConfigOld :: ~ ConfigOld() {
 		delete indexes_;
 	}
 
 	void
-	Config :: setSane()
+	ConfigOld :: setSane()
 	{
 		if (sourceRootList_.isEmpty()) {
 			sourceRootList_ << defaultSourceRoot_;
@@ -89,13 +89,13 @@ namespace config {
 		indexes_->setSane (this);
 	}
 	void
-	Config :: setUi (const Ui* ui)
+	ConfigOld :: setUi (const Ui* ui)
 	{
 		ui_ = ui;
 		indexes_->setUi (ui);
 	}
 	void
-	Config :: synchronize()
+	ConfigOld :: synchronize()
 	{
 		indexes_->synchronize();
 
@@ -156,7 +156,7 @@ namespace config {
 		#endif
 	}
 	void
-	Config :: showToCout() const
+	ConfigOld :: showToCout() const
 	{
 		std :: cout << "Config :: showToCout()" << std :: endl;
 		showStringListToCout (sourceRootList_, "SourceRoot");
@@ -177,61 +177,61 @@ namespace config {
 	}
 
 	const QString&
-	Config :: getSourceRoot() const {
+	ConfigOld :: getSourceRoot() const {
 		return sourceRootList_ [indexes_->sourceRootIndex_];
 	}
 	const QString& 
-	Config :: getTargetRoot() const {
+	ConfigOld :: getTargetRoot() const {
 		return targetRootList_ [indexes_->targetRootIndex_];
 	}
 	const QString&
-	Config :: getSourceUniverse() const {
+	ConfigOld :: getSourceUniverse() const {
 		return sourceUniverseList_ [indexes_->sourceUniverseIndex_];
 	}
 	const QString& 
-	Config :: getProver() const {
+	ConfigOld :: getProver() const {
 		return proverList_ [indexes_->proverIndex_];
 	}
 	const QString& 
-	Config :: getVerifier() const {
+	ConfigOld :: getVerifier() const {
 		return verifierList_ [indexes_->verifierIndex_];
 	}
 	const QString& 
-	Config :: getProveOption() const {
+	ConfigOld :: getProveOption() const {
 		return proveOptionList_ [indexes_->proveOptionIndex_];
 	}
 	const QString& 
-	Config :: getVerifyOption() const {
+	ConfigOld :: getVerifyOption() const {
 		return verifyOptionList_ [indexes_->verifyOptionIndex_];
 	}
 	const QString& 
-	Config :: getTranslateOption() const {
+	ConfigOld :: getTranslateOption() const {
 		return translateOptionList_ [indexes_->translateOptionIndex_];
 	}
 	const QString& 
-	Config :: getLookupOption() const {
+	ConfigOld :: getLookupOption() const {
 		return lookupOptionList_ [indexes_->lookupOptionIndex_];
 	}
 	const QString&
-	Config :: getLearnOption() const {
+	ConfigOld :: getLearnOption() const {
 		return learnOptionList_ [indexes_->learnOptionIndex_];
 	}
 	const QString&
-	Config :: getServerHost() const {
+	ConfigOld :: getServerHost() const {
 		return serverHostList_ [indexes_->serverHostIndex_];
 	}
 	const QString&
-	Config :: getServerPort() const {
+	ConfigOld :: getServerPort() const {
 		return serverPortList_ [indexes_->serverPortIndex_];
 	}
 
 	Indexes&
-	Config :: indexes() {
+	ConfigOld :: indexes() {
 		return *indexes_;
 	}
 
 	void
-	Config :: readSessionConfig (const KConfigGroup& configGroup)
+	ConfigOld :: readSessionConfig (const KConfigGroup& configGroup)
 	{
 		indexes_->readSessionConfig (configGroup);
 
@@ -258,7 +258,7 @@ namespace config {
 		#endif
 	}
 	void
-	Config :: writeSessionConfig (KConfigGroup& configGroup) const
+	ConfigOld :: writeSessionConfig (KConfigGroup& configGroup) const
 	{
 		indexes_->writeSessionConfig (configGroup);
 
@@ -288,7 +288,7 @@ namespace config {
 	 ****************************/
 
 	void
-	Config :: showStringListToCout (const QStringList& stirngList, const char* name) const
+	ConfigOld :: showStringListToCout (const QStringList& stirngList, const char* name) const
 	{
 		std :: cout << name << ":" << std :: endl;
 		for (int i = 0; i < stirngList.count(); ++ i) {
@@ -301,20 +301,20 @@ namespace config {
 	 *	Private static attributes
 	 *************************************/
 
-	const QString Config :: defaultSourceRoot_ = i18n("");
-	const QString Config :: defaultTargetRoot_ = i18n("");
-	const QString Config :: defaultSourceUniverse_ = i18n("");
-	const QString Config :: defaultProver_     = i18n("mdl");
-	const QString Config :: defaultVerifier_   = i18n("smm");
+	const QString ConfigOld :: defaultSourceRoot_ = i18n("");
+	const QString ConfigOld :: defaultTargetRoot_ = i18n("");
+	const QString ConfigOld :: defaultSourceUniverse_ = i18n("");
+	const QString ConfigOld :: defaultProver_     = i18n("mdl");
+	const QString ConfigOld :: defaultVerifier_   = i18n("smm");
 
-	const QString Config :: defaultProveOption_     = i18n("-v -w %f");
-	const QString Config :: defaultTranslateOption_ = i18n("-v -w -o %t %s");
-	const QString Config :: defaultVerifyOption_    = i18n("-v %f");
-	const QString Config :: defaultLookupOption_    = i18n("--line %l --column %c %f");
-	const QString Config :: defaultLearnOption_     = i18n("-v -w --universe %u %f");
+	const QString ConfigOld :: defaultProveOption_     = i18n("-v -w %f");
+	const QString ConfigOld :: defaultTranslateOption_ = i18n("-v -w -o %t %s");
+	const QString ConfigOld :: defaultVerifyOption_    = i18n("-v %f");
+	const QString ConfigOld :: defaultLookupOption_    = i18n("--line %l --column %c %f");
+	const QString ConfigOld :: defaultLearnOption_     = i18n("-v -w --universe %u %f");
 
-	const QString Config :: defaultServerHost_ = i18n("localhost");
-	const QString Config :: defaultServerPort_ = i18n("1872");
+	const QString ConfigOld :: defaultServerHost_ = i18n("localhost");
+	const QString ConfigOld :: defaultServerPort_ = i18n("1872");
 }
 }
 }

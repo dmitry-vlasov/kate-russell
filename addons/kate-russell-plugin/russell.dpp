@@ -31,12 +31,12 @@ namespace config {
 	//#define DEBUG_CONFIG
 
 	class Combinations;
-	class Config;
+	class ConfigOld;
 	class Indexes;
 	class Session;
 	class Ui;
 }
-	using config :: Config;
+	using config :: ConfigOld;
 
 namespace mdl {
 

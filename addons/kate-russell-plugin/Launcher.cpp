@@ -26,7 +26,7 @@ namespace mdl {
 	 *	Public members
 	 ****************************/
 
-	Launcher :: Launcher (View* view, const Config* config):
+	Launcher :: Launcher (View* view, const ConfigOld* config):
 	view_ (view),
 	config_ (config),
 	process_ (new KProcess()) {

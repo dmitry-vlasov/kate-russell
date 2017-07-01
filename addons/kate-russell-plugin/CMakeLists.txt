@@ -14,7 +14,7 @@ add_subdirectory(syntax)
 
 set (katerussell_SRC 
 	Combinations.cpp
-	ProjectConfig.cpp
+	ProjectConfig_old.cpp
 	RussellConfig.cpp
 	Indexes.cpp
 	Session.cpp

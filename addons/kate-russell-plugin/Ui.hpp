@@ -29,7 +29,7 @@ public:
 	(
 		View* view,
 		QWidget* parent,
-		Config* config,
+		ConfigOld* config,
 		Combinations* combinations
 	);
 	virtual ~ Ui();
@@ -93,7 +93,7 @@ private Q_SLOTS:
     
 private:
 	friend class Combinations;
-	friend class Config;
+	friend class ConfigOld;
 	friend class Indexes;
 
 	void blockSignals (const bool value);
@@ -108,7 +108,7 @@ private:
 	//void setSideLayout();
 
 	View*   view_;
-	Config* config_;
+	ConfigOld* config_;
 	Combinations* combs_;
 
 	// Combo boxes

@@ -83,7 +83,7 @@ namespace config {
 	}
 
 	void
-	Indexes :: setSane (const Config* config)
+	Indexes :: setSane (const ConfigOld* config)
 	{
 		setSane (sourceRootIndex_, config->sourceRootList_);
 		setSane (targetRootIndex_, config->targetRootList_);

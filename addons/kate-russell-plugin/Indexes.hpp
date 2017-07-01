@@ -29,7 +29,7 @@ public :
 	Indexes (const KConfigGroup&, const int, const Ui* = NULL);
 	virtual ~ Indexes();
 
-	void setSane (const Config*);
+	void setSane (const ConfigOld*);
 	void setUi (const Ui*);
 	void synchronize();
 	void readSessionConfig (const KConfigGroup&, const int i = -1);

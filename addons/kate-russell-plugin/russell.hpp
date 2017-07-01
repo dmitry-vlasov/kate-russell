@@ -24,7 +24,7 @@
 #include "Kind.hpp"
 
 #include "Combinations.hpp"
-#include "ProjectConfig.hpp"
+#include "ProjectConfigOld.hpp"
 #include "Indexes.hpp"
 #include "Session.hpp"
 #include "Ui.hpp"

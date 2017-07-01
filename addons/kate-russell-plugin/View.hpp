@@ -24,7 +24,7 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
-class View : public QObject, public KXMLGUIClient, public KTextEditor::SessionConfigInterface /*public KTextEditor::View , public KXMLGUIClient */ {
+class View : public QObject, public KXMLGUIClient, public KTextEditor::SessionConfigInterface {
 Q_OBJECT
 Q_INTERFACES(KTextEditor::SessionConfigInterface)
 public:
@@ -58,7 +58,7 @@ public:
 	KTextEditor::MainWindow* mainWindow() const { return mainWindow_; }
 
 	const QString& getOutput() const;
-	const Config* getConfig() const;
+	const ConfigOld* getConfig() const;
 	void mineOutline (const QString&);
 	void mineStructure (const QString&);
 	void mineTypeSystem (const QString&);
@@ -140,7 +140,7 @@ private:
 	QAction* proveAutomatically_;
 	QAction* proveInteractive_;
 
-	Config* config_;
+	ConfigOld* config_;
 	config :: Combinations* combinations_;
 	config :: Ui* configUi_;
 

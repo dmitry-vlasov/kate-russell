@@ -51,7 +51,7 @@ namespace russell {
 	proveAutomatically_ (NULL),
 	proveInteractive_(NULL),
 
-	config_ (new Config()),
+	config_ (new ConfigOld()),
 	combinations_ (new config :: Combinations()),
 	configUi_
 	(
@@ -162,7 +162,7 @@ namespace russell {
 	View :: getOutput() const {
 		return output_;
 	}
-	const Config*
+	const ConfigOld*
 	View :: getConfig() const {
 		return config_;
 	}

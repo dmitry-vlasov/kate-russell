@@ -25,7 +25,7 @@
 #include "Navigation.cpp"
 #include "Outline.cpp"
 #include "Plugin.cpp"
-#include "ProjectConfig.cpp"
+#include "ProjectConfig_old.cpp"
 #include "Proof.cpp"
 #include "Server.cpp"
 #include "Session.cpp"

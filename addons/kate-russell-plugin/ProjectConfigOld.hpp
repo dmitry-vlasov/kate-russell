@@ -12,8 +12,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_CONFIG_CONFIG_HPP_
-#define PLUGIN_KATE_RUSSELL_CONFIG_CONFIG_HPP_
+#pragma once
 
 #include "russell.dpp"
 
@@ -22,10 +21,10 @@ namespace kate {
 namespace russell {
 namespace config {
 
-class Config {
+class ConfigOld {
 public :
-	Config();
-	virtual ~ Config();
+	ConfigOld();
+	virtual ~ ConfigOld();
 
 	void setSane();
 	void setUi (const Ui*);
@@ -95,6 +94,4 @@ private :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_CONFIG_CONFIG_HPP_ */
 
