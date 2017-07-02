@@ -22,14 +22,31 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
-struct ProjectConfig {
-	QString rusRoot;
-	QString smmRoot;
+class ProjectConfig {
+public:
+	const QString& name() { return name_; }
+	const QString& rusRoot() { return rusRoot_; }
+	const QString& rusMain() { return rusMain_; }
+	const QString& smmRoot() { return smmRoot_; }
+
+	void setName(const QString& name) { name_ = name; }
+	void setSmmRoot(const QString& smmRoot) { smmRoot_ = smmRoot; }
+	void setRusRoot(const QString& rusRoot) { rusRoot_ = rusRoot; }
+	void setRusMain(const QString& rusMain) { rusMain_ = rusMain; }
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;
 		return projects_;
 	}
+
+	void initProject();
+	void loadMain();
+
+private:
+	QString name_;
+	QString rusRoot_;
+	QString rusMain_;
+	QString smmRoot_;
 };
 
 class ProjectConfigTab : public QWidget {
@@ -41,9 +58,12 @@ public:
 private Q_SLOTS:
 	void addProjectSlot();
 	void delProjectSlot();
+	void chooseRussellMainSlot();
 	void chooseRussellRootSlot();
 	void chooseSmmRootSlot();
 	void switchProjectSlot(int);
+	void initProjectSlot();
+	void loadMainSlot();
 
 private:
 	void addProject(const QString&);

@@ -19,7 +19,7 @@
 
 #include "russell.hpp"
 #include "Connection.hpp"
-#include "RussellConfig.hpp"
+#include "RussellConfigPage.hpp"
 
 namespace plugin {
 namespace kate {
@@ -38,6 +38,7 @@ namespace mdl {
 		}
 		QString command = RussellConfig::daemon_invocation();
 		mod().process_.setShellCommand (command);
+		mod().process_.setOutputChannelMode (KProcess :: SeparateChannels);
 		mod().process_.start();
 
 		if(!mod().process_.waitForStarted(100)) {
@@ -80,6 +81,11 @@ namespace mdl {
 	{
 		if (mod().process_.state() != QProcess :: NotRunning) {
 			mod().process_.terminate();
+			if (!mod().process_.waitForFinished(100)) {
+				KMessageBox::error(0, i18n("Failed to terminate daemon, exitStatus = %1", mod().process_.exitStatus()));
+				mod().process_.kill();
+				return false;
+			}
 			return true;
 		}
 		return false;

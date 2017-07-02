@@ -22,8 +22,8 @@
 #include <cstring>
 
 #include "russell.hpp"
-#include "RussellConfig.hpp"
 #include "Connection.hpp"
+#include "RussellConfigPage.hpp"
 
 namespace plugin {
 namespace kate {

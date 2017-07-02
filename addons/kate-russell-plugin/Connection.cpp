@@ -20,7 +20,8 @@
 
 #include "russell.hpp"
 #include "Connection.hpp"
-#include "RussellConfig.hpp"
+
+#include "RussellConfigPage.hpp"
 
 namespace plugin {
 namespace kate {

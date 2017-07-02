@@ -31,11 +31,27 @@ namespace russell {
 
 class Plugin;
 
-class RussellConfig : public KTextEditor::ConfigPage {
+class RussellConfig {
+public:
+	static QString host();
+    static int     port();
+    static QString daemon_invocation();
+    static bool    daemon_autostart();
+    static bool    daemon_running();
+private:
+    RussellConfig();
+    static RussellConfig& instance() {
+    	static RussellConfig config;
+    	return config;
+    }
+    KConfigGroup config;
+};
+
+class RussellConfigPage : public KTextEditor::ConfigPage {
     Q_OBJECT
 public:
-    explicit RussellConfig(QWidget* parent = nullptr, Plugin *plugin = nullptr);
-    ~RussellConfig() {}
+    explicit RussellConfigPage(QWidget* parent = nullptr, Plugin *plugin = nullptr);
+    ~RussellConfigPage() {}
 
     QString name() const Q_DECL_OVERRIDE;
     QString fullName() const Q_DECL_OVERRIDE;
@@ -45,16 +61,12 @@ public:
     void reset() Q_DECL_OVERRIDE;
     void defaults() Q_DECL_OVERRIDE;
 
-    static QString host();
-    static int     port();
-    static QString daemon_invocation();
-
 private Q_SLOTS:
-    void resetConfig();
-    void startDaemon();
-    void stopDaemon();
-    bool checkDaemon();
-    void checkPort(QString&);
+    void resetConfigSlot();
+    void startDaemonSlot();
+    void stopDaemonSlot();
+    bool checkDaemonSlot();
+    void checkPortSlot(QString&);
 
 private:
 

@@ -16,7 +16,7 @@ set (katerussell_SRC
 	Combinations.cpp
 	ProjectConfig_old.cpp
 	ProjectConfigTab.cpp
-	RussellConfig.cpp
+	RussellConfigPage.cpp
 	Indexes.cpp
 	Session.cpp
 	Ui.cpp
