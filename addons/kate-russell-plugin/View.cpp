@@ -18,6 +18,7 @@
 #include <KXMLGUIFactory>
 #include "View.moc"
 #include "russell.hpp"
+#include "ProjectConfigTab.hpp"
 
 namespace plugin {
 namespace kate {
@@ -1000,6 +1001,10 @@ namespace russell {
 
 		bottomUi_.qtabwidget->addTab (configUi_, i18nc ("Tab label", "Configuration"));
 		bottomUi_.qtabwidget->setCurrentWidget (configUi_);
+
+		ProjectConfigTab* projectsTab = new ProjectConfigTab(toolView_);
+		bottomUi_.qtabwidget->addTab (projectsTab, i18nc ("Tab label", "Projects"));
+		bottomUi_.qtabwidget->setCurrentWidget (projectsTab);
 
 		/*connect
 		(

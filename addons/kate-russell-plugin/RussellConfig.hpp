@@ -61,7 +61,7 @@ private:
     bool listContains(const QString &target);
 
     Plugin*          plugin_;
-    Ui_RussellConfig configUi_;
+    Ui::RussellConfig configUi_;
 };
 
 }}}
