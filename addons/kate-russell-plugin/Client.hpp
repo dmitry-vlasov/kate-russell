@@ -42,6 +42,22 @@ public :
 	void startProving();
 	void expandNode (const long);
 
+	bool prove (const bool clearOutput = true);
+	bool translate (const bool clearOutput = true);
+	bool verify    (const bool clearOutput = true);
+	bool learn     (const bool clearOutput = true);
+	bool lookupDefinition (const int line, const int column);
+	bool lookupLocation   (const int line, const int column);
+	bool mine (const QString&);
+
+	bool prove (
+		const int line,
+		const int column,
+		const bool clearOutput = true
+	);
+
+	bool stop();
+
 Q_SIGNALS:
 	void showServerMessages (QString);
 

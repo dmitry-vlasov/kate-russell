@@ -50,7 +50,6 @@ public:
 	QWidget* toolView() const;
 	void clearOutput();
 
-	mdl :: Launcher* launcher();
 	mdl :: Client*   client();
 	mdl :: Server*   server();
 	Proof* proof();
@@ -103,9 +102,9 @@ private Q_SLOTS:
 	void latexToUnicode();
 
 	// launcher output slots
-	void slotProcessExited (const int, QProcess :: ExitStatus);
-	void slotReadOutputStdErr (const bool = false);
-	void slotReadOutputStdOut (const bool = false);
+//	void slotProcessExited (const int, QProcess :: ExitStatus);
+//	void slotReadOutputStdErr (const bool = false);
+//	void slotReadOutputStdOut (const bool = false);
 
 	// server output slots
 	void slotReadServerStdErr();
@@ -130,8 +129,8 @@ private:
 
 	KTextEditor::Plugin*     plugin_;
 	KTextEditor::MainWindow* mainWindow_;
-	QWidget*            toolView_;
-	Ui :: Bottom        bottomUi_;
+	QWidget*     toolView_;
+	Ui :: Bottom bottomUi_;
 
 	QPointer<KActionMenu> popupMenu_;
 	QAction* lookupDefinition_;
@@ -144,10 +143,10 @@ private:
 	config :: Combinations* combinations_;
 	config :: Ui* configUi_;
 
-	Outline*     outline_;
-	Structure*   structure_;
-	TypeSystem*  typeSystem_;
-	Proof*       proof_;
+	Outline*    outline_;
+	Structure*  structure_;
+	TypeSystem* typeSystem_;
+	Proof*      proof_;
 
 	mdl :: Launcher* launcher_;
 	mdl :: Client*   client_;

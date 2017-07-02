@@ -69,7 +69,6 @@ namespace russell {
 	typeSystem_ (new TypeSystem (mainWindow_, this)),
 	proof_ (new Proof (mainWindow_, this)),
 
-	launcher_ (new mdl :: Launcher (this, config_)),
 	client_ (new mdl :: Client (this)),
 
 	errorParser_ (new ErrorParser (this)),
@@ -108,15 +107,11 @@ namespace russell {
 		delete config_;
 		delete combinations_;
 		delete toolView_;
-
 		delete outline_;
 		delete structure_;
 		delete typeSystem_;
 		delete proof_;
-
-		delete launcher_;
 		delete client_;
-
 		delete errorParser_;
 	}
 
@@ -146,10 +141,6 @@ namespace russell {
 		bottomUi_.qtabwidget->setCurrentIndex (1);
 	}
 
-	mdl :: Launcher*
-	View :: launcher() {
-		return launcher_;
-	}
 	mdl :: Client*
 	View :: client() {
 		return client_;
@@ -172,21 +163,21 @@ namespace russell {
 	{
 		config_->synchronize();
 		state_ = MINING_OUTLINE;
-		launcher_->mine (options);
+		client_->mine (options);
 	}
 	void 
 	View :: mineStructure (const QString& options) 
 	{
 		config_->synchronize();
 		state_ = MINING_STRUCTURE;
-		launcher_->mine (options);
+		client_->mine (options);
 	}
 	void 
 	View :: mineTypeSystem (const QString& options) 
 	{
 		config_->synchronize();
 		state_ = MINING_TYPE_SYSTEM;
-		launcher_->mine (options);
+		client_->mine (options);
 	}
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
@@ -329,14 +320,14 @@ namespace russell {
 		chain_ = true;
 		clearOutput();
 		outputBuffer_ += QStringLiteral("----- proving -----\n");
-		launcher_->prove (false);
+		client_->prove (false);
 	}
 	void 
 	View :: slotProve()
 	{
 		config_->synchronize();
 		state_ = PROVING;
-		launcher_->prove();
+		client_->prove();
 	}
 	void 
 	View :: slotProveInteractive()
@@ -356,25 +347,25 @@ namespace russell {
 	{
 		config_->synchronize();
 		state_ = TRANSLATING;
-		launcher_->translate();
+		client_->translate();
 	}
 	void 
 	View :: slotVerify()
 	{
 		config_->synchronize();
 		state_ = VERIFYING;
-		launcher_->verify();
+		client_->verify();
 	}
 	void 
 	View :: slotLearn()
 	{
 		config_->synchronize();
 		state_ = VERIFYING;
-		launcher_->learn();
+		client_->learn();
 	}
 	void
 	View :: slotStop() {
-		launcher_->stop();
+		client_->stop();
 	}
 	void
 	View :: slotConfirmProof(int proofIndex)
@@ -401,7 +392,7 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		launcher_->prove (line, column, true);
+		client_->prove (line, column, true);
 	}
 	void
 	View :: proveIdInteractively()
@@ -501,7 +492,7 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		launcher_->lookupDefinition (line, column);
+		client_->lookupDefinition (line, column);
 	}
 	void 
 	View :: openDefinition() 
@@ -520,7 +511,7 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		launcher_->lookupLocation (line, column);
+		client_->lookupLocation (line, column);
 	}
 	void 
 	View :: latexToUnicode() 
@@ -543,11 +534,12 @@ namespace russell {
 	}
 
 	// process slots
+/*
 	void 
 	View :: slotProcessExited (const int exitCode, QProcess :: ExitStatus exitStatus)
 	{	
-		slotReadOutputStdOut (true);
-		slotReadOutputStdErr (true);
+		//slotReadOutputStdOut (true);
+		//slotReadOutputStdErr (true);
 		QApplication :: restoreOverrideCursor();
 
 		// did we get any errors?
@@ -563,13 +555,13 @@ namespace russell {
 					reloadSource();
 					bottomUi_.outputTextEdit->appendPlainText (QStringLiteral("\n"));
 					outputBuffer_ += QStringLiteral("----- translating -----\n");
-					launcher_->translate (false);
+					client_->translate (false);
 					return;
 				case TRANSLATING :
 					state_ = VERIFYING;
 					bottomUi_.outputTextEdit->appendPlainText (QStringLiteral("\n"));
 					outputBuffer_ += QStringLiteral("----- verifying -----\n");
-					launcher_->verify (false);
+					client_->verify (false);
 					return;
 				case VERIFYING:
 					state_ = WAITING;
@@ -581,7 +573,7 @@ namespace russell {
 						i18n ("Success"),
 						i18n("Proving and verification completed without problems."),
 						toolView_
-					);*/
+					);* /
 					//QWidget* msg = new QWidget();
 					//msg->
 					//mainWindow_->activeView()->layout()->addWidget(msg);
@@ -590,7 +582,7 @@ namespace russell {
 						i18n ("Success"),
 						i18n("Proving and verification completed without problems."),
 						toolView_
-					);*/;
+					);* /;
 				}
 			} else {
 				switch (state_) {
@@ -601,7 +593,7 @@ namespace russell {
 							i18n ("Definition:"), 
 							output_, 
 							mainWindow()->activeView()
-						);*/
+						);* /
 					}
 					break;
 				case OPENING_DEFINITION :
@@ -624,7 +616,7 @@ namespace russell {
 						i18n ("Success"),
 						i18n("Proving and verification completed without problems."),
 						toolView_
-					);*/;
+					);* /;
 				}
 			}
 		} else {
@@ -643,7 +635,7 @@ namespace russell {
 	void 
 	View :: slotReadOutputStdOut (const bool forceOutput)
 	{
-		QString newLines = QString :: fromUtf8 (launcher_->process()->readAllStandardOutput());
+		QString newLines = QString :: fromUtf8 (client_->process()->readAllStandardOutput());
 		newLines.remove (QLatin1Char('\r'));
 		output_ += newLines;
 		outputBuffer_ += newLines;
@@ -652,13 +644,14 @@ namespace russell {
 	void
 	View :: slotReadOutputStdErr (const bool forceOutput)
 	{
-		QString newLines = QString :: fromUtf8 (launcher_->process()->readAllStandardError());
+		QString newLines = QString :: fromUtf8 (client_->process()->readAllStandardError());
 		newLines.remove (QLatin1Char('\r'));
 		errorParser_->proceed (newLines);
 		output_ += newLines;
 		outputBuffer_ += newLines;
 		showBuffer (forceOutput);
 	}
+*/
 
 	void
 	View :: slotReadServerStdOut()
@@ -1025,9 +1018,9 @@ namespace russell {
 	void
 	View :: initLauncher()
 	{
-		connect (launcher_->process(), SIGNAL (finished (int, QProcess::ExitStatus)), this, SLOT (slotProcessExited (const int, QProcess::ExitStatus)));
-		connect (launcher_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
-		connect (launcher_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
+		//connect (client_->process(), SIGNAL (finished (int, QProcess::ExitStatus)), this, SLOT (slotProcessExited (const int, QProcess::ExitStatus)));
+		//connect (client_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
+		//connect (client_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
 
 		connect (&mdl::Server::process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
 		connect (&mdl::Server::process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));

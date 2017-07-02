@@ -25,6 +25,13 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
+SourceType file_type(const QString& file) {
+	if (file.endsWith(QStringLiteral(".rus"))) return SourceType::RUS;
+	if (file.endsWith(QStringLiteral(".smm"))) return SourceType::SMM;
+	if (file.endsWith(QStringLiteral(".mm")))  return SourceType::MM;
+	return SourceType::OTHER;
+}
+
 void ProjectConfig::initProject() {
 	mdl::Connection::mod().execute(QStringLiteral("rus curr proj=") + name_);
 	mdl::Connection::mod().execute(QStringLiteral("rus opts verbose root=") + rusRoot_);
@@ -36,6 +43,15 @@ void ProjectConfig::loadMain() {
 	mdl::Connection::mod().execute(QStringLiteral("rus read in=") + rusMain_);
 	mdl::Connection::mod().execute(QStringLiteral("rus parse"));
 	//mdl::Connection::mod().execute(QStringLiteral("smm read in=") + smmMain);
+}
+
+const ProjectConfig* ProjectConfig::find(const QString& file) {
+	switch (file_type(file)) {
+	case SourceType::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p;
+	case SourceType::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p;
+	default: break;
+	}
+	return nullptr;
 }
 
 ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QStringLiteral("Russell")) {

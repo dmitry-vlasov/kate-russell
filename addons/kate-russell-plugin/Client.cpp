@@ -52,7 +52,7 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		/*if (!Launcher :: checkLocal (config_->getSourceRoot())) {
+		/*if (!Client :: checkLocal (config_->getSourceRoot())) {
 			return;
 		}*/
 		QString globalSourcePath (url.toLocalFile());
@@ -72,7 +72,7 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		/*if (!Launcher :: checkLocal (config_->getSourceRoot())) {
+		/*if (!Client :: checkLocal (config_->getSourceRoot())) {
 			return;
 		}*/
 		QString globalSourcePath (url.toLocalFile());
@@ -112,6 +112,285 @@ namespace mdl{
 		command += QString::number(node);
 		Connection::mod().execute (command);
 	}
+
+		bool
+	Client :: prove (const bool clearOutput)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No prover is specified."));
+			return false;
+		}
+		command += QStringLiteral(" --prove ");
+		//command += config_->getProveOption();
+
+		QUrl url (view_->currentFileUrl (true));
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath; // = globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+
+		command.replace (QStringLiteral("%f"), sourcePath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	//return startProcess (config_->getSourceRoot(), command);
+		return false;
+	}
+	bool
+	Client :: translate (const bool clearOutput)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No translator is specified."));
+			return false;
+		}
+		command += QStringLiteral(" -t ");
+		//command += config_->getTranslateOption();
+
+		QUrl url (view_->currentFileUrl (true));
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath; // = globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		QString targetPath (sourcePath);
+		targetPath.chop (3);
+		targetPath += QStringLiteral("smm");
+		QString globalTargetPath; // (config_->getTargetRoot());
+		globalTargetPath += QStringLiteral("/");
+		globalTargetPath += targetPath;
+
+		command.replace (QStringLiteral("%s"), sourcePath);
+		command.replace (QStringLiteral("%t"), globalTargetPath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+	bool
+	Client :: verify (const bool clearOutput)
+	{
+		if (!view_->currentIsRussell() && !view_->currentIsMetamath()) {
+			return false;
+		}
+		QString command; // (config_->getVerifier());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No verifyer is specified."));
+			return false;
+		}
+		command += QStringLiteral(" ");
+		//command += config_->getVerifyOption();
+
+		QUrl url (view_->currentFileUrl (true));
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalPath (url.toLocalFile());
+		QString midPath;
+		/*(
+			view_->currentIsMetamath() ?
+			globalPath.mid (config_->getSourceRoot().size() + 1, -1) :
+			globalPath.mid (config_->getTargetRoot().size() + 1, -1)
+		);*/
+		QString targetPath (midPath);
+		targetPath.chop (3);
+		targetPath += QStringLiteral("smm");
+
+		command.replace (QStringLiteral("%f"), targetPath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	return false; //startProcess (config_->getTargetRoot(), command);
+	}
+	bool
+	Client :: learn (const bool clearOutput)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No prover is specified."));
+			return false;
+		}
+		command += QStringLiteral(" --learn ");
+		//command += config_->getLearnOption();
+
+		QUrl url (view_->currentFileUrl (true));
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath; // = globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		QString universePath; // (config_->getSourceUniverse());
+
+		command.replace (QStringLiteral("%f"), sourcePath);
+		command.replace (QStringLiteral("%u"), universePath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+	bool
+	Client :: lookupDefinition (const int line, const int column)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No miner is specified."));
+			return false;
+		}
+		command += QStringLiteral(" --lookup-definition ");
+		//command += config_->getLookupOption();
+
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath = QStringLiteral("./");
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+
+		command.replace (QStringLiteral("%l"), QString :: number (line + 1));
+		command.replace (QStringLiteral("%c"), QString :: number (column + 1));
+		command.replace (QStringLiteral("%f"), sourcePath);
+		view_->clearOutput();
+
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+	bool
+	Client :: lookupLocation (const int line, const int column)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No prover is specified."));
+			return false;
+		}
+		command += QStringLiteral(" --lookup-location ");
+		//command += config_->getLookupOption();
+
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath = QStringLiteral("./");
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+
+		command.replace (QStringLiteral("%l"), QString :: number (line + 1));
+		command.replace (QStringLiteral("%c"), QString :: number (column + 1));
+		command.replace (QStringLiteral("%f"), sourcePath);
+		view_->clearOutput();
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+	bool
+	Client :: mine (const QString& options)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No miner is specified."));
+			return false;
+		}
+		switch (view_->getState()) {
+		case View :: MINING_OUTLINE :
+			command += QStringLiteral(" --mine-outline "); break;
+		case View :: MINING_STRUCTURE :
+			command += QStringLiteral(" --mine-structure "); break;
+		case View :: MINING_TYPE_SYSTEM :
+			command += QStringLiteral(" --mine-type-system "); break;
+		default : return false;
+		}
+		command += options;
+
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath = QStringLiteral("./");
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		command += sourcePath;
+
+		view_->clearOutput();
+
+		//KMessageBox :: sorry (0, command);
+
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+
+	bool
+	Client :: prove (const int line, const int column, const bool clearOutput)
+	{
+		if (!view_->currentIsRussell()) {
+			return false;
+		}
+		QString command; // (config_->getProver());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No prover is specified."));
+			return false;
+		}
+		command += QStringLiteral(" --prove ");
+		command += QStringLiteral(" --line ");
+		command += QString :: number (line + 1);
+		command += QStringLiteral(" --column ");
+		command += QString :: number (column + 1);
+		command += QStringLiteral(" ");
+		//command += config_->getProveOption();
+
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalSourcePath (url.toLocalFile());
+		QString sourcePath = QStringLiteral("./");
+		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
+		command.replace (QStringLiteral("%f"), sourcePath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	return false; //startProcess (config_->getSourceRoot(), command);
+	}
+
+	bool
+	Client :: stop()
+	{
+		/*
+		if (process_->state() != QProcess :: NotRunning) {
+			process_->terminate();
+			return true;
+		}
+		*/
+		return false;
+	}
+
 
 	/****************************
 	 *	Public slots

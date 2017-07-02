@@ -33,7 +33,6 @@
 #include "Icon.hpp"
 #include "LatexToUnicode.hpp"
 #include "Client.hpp"
-#include "Launcher.hpp"
 #include "Server.hpp"
 #include "Navigation.hpp"
 #include "Outline.hpp"

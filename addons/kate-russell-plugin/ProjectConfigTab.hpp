@@ -22,6 +22,9 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
+enum class SourceType { RUS, SMM, MM, OTHER };
+SourceType file_type(const QString& file);
+
 class ProjectConfig {
 public:
 	const QString& name() { return name_; }
@@ -34,13 +37,15 @@ public:
 	void setRusRoot(const QString& rusRoot) { rusRoot_ = rusRoot; }
 	void setRusMain(const QString& rusMain) { rusMain_ = rusMain; }
 
+	void initProject();
+	void loadMain();
+
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;
 		return projects_;
 	}
 
-	void initProject();
-	void loadMain();
+	static const ProjectConfig* find(const QString& file);
 
 private:
 	QString name_;

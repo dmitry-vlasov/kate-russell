@@ -26,7 +26,6 @@ set (katerussell_SRC
 	LatexToUnicode.cpp
 	
 	Client.cpp
-	Launcher.cpp
 	Server.cpp
 	Connection.cpp
 	
