@@ -192,8 +192,8 @@ namespace russell {
 			return;
 		}
 
-		const ConfigOld* config = view_->getConfig();
-		QString path = config->getSourceRoot();
+		//const ConfigOld* config = view_->getConfig();
+		QString path; // = config->getSourceRoot();
 		path += QStringLiteral("/");
 
 		QString file = item->text (1);

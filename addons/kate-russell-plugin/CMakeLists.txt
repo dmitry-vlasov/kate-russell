@@ -13,13 +13,8 @@ add_subdirectory(icons)
 add_subdirectory(syntax)
 
 set (katerussell_SRC 
-	Combinations.cpp
-	ProjectConfig_old.cpp
 	ProjectConfigTab.cpp
 	RussellConfigPage.cpp
-	Indexes.cpp
-	Session.cpp
-	Ui.cpp
 	
 	ErrorParser.cpp
 	Icon.cpp

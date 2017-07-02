@@ -52,18 +52,6 @@ namespace russell {
 	proveAutomatically_ (NULL),
 	proveInteractive_(NULL),
 
-	config_ (new ConfigOld()),
-	combinations_ (new config :: Combinations()),
-	configUi_
-	(
-		new config :: Ui
-		(
-			this,
-			bottomUi_.qtabwidget,
-			config_,
-			combinations_
-		)
-	),
 	outline_ (new Outline (mainWindow_, this)),
 	structure_ (new Structure (mainWindow_, this)),
 	typeSystem_ (new TypeSystem (mainWindow_, this)),
@@ -84,18 +72,12 @@ namespace russell {
 		KXMLGUIClient::setComponentName(QLatin1String("katerussell"), i18n("Russell plugin view"));
 		setXMLFile(QLatin1String("ui.rc"));
 
-		config_->setUi (configUi_);
-		combinations_->setUi (configUi_);
 		initPopupMenu();
 		initActions();
 		initBottomUi();
 		initLauncher();
 
 		mainWindow()->guiFactory()->addClient (this);
-
-		config_->setSane();
-		combinations_->setSane();
-		configUi_->synchronize();
 	}
 	View :: ~View() 
 	{
@@ -104,8 +86,6 @@ namespace russell {
 		#endif
 
 		mainWindow()->guiFactory()->removeClient (this);
-		delete config_;
-		delete combinations_;
 		delete toolView_;
 		delete outline_;
 		delete structure_;
@@ -154,28 +134,21 @@ namespace russell {
 	View :: getOutput() const {
 		return output_;
 	}
-	const ConfigOld*
-	View :: getConfig() const {
-		return config_;
-	}
 	void 
 	View :: mineOutline (const QString& options) 
 	{
-		config_->synchronize();
 		state_ = MINING_OUTLINE;
 		client_->mine (options);
 	}
 	void 
 	View :: mineStructure (const QString& options) 
 	{
-		config_->synchronize();
 		state_ = MINING_STRUCTURE;
 		client_->mine (options);
 	}
 	void 
 	View :: mineTypeSystem (const QString& options) 
 	{
-		config_->synchronize();
 		state_ = MINING_TYPE_SYSTEM;
 		client_->mine (options);
 	}
@@ -217,22 +190,6 @@ namespace russell {
 		QUrl url = currentFileUrl();
 		QString path (url.toLocalFile());
 		return (path.endsWith (QStringLiteral(".smm")) || path.endsWith (QStringLiteral(".mm")));
-	}
-
-	// overwritten: read and write session config
-	void 
-	View :: readSessionConfig (const KConfigGroup& config)
-	{
-		config_->readSessionConfig (config);
-		combinations_->readSessionConfig (config);
-		configUi_->synchronize();
-	}
-	void 
-	View :: writeSessionConfig (KConfigGroup& config)
-	{
-		config_->synchronize();
-		combinations_->writeSessionConfig (config);
-		config_->writeSessionConfig (config);
 	}
 
 	/**********************************
@@ -315,7 +272,6 @@ namespace russell {
 	void 
 	View :: slotProveVerify()
 	{
-		config_->synchronize();
 		state_ = PROVING;
 		chain_ = true;
 		clearOutput();
@@ -325,14 +281,12 @@ namespace russell {
 	void 
 	View :: slotProve()
 	{
-		config_->synchronize();
 		state_ = PROVING;
 		client_->prove();
 	}
 	void 
 	View :: slotProveInteractive()
 	{
-		config_->synchronize();
 		if (mdl::Server::is_running()) {
 			state_ = PROVING;
 			client_->execute(QStringLiteral("option --in prop.rus"));
@@ -345,21 +299,18 @@ namespace russell {
 	void
 	View :: slotTranslate()
 	{
-		config_->synchronize();
 		state_ = TRANSLATING;
 		client_->translate();
 	}
 	void 
 	View :: slotVerify()
 	{
-		config_->synchronize();
 		state_ = VERIFYING;
 		client_->verify();
 	}
 	void 
 	View :: slotLearn()
 	{
-		config_->synchronize();
 		state_ = VERIFYING;
 		client_->learn();
 	}
@@ -378,7 +329,6 @@ namespace russell {
 	void
 	View :: proveIdAutomatically()
 	{
-		config_->synchronize();
 		state_ = PROVING;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
@@ -397,8 +347,6 @@ namespace russell {
 	void
 	View :: proveIdInteractively()
 	{
-		config_->synchronize();
-
 		if (!mdl::Server::is_running()) {
 			KMessageBox :: sorry (0, i18n ("Server cound not start."));
 			return;
@@ -478,7 +426,6 @@ namespace russell {
 	void 
 	View :: lookupDefinition() 
 	{		
-		config_->synchronize();
 		state_ = LOOKING_DEFINITION;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
@@ -497,7 +444,6 @@ namespace russell {
 	void 
 	View :: openDefinition() 
 	{
-		config_->synchronize();
 		state_ = OPENING_DEFINITION;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
@@ -775,7 +721,7 @@ namespace russell {
 			location.remove (0, endlIndex + 1);
 			column = columnString.toInt();
 		}
-		QString path = config_->getSourceRoot();
+		QString path; // = config_->getSourceRoot();
 		path += QStringLiteral("/");
 		path += file;
 		gotoLocation (path, line, column);
@@ -991,9 +937,6 @@ namespace russell {
 	{
 		QWidget* configOutputWidget = new QWidget (toolView_);
 		bottomUi_.setupUi (configOutputWidget);
-
-		bottomUi_.qtabwidget->addTab (configUi_, i18nc ("Tab label", "Configuration"));
-		bottomUi_.qtabwidget->setCurrentWidget (configUi_);
 
 		ProjectConfigTab* projectsTab = new ProjectConfigTab(toolView_);
 		bottomUi_.qtabwidget->addTab (projectsTab, i18nc ("Tab label", "Projects"));

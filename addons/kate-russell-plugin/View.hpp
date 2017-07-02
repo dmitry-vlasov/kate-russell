@@ -24,9 +24,8 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
-class View : public QObject, public KXMLGUIClient, public KTextEditor::SessionConfigInterface {
+class View : public QObject, public KXMLGUIClient {
 Q_OBJECT
-Q_INTERFACES(KTextEditor::SessionConfigInterface)
 public:
 	enum State_ {
 		WAITING,
@@ -66,10 +65,6 @@ public:
 	QUrl currentFileUrl (const bool save = false) const;
 	bool currentIsRussell() const;
 	bool currentIsMetamath() const;
-
-	// overwritten: read and write session config
-	void readSessionConfig (const KConfigGroup& config) Q_DECL_OVERRIDE;
-	void writeSessionConfig (KConfigGroup& config) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
 	void refreshOutline();
@@ -138,10 +133,6 @@ private:
 	QAction* latexToUnicode_;
 	QAction* proveAutomatically_;
 	QAction* proveInteractive_;
-
-	ConfigOld* config_;
-	config :: Combinations* combinations_;
-	config :: Ui* configUi_;
 
 	Outline*    outline_;
 	Structure*  structure_;
