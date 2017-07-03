@@ -56,8 +56,6 @@ public :
 		const bool clearOutput = true
 	);
 
-	bool stop();
-
 Q_SIGNALS:
 	void showServerMessages (QString);
 

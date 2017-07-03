@@ -81,7 +81,6 @@ private Q_SLOTS:
 	void slotTranslate();
 	void slotVerify();
 	void slotLearn();
-	void slotStop();
 	void slotConfirmProof(int);
 
 	void proveIdAutomatically();

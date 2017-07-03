@@ -52,9 +52,6 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		/*if (!Client :: checkLocal (config_->getSourceRoot())) {
-			return;
-		}*/
 		QString globalSourcePath (url.toLocalFile());
 		QString sourcePath = QStringLiteral("./");
 		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
@@ -72,9 +69,6 @@ namespace mdl{
 			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return;
 		}
-		/*if (!Client :: checkLocal (config_->getSourceRoot())) {
-			return;
-		}*/
 		QString globalSourcePath (url.toLocalFile());
 		QString sourcePath = QStringLiteral("./");
 		//sourcePath += globalSourcePath.mid (config_->getSourceRoot().size() + 1, -1);
@@ -378,19 +372,6 @@ namespace mdl{
 		}
     	return false; //startProcess (config_->getSourceRoot(), command);
 	}
-
-	bool
-	Client :: stop()
-	{
-		/*
-		if (process_->state() != QProcess :: NotRunning) {
-			process_->terminate();
-			return true;
-		}
-		*/
-		return false;
-	}
-
 
 	/****************************
 	 *	Public slots

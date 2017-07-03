@@ -315,10 +315,6 @@ namespace russell {
 		client_->learn();
 	}
 	void
-	View :: slotStop() {
-		client_->stop();
-	}
-	void
 	View :: slotConfirmProof(int proofIndex)
 	{
 		client_->setupIndex (proofIndex);
@@ -883,9 +879,9 @@ namespace russell {
 		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_L));
 		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotLearn()));
 
-		action = actionCollection()->addAction (QLatin1String("stop"));
-		action->setText (i18n ("Stop"));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotStop()));
+		//action = actionCollection()->addAction (QLatin1String("stop"));
+		//action->setText (i18n ("Stop"));
+		//+connect (action, SIGNAL (triggered (bool)), this, SLOT (slotStop()));
 
 		action = actionCollection()->addAction (QLatin1String("goto_next"));
 		action->setText (i18n ("Next Error"));
