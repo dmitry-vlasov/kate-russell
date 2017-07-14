@@ -84,7 +84,7 @@ namespace russell {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
 		#endif
-
+		mdl::Server::stop();
 		mainWindow()->guiFactory()->removeClient (this);
 		delete toolView_;
 		delete outline_;
@@ -119,6 +119,57 @@ namespace russell {
 			return;
 		}
 		bottomUi_.qtabwidget->setCurrentIndex (1);
+	}
+	void
+	View :: openLocation(const QString& loc)
+	{
+		if (loc.isEmpty()) return;
+		QString location = loc;
+		QString file;
+		QString root;
+		QString ext;
+		int line = 1;
+		int column = 1;
+
+		int endlIndex = location.indexOf (QStringLiteral("\n"));
+		// chopping prefix "file: " (6 chars)
+		file = location.mid (0, endlIndex);
+		file.remove (0, 6);
+		location.remove (0, endlIndex + 1);
+		if (!location.isEmpty()) {
+			endlIndex = location.indexOf (QStringLiteral("\n"));
+			// chopping prefix "ext: " (5 chars)
+			ext = location.mid (0, endlIndex);
+			ext.remove (0, 5);
+			location.remove (0, endlIndex + 1);
+		}
+		if (!location.isEmpty()) {
+			endlIndex = location.indexOf (QStringLiteral("\n"));
+			// chopping prefix "root: " (6 chars)
+			root = location.mid (0, endlIndex);
+			root.remove (0, 6);
+			location.remove (0, endlIndex + 1);
+		}
+		if (!location.isEmpty()) {
+			endlIndex = location.indexOf (QStringLiteral("\n"));
+			// chopping prefix "line: " (6 chars)
+			QString lineString = location.mid (0, endlIndex);
+			lineString.remove (0, 6);
+			location.remove (0, endlIndex + 1);
+			line = lineString.toInt();
+		}
+		if (!location.isEmpty()) {
+			endlIndex = location.indexOf (QStringLiteral("\n"));
+			// chopping prefix "col: " (5 chars)
+			QString columnString = location.mid (0, endlIndex);
+			columnString.remove (0, 5);
+			location.remove (0, endlIndex + 1);
+			column = columnString.toInt();
+		}
+		QString pathUrl(QStringLiteral("file://"));
+		pathUrl += root + QStringLiteral("/");
+		pathUrl += file + QStringLiteral(".") + ext;
+		gotoLocation (pathUrl, line, column);
 	}
 
 	mdl :: Client*
@@ -155,14 +206,15 @@ namespace russell {
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
 	{
-		QUrl url;
-		url.setPath (path);
-		mainWindow_->openUrl (url);
-		if (!mainWindow_->activeView()) {
-			return;
+		QUrl url(path);
+		if (KTextEditor::View* view = mainWindow_->openUrl (url)) {
+			qDebug() << QStringLiteral("OPENED\n") << view->document()->text();
+			mainWindow_->activateView(view->document());
+			mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line, column));
+			mainWindow_->activeView()->setFocus();
+		} else {
+			KMessageBox :: sorry (0, i18n ("Cannot open ") + path);
 		}
-		mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line - 1, column - 1));
-		mainWindow_->activeView()->setFocus();
 	}
 
 	QUrl
@@ -688,39 +740,7 @@ namespace russell {
 	void 
 	View :: openLocation()
 	{
-		if (output_.isEmpty()) {
-			return;
-		}
-		QString location = output_;
-		int line = 1;
-		int column = 1;
-
-		int endlIndex = location.indexOf (QStringLiteral("\n"));
-		// chopping prefix "file: " (6 chars)
-		QString file = location.mid (0, endlIndex);
-		file.remove (0, 6);
-		location.remove (0, endlIndex + 1);
-		
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
-			// chopping prefix "\tline:   " (9 chars)
-			QString lineString = location.mid (0, endlIndex);
-			lineString.remove (0, 9);
-			location.remove (0, endlIndex + 1);
-			line = lineString.toInt();
-		}
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
-			// chopping prefix "\tcolumn: " (9 chars)
-			QString columnString = location.mid (0, endlIndex);
-			columnString.remove (0, 9);
-			location.remove (0, endlIndex + 1);
-			column = columnString.toInt();
-		}
-		QString path; // = config_->getSourceRoot();
-		path += QStringLiteral("/");
-		path += file;
-		gotoLocation (path, line, column);
+		openLocation(output_);
 	}
 	QString 
 	View :: currentIdentifier() const

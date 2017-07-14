@@ -47,11 +47,29 @@ void ProjectConfig::loadMain() {
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
 	switch (file_type(file)) {
-	case SourceType::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p;
-	case SourceType::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p;
+	case SourceType::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p; break;
+	case SourceType::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p; break;
 	default: break;
 	}
 	return nullptr;
+}
+
+static QString trimFileName(const QString& file, const QString& prefix) {
+	QString trimmed = file;
+	trimmed =trimmed.mid(prefix.size());
+	if (trimmed.startsWith(QLatin1Char('/'))) trimmed = trimmed.mid(1);
+	return trimmed;
+}
+
+QString ProjectConfig::trimFile(const QString& file) const {
+	if (file.startsWith(rusRoot_)) {
+		return trimFileName(file, rusRoot_);
+	} else if (file.startsWith(smmRoot_)) {
+		return trimFileName(file, smmRoot_);
+	} else {
+		KMessageBox :: sorry(0, i18n ("The main file must be situated in the root directory."));
+		return QStringLiteral("");
+	}
 }
 
 ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QStringLiteral("Russell")) {
@@ -110,7 +128,7 @@ void ProjectConfigTab::addProjectSlot() {
 		i18n("Add project"),
 		i18n("Name:"),
 		QLineEdit::Normal,
-		QStringLiteral("project %1").arg(project_count + 1),
+		QStringLiteral("project_%1").arg(project_count + 1),
 		&ok_pressed
 	);
 	if (!ok_pressed) return;
@@ -214,7 +232,7 @@ void ProjectConfigTab::loadConfig() {
 }
 
 void ProjectConfigTab::loadConfigForProject(int i) {
-	QString name = configGroup_.readEntry(QStringLiteral("Projects %1 name").arg(i), QStringLiteral("project %1").arg(i));
+	QString name = configGroup_.readEntry(QStringLiteral("Projects %1 name").arg(i), "");
 	ProjectConfig::projects()[name].setRusRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Rus root").arg(i), ""));
 	ProjectConfig::projects()[name].setRusMain(configGroup_.readEntry(QStringLiteral("Projects %1 Rus main").arg(i), ""));
 	ProjectConfig::projects()[name].setSmmRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Smm root").arg(i), ""));

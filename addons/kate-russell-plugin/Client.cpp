@@ -24,6 +24,7 @@
 #include "russell.hpp"
 #include "Connection.hpp"
 #include "RussellConfigPage.hpp"
+#include "ProjectConfigTab.hpp"
 
 namespace plugin {
 namespace kate {
@@ -244,9 +245,29 @@ namespace mdl{
 	bool
 	Client :: lookupDefinition (const int line, const int column)
 	{
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRussell()) return false;
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
 			return false;
 		}
+		QString file = url.toLocalFile();
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command = QStringLiteral("rus curr proj=") + conf->name();
+		if (!Connection::mod().execute (command)) return false;
+		command = QStringLiteral("rus lookup what=def in=") + conf->trimFile(file) + QStringLiteral(" ");
+		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
+		command += QStringLiteral("col=") + QString::number(column);
+		if (!Connection::mod().execute (command)) return false;
+		view_->clearOutput();
+
+		if (!Connection::mod().data().isEmpty()) {
+			QString def = i18n("Definition:");
+			QMessageBox::information(view_->mainWindow()->activeView(), def, Connection::mod().data());
+		}
+		return true;
+/*
 		QString command; // (config_->getProver());
 		if (command.isEmpty()) {
 			KMessageBox :: sorry (0, i18n ("No miner is specified."));
@@ -270,10 +291,35 @@ namespace mdl{
 		view_->clearOutput();
 
     	return false; //startProcess (config_->getSourceRoot(), command);
+ */
 	}
 	bool
 	Client :: lookupLocation (const int line, const int column)
 	{
+		if (!view_->currentIsRussell()) return false;
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString file = url.toLocalFile();
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command = QStringLiteral("rus curr proj=") + conf->name();
+		if (!Connection::mod().execute (command)) return false;
+		command = QStringLiteral("rus lookup what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
+		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
+		command += QStringLiteral("col=") + QString::number(column);
+		if (!Connection::mod().execute (command)) return false;
+		view_->clearOutput();
+
+		if (!Connection::mod().data().isEmpty()) {
+			QString def = i18n("Definition:");
+			QMessageBox::information(view_->mainWindow()->activeView(), def, Connection::mod().data());
+		}
+		view_->openLocation(Connection::mod().data());
+		return true;
+/*
 		if (!view_->currentIsRussell()) {
 			return false;
 		}
@@ -299,6 +345,7 @@ namespace mdl{
 		command.replace (QStringLiteral("%f"), sourcePath);
 		view_->clearOutput();
     	return false; //startProcess (config_->getSourceRoot(), command);
+   */
 	}
 	bool
 	Client :: mine (const QString& options)

@@ -48,6 +48,7 @@ public:
 	Ui :: Bottom& getBottomUi();
 	QWidget* toolView() const;
 	void clearOutput();
+	void openLocation(const QString&);
 
 	mdl :: Client*   client();
 	mdl :: Server*   server();

@@ -27,10 +27,10 @@ SourceType file_type(const QString& file);
 
 class ProjectConfig {
 public:
-	const QString& name() { return name_; }
-	const QString& rusRoot() { return rusRoot_; }
-	const QString& rusMain() { return rusMain_; }
-	const QString& smmRoot() { return smmRoot_; }
+	const QString& name() const { return name_; }
+	const QString& rusRoot() const { return rusRoot_; }
+	const QString& rusMain() const { return rusMain_; }
+	const QString& smmRoot() const { return smmRoot_; }
 
 	void setName(const QString& name) { name_ = name; }
 	void setSmmRoot(const QString& smmRoot) { smmRoot_ = smmRoot; }
@@ -39,6 +39,8 @@ public:
 
 	void initProject();
 	void loadMain();
+
+	QString trimFile(const QString& file) const;
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;
