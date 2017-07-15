@@ -191,20 +191,9 @@ namespace russell {
 		if (locate == QStringLiteral("no")) {
 			return;
 		}
-
-		//const ConfigOld* config = view_->getConfig();
-		QString path; // = config->getSourceRoot();
-		path += QStringLiteral("/");
-
-		QString file = item->text (1);
-		if ((file [0] == QLatin1Char('.')) && (file [1] == QLatin1Char('/'))) {
-			file = file.remove (0, 2);
-		}
-		path += file;
-
+		QString path = item->text (1);
 		const int line = item->text (2).toInt ();
 		const int column = item->text (3).toInt ();
-
 		view_->gotoLocation (path, line, column);
 	}
 
@@ -283,33 +272,52 @@ namespace russell {
 	QString 
 	Navigation :: getOptions() const
 	{
+		/*
+		 {XmlNode::IMPORT,  {"import",  IMPORT_BIT}},
+	{XmlNode::CONST,   {"const",   CONST_BIT}},
+	{XmlNode::TYPE,    {"type",    TYPE_BIT}},
+	{XmlNode::RULE,    {"rule",    RULE_BIT}},
+	{XmlNode::AXIOM,   {"axiom",   AXIOM_BIT}},
+	{XmlNode::DEF,     {"def",     DEF_BIT}},
+	{XmlNode::THEOREM, {"theorem", THEOREM_BIT}},
+	{XmlNode::PROOF,   {"proof",   PROOF_BIT}},
+	{XmlNode::THEORY,  {"theory",  THEORY_BIT}},
+	{XmlNode::PROBLEM, {"problem", PROBLEM_BIT}}
+		 */
+
 		QString options;
 		if (showAxioms_ && showAxioms_->isChecked()) {
-			options += QStringLiteral("--mine-axioms ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("axiom");
 		}
 		if (showConstants_ && showConstants_->isChecked()) {
-			options += QStringLiteral("--mine-constants ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("const");
 		}
 		if (showDefinitions_ && showDefinitions_->isChecked()) {
-			options += QStringLiteral("--mine-definitions ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("def");
 		}
 		if (showImports_ && showImports_->isChecked()) {
-			options += QStringLiteral("--mine-imports ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("import");
 		}
 		if (showProblems_ && showProblems_->isChecked()) {
-			options += QStringLiteral("--mine-problems ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("problem");
 		}
 		if (showRules_ && showRules_->isChecked()) {
-			options += QStringLiteral("--mine-rules ");
+			if (options.size()) options += QStringLiteral(",");
+			options += QStringLiteral("rule");
 		}
 		if (showTheorems_ && showTheorems_->isChecked()) {
-			options += QStringLiteral("--mine-theorems ");
+			options += QStringLiteral("theorem");
 		}
 		if (showTheories_ && showTheories_->isChecked()) {
-			options += QStringLiteral("--mine-theories ");
+			options += QStringLiteral("theory");
 		}
 		if (showTypes_ && showTypes_->isChecked()) {
-			options += QStringLiteral("--mine-types ");
+			options += QStringLiteral("type");
 		}
 		return options;
 	}
@@ -369,7 +377,7 @@ namespace russell {
 		item->setText (0, outlineElement.attribute (QStringLiteral("name"), QStringLiteral("")));
 		item->setText (1, outlineElement.attribute (QStringLiteral("path"), QStringLiteral("")));
 		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
-		item->setText (3, outlineElement.attribute (QStringLiteral("column"), QStringLiteral("")));
+		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
 		item->setText (4, QStringLiteral("yes"));
 	}
 	void 
@@ -393,7 +401,7 @@ namespace russell {
 		item->setText (0, outlineElement.attribute (QStringLiteral("name"), QStringLiteral("")));
 		item->setText (1, outlineElement.attribute (QStringLiteral("path"), QStringLiteral("")));
 		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
-		item->setText (3, outlineElement.attribute (QStringLiteral("column"), QStringLiteral("")));
+		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
 		if (gotoDefinition) {
 			item->setText (4, QStringLiteral("yes"));
 		} else {

@@ -125,31 +125,15 @@ namespace russell {
 	{
 		if (loc.isEmpty()) return;
 		QString location = loc;
-		QString file;
-		QString root;
-		QString ext;
+		QString path;
 		int line = 1;
 		int column = 1;
 
 		int endlIndex = location.indexOf (QStringLiteral("\n"));
-		// chopping prefix "file: " (6 chars)
-		file = location.mid (0, endlIndex);
-		file.remove (0, 6);
+		// chopping prefix "path: " (6 chars)
+		path = location.mid (0, endlIndex);
+		path.remove (0, 6);
 		location.remove (0, endlIndex + 1);
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
-			// chopping prefix "ext: " (5 chars)
-			ext = location.mid (0, endlIndex);
-			ext.remove (0, 5);
-			location.remove (0, endlIndex + 1);
-		}
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
-			// chopping prefix "root: " (6 chars)
-			root = location.mid (0, endlIndex);
-			root.remove (0, 6);
-			location.remove (0, endlIndex + 1);
-		}
 		if (!location.isEmpty()) {
 			endlIndex = location.indexOf (QStringLiteral("\n"));
 			// chopping prefix "line: " (6 chars)
@@ -166,9 +150,7 @@ namespace russell {
 			location.remove (0, endlIndex + 1);
 			column = columnString.toInt();
 		}
-		QString pathUrl(QStringLiteral("file://"));
-		pathUrl += root + QStringLiteral("/");
-		pathUrl += file + QStringLiteral(".") + ext;
+		QString pathUrl(QStringLiteral("file://") + path);
 		gotoLocation (pathUrl, line, column);
 	}
 
@@ -208,7 +190,6 @@ namespace russell {
 	{
 		QUrl url(path);
 		if (KTextEditor::View* view = mainWindow_->openUrl (url)) {
-			qDebug() << QStringLiteral("OPENED\n") << view->document()->text();
 			mainWindow_->activateView(view->document());
 			mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line, column));
 			mainWindow_->activeView()->setFocus();
@@ -242,6 +223,48 @@ namespace russell {
 		QUrl url = currentFileUrl();
 		QString path (url.toLocalFile());
 		return (path.endsWith (QStringLiteral(".smm")) || path.endsWith (QStringLiteral(".mm")));
+	}
+
+	void
+	View :: update()
+	{
+		//slotReadOutputStdOut (true);
+		//slotReadOutputStdErr (true);
+		QApplication :: restoreOverrideCursor();
+		switch (state_) {
+		case LOOKING_DEFINITION :
+			if (!output_.isEmpty()) {
+				/*KPassivePopup :: message
+				(
+					i18n ("Definition:"),
+					output_,
+					mainWindow()->activeView()
+				);*/
+			}
+			break;
+		case OPENING_DEFINITION :
+			openLocation();
+			break;
+		case MINING_OUTLINE :
+			outline_->update();
+			break;
+		case MINING_STRUCTURE :
+			structure_->update();
+			break;
+		case MINING_TYPE_SYSTEM :
+			typeSystem_->update();
+			break;
+		case PROVING :
+			reloadSource();
+			break;
+		default :
+			/*KPassivePopup :: message
+			(
+				i18n ("Success"),
+				i18n("Proving and verification completed without problems."),
+				toolView_
+			);*/;
+		}
 	}
 
 	/**********************************

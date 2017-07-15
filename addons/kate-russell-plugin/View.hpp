@@ -50,8 +50,8 @@ public:
 	void clearOutput();
 	void openLocation(const QString&);
 
-	mdl :: Client*   client();
-	mdl :: Server*   server();
+	mdl :: Client* client();
+	mdl :: Server* server();
 	Proof* proof();
 	KTextEditor::Plugin* plugin() { return plugin_; }
 	KTextEditor::MainWindow* mainWindow() const { return mainWindow_; }
@@ -66,6 +66,7 @@ public:
 	QUrl currentFileUrl (const bool save = false) const;
 	bool currentIsRussell() const;
 	bool currentIsMetamath() const;
+	void update();
 
 private Q_SLOTS:
 	void refreshOutline();

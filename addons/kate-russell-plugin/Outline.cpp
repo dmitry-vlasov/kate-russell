@@ -80,9 +80,7 @@ namespace russell {
 	void 
 	Outline :: refresh() 
 	{
-		if (window_->activeView() == NULL) {
-			return;
-		}
+		if (!window_->activeView()) return;
 		QString options = getOptions();
 		view_->mineOutline (options);
 	}

@@ -313,10 +313,10 @@ namespace mdl{
 		if (!Connection::mod().execute (command)) return false;
 		view_->clearOutput();
 
-		if (!Connection::mod().data().isEmpty()) {
+		/*if (!Connection::mod().data().isEmpty()) {
 			QString def = i18n("Definition:");
 			QMessageBox::information(view_->mainWindow()->activeView(), def, Connection::mod().data());
-		}
+		}*/
 		view_->openLocation(Connection::mod().data());
 		return true;
 /*
@@ -350,6 +350,40 @@ namespace mdl{
 	bool
 	Client :: mine (const QString& options)
 	{
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString file = url.toLocalFile();
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command = QStringLiteral("rus curr proj=") + conf->name();
+		if (!Connection::mod().execute (command)) return false;
+		switch (view_->getState()) {
+		case View :: MINING_OUTLINE :
+			command  = QStringLiteral("rus outline what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
+			command += QStringLiteral("what=") + options;
+			break;
+		case View :: MINING_STRUCTURE :
+			//command = QStringLiteral(" --mine-structure ");
+			//break;
+		case View :: MINING_TYPE_SYSTEM :
+			//command = QStringLiteral(" --mine-type-system ");
+			//break;
+		default : return false;
+		}
+		QMessageBox::information(
+			view_->mainWindow()->activeView(),
+			QStringLiteral("mining"),
+			QStringLiteral("about to exec: \n") + command
+		);
+		if (!Connection::mod().execute (command)) return false;
+		view_->update();
+		return true;
+
+		///////////////////
+/*
 		if (!view_->currentIsRussell()) {
 			return false;
 		}
@@ -383,6 +417,7 @@ namespace mdl{
 		//KMessageBox :: sorry (0, command);
 
     	return false; //startProcess (config_->getSourceRoot(), command);
+    */
 	}
 
 	bool
