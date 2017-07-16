@@ -56,6 +56,7 @@ public:
 	KTextEditor::Plugin* plugin() { return plugin_; }
 	KTextEditor::MainWindow* mainWindow() const { return mainWindow_; }
 
+	void setOutput(const QString& output) { output_ = output; }
 	const QString& getOutput() const;
 	const ConfigOld* getConfig() const;
 	void mineOutline (const QString&);

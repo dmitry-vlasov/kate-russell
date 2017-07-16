@@ -362,7 +362,7 @@ namespace mdl{
 		if (!Connection::mod().execute (command)) return false;
 		switch (view_->getState()) {
 		case View :: MINING_OUTLINE :
-			command  = QStringLiteral("rus outline what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
+			command  = QStringLiteral("rus outline in=") + conf->trimFile(file) + QStringLiteral(" ");
 			command += QStringLiteral("what=") + options;
 			break;
 		case View :: MINING_STRUCTURE :
@@ -373,12 +373,8 @@ namespace mdl{
 			//break;
 		default : return false;
 		}
-		QMessageBox::information(
-			view_->mainWindow()->activeView(),
-			QStringLiteral("mining"),
-			QStringLiteral("about to exec: \n") + command
-		);
 		if (!Connection::mod().execute (command)) return false;
+		view_->setOutput(Connection::mod().data());
 		view_->update();
 		return true;
 

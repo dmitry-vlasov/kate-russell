@@ -44,25 +44,6 @@ public :
 	static const QIcon& ref();
 	static const QIcon& top();
 	//static const QIcon& proved();
-
-private :
-	static const QIcon import_;
-	static const QIcon theory_;
-	static const QIcon constant_;
-	static const QIcon type_;
-	static const QIcon rule_;
-	static const QIcon axiom_;
-	static const QIcon definition_;
-	static const QIcon theorem_;
-	static const QIcon problem_;
-	static const QIcon proof_;
-
-	static const QIcon root_;
-	static const QIcon hyp_;
-	static const QIcon prop_;
-	static const QIcon ref_;
-	static const QIcon top_;
-	//static const QIcon proved_;
 };
 
 }

@@ -150,8 +150,7 @@ namespace russell {
 			location.remove (0, endlIndex + 1);
 			column = columnString.toInt();
 		}
-		QString pathUrl(QStringLiteral("file://") + path);
-		gotoLocation (pathUrl, line, column);
+		gotoLocation (path, line, column);
 	}
 
 	mdl :: Client*
@@ -188,7 +187,7 @@ namespace russell {
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
 	{
-		QUrl url(path);
+		QUrl url(QStringLiteral("file://") + path);
 		if (KTextEditor::View* view = mainWindow_->openUrl (url)) {
 			mainWindow_->activateView(view->document());
 			mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line, column));
@@ -958,7 +957,8 @@ namespace russell {
 		QIcon (provePixmap)
 		a->setIcon (QIcon (provePixmap));*/
 		//a->setIcon (QIcon ("media-playback-start"));
-		action->setIcon (QIcon (QLatin1String("arrow-right-double")));
+		action->setIcon (QIcon(QLatin1String("arrow-right-double")));
+		action->setIcon (QIcon(QStringLiteral(":/katerussell/icons/hi22-actions-russell-axiom.png")));
 		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveInteractive()));
 
 		action = actionCollection()->addAction (QLatin1String("start_server"));

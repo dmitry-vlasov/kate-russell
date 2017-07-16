@@ -3,4 +3,21 @@
     <qresource prefix="/kxmlgui5/katerussell">
         <file>ui.rc</file>
     </qresource>
+    <qresource prefix="/katerussell">
+        <file>icons/hi16-actions-russell-axiom.png</file>
+        <file>icons/hi16-actions-russell-constant.png</file>
+        <file>icons/hi16-actions-russell-definition.png</file>
+        <file>icons/hi16-actions-russell-hyp.png</file>
+        <file>icons/hi16-actions-russell-import.png</file>
+        <file>icons/hi16-actions-russell-problem.png</file>
+        <file>icons/hi16-actions-russell-proof.png</file>
+        <file>icons/hi16-actions-russell-prop.png</file>
+        <file>icons/hi16-actions-russell-ref.png</file>
+        <file>icons/hi16-actions-russell-root.png</file>
+        <file>icons/hi16-actions-russell-rule.png</file>
+        <file>icons/hi16-actions-russell-theorem.png</file>
+        <file>icons/hi16-actions-russell-theory.png</file>
+        <file>icons/hi16-actions-russell-top.png</file>
+        <file>icons/hi16-actions-russell-type.png</file>
+    </qresource>
 </RCC>

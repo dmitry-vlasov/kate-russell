@@ -230,28 +230,42 @@ namespace russell {
 		*/
 
 		refresh_ = popup_->addAction(i18n("Refresh"));
+		refresh_->setCheckable(true);
+		connect(refresh_, SIGNAL(triggered()), this, SLOT (refresh()));
 
 		if (sort_ != TYPE_SYSTEM) {
 			popup_->addSeparator();
 			showAll_ = popup_->addAction(i18n("Show All"));
+			showAll_->setCheckable(true);
 			showAxioms_ = popup_->addAction(i18n("Show Axioms"));
+			showAxioms_->setCheckable(true);
 			showConstants_ = popup_->addAction(i18n("Show Constants"));
+			showConstants_->setCheckable(true);
 			showDefinitions_ = popup_->addAction(i18n("Show Definitions"));
+			showDefinitions_->setCheckable(true);
 			if (sort_ == OUTLINE) {
 				showImports_ = popup_->addAction(i18n("Show Imports"));
+				showImports_->setCheckable(true);
 				showProblems_ = popup_->addAction(i18n("Show Problems"));
+				showProblems_->setCheckable(true);
 			}
 			showRules_ = popup_->addAction(i18n("Show Rules"));
+			showRules_->setCheckable(true);
 			if (sort_ == OUTLINE) {
 				showTheorems_ = popup_->addAction(i18n("Show Theorems"));
+				showTheorems_->setCheckable(true);
 			}
 			showTheories_ = popup_->addAction(i18n("Show Theories"));
+			showTheories_->setCheckable(true);
 			showTypes_ = popup_->addAction(i18n("Show Types"));
+			showTypes_->setCheckable(true);
 		}
 
 		popup_->addSeparator();
 		treeMode_ = popup_->addAction(i18n ("List/Tree Mode"));
+		treeMode_->setCheckable(true);
 		sortingMode_ = popup_->addAction(i18n("Enable Sorting"));
+		sortingMode_->setCheckable(true);
 
 		//updateCheckboxes();
 	
@@ -311,12 +325,15 @@ namespace russell {
 			options += QStringLiteral("rule");
 		}
 		if (showTheorems_ && showTheorems_->isChecked()) {
+			if (options.size()) options += QStringLiteral(",");
 			options += QStringLiteral("theorem");
 		}
 		if (showTheories_ && showTheories_->isChecked()) {
+			if (options.size()) options += QStringLiteral(",");
 			options += QStringLiteral("theory");
 		}
 		if (showTypes_ && showTypes_->isChecked()) {
+			if (options.size()) options += QStringLiteral(",");
 			options += QStringLiteral("type");
 		}
 		return options;

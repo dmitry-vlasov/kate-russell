@@ -46,101 +46,95 @@ namespace russell {
 	// Russell source elements
 	const QIcon&
 	Icon :: source() {
-		return theory_;
+		static QIcon theory(QStringLiteral(":/katerussell/icons/hi16-actions-russell-theory.png"));
+		return theory;
 	}
 	const QIcon&
 	Icon :: import() {
-		return import_;
+		static QIcon import(QStringLiteral(":/katerussell/icons/hi16-actions-russell-import.png"));
+		return import;
 	}
 	const QIcon&
 	Icon :: theory() {
-		return theory_;
+		static QIcon theory(QStringLiteral(":/katerussell/icons/hi16-actions-russell-theory.png"));
+		return theory;
 	}
 	const QIcon&
 	Icon :: contents() {
-		return theory_;
+		static QIcon theory(QStringLiteral(":/katerussell/icons/hi16-actions-russell-theory.png"));
+		return theory;
 	}
 	const QIcon&
 	Icon :: constant() {
-		return constant_;
+		static QIcon constant(QStringLiteral(":/katerussell/icons/hi16-actions-russell-constant.png"));
+		return constant;
 	}
 	const QIcon&
 	Icon :: rule() {
-		return rule_;
+		static QIcon rule(QStringLiteral(":/katerussell/icons/hi16-actions-russell-rule.png"));
+		return rule;
 	}
 	const QIcon&
 	Icon :: type() {
-		return type_;
+		static QIcon type(QStringLiteral(":/katerussell/icons/hi16-actions-russell-type.png"));
+		return type;
 	}
 	const QIcon&
 	Icon :: axiom() {
-		return axiom_;
+		static QIcon axiom(QStringLiteral(":/katerussell/icons/hi16-actions-russell-axiom.png"));
+		return axiom;
 	}
 	const QIcon&
 	Icon :: definition() {
-		return definition_;
+		static QIcon definition(QStringLiteral(":/katerussell/icons/hi16-actions-russell-definition.png"));
+		return definition;
 	}
 	const QIcon&
 	Icon :: theorem() {
-		return theorem_;
+		static QIcon theorem(QStringLiteral(":/katerussell/icons/hi16-actions-russell-theorem.png"));
+		return theorem;
 	}
 	const QIcon&
 	Icon :: problem() {
-		return problem_;
+		static QIcon problem(QStringLiteral(":/katerussell/icons/hi16-actions-russell-problem.png"));
+		return problem;
 	}
 	const QIcon&
 	Icon :: proof() {
-		return proof_;
+		static QIcon proof(QStringLiteral(":/katerussell/icons/hi16-actions-russell-proof.png"));
+		return proof;
 	}
 
 	// Proof tree elements
 	const QIcon&
 	Icon :: root() {
-		return root_;
+		static QIcon root(QStringLiteral(":/katerussell/icons/hi16-actions-russell-root.png"));
+		return root;
 	}
 	const QIcon&
 	Icon :: hyp() {
-		return hyp_;
+		static QIcon hyp(QStringLiteral(":/katerussell/icons/hi16-actions-russell-hyp.png"));
+		return hyp;
 	}
 	const QIcon&
 	Icon :: prop() {
-		return prop_;
+		static QIcon prop(QStringLiteral(":/katerussell/icons/hi16-actions-russell-prop.png"));
+		return prop;
 	}
 	const QIcon&
 	Icon :: ref() {
-		return ref_;
+		static QIcon ref(QStringLiteral(":/katerussell/icons/hi16-actions-russell-ref.png"));
+		return ref;
 	}
 	const QIcon&
 	Icon :: top() {
-		return top_;
+		static QIcon top(QStringLiteral(":/katerussell/icons/hi16-actions-russell-top.png"));
+		return top;
 	}
 	/*const QIcon&
 	Icon :: proved() {
 		return proved_;
 	}*/
-
-	/****************************
-	 *	Private members
-	 ****************************/
-
-	const QIcon Icon :: import_ (QStringLiteral("russell-import"));
-	const QIcon Icon :: theory_ (QStringLiteral("russell-theory"));
-	const QIcon Icon :: constant_(QStringLiteral("russell-constant"));
-	const QIcon Icon :: type_ (QStringLiteral("russell-type"));
-	const QIcon Icon :: rule_ (QStringLiteral("russell-rule"));
-	const QIcon Icon :: axiom_(QStringLiteral("russell-axiom"));
-	const QIcon Icon :: definition_(QStringLiteral("russell-definition"));
-	const QIcon Icon :: theorem_(QStringLiteral("russell-theorem"));
-	const QIcon Icon :: problem_(QStringLiteral("russell-problem"));
-	const QIcon Icon :: proof_(QStringLiteral("russell-proof"));
-
-	const QIcon Icon :: root_(QStringLiteral("russell-root"));
-	const QIcon Icon :: hyp_ (QStringLiteral("russell-hyp"));
-	const QIcon Icon :: prop_(QStringLiteral("russell-prop"));
-	const QIcon Icon :: ref_(QStringLiteral("russell-ref"));
-	const QIcon Icon :: top_(QStringLiteral("russell-top"));
-	//const QIcon Icon :: proved_("russell-proved");
-
 }
 }
 }
