@@ -46,7 +46,7 @@ namespace russell {
 		setup ("Structure");
 
 		showAxioms_->setChecked(true);
-		showTheories_->setChecked(true);
+		showTypes_->setChecked(true);
 	}
 	Structure :: ~ Structure() {
 	}

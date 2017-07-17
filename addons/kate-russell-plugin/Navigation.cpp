@@ -165,31 +165,6 @@ inline QString de_escape_xml(const QString& s) {
 	void
 	Navigation :: setup (const char* header)
 	{
-		/*refresh_ = popup_->insertItem (i18n ("Refresh"), this, SLOT (refresh()));
-
-		if (sort_ != TYPE_SYSTEM) {	
-			popup_->addSeparator();
-			showAllIndex_ = popup_->insertItem (i18n("Show All"), this, SLOT (pushShowAll()));
-			showAxiomsIndex_ = popup_->insertItem (i18n("Show Axioms"), this, SLOT (toggleShowAxioms()));
-			showConstantsIndex_ = popup_->insertItem (i18n("Show Constants"), this, SLOT (toggleShowConstants()));
-			showDefinitionsIndex_ = popup_->insertItem (i18n("Show Definitions"), this, SLOT (toggleShowDefinitions()));
-			if (sort_ == OUTLINE) {
-				showImportsIndex_ = popup_->insertItem (i18n("Show Imports"), this, SLOT (toggleShowImports()));
-				showProblemsIndex_ = popup_->insertItem (i18n("Show Problems"), this, SLOT (toggleShowProblems()));
-			}			
-			showRulesIndex_ = popup_->insertItem (i18n("Show Rules"), this, SLOT (toggleShowRules()));
-			if (sort_ == OUTLINE) {
-				showTheoremsIndex_ = popup_->insertItem (i18n("Show Theorems"), this, SLOT (toggleShowTheorems()));
-			}
-			showTheoriesIndex_ = popup_->insertItem (i18n("Show Theories"), this, SLOT (toggleShowTheories()));
-			showTypesIndex_ = popup_->insertItem (i18n("Show Types"), this, SLOT (toggleShowTypes()));
-		}
-		
-		popup_->addSeparator();
-		listTreeModeIndex_ = popup_->insertItem (i18n ("List/Tree Mode"), this, SLOT (toggleListTreeMode()));
-		sortingModeIndex_ = popup_->insertItem(i18n("Enable Sorting"), this, SLOT (toggleSortingMode()));
-		*/
-
 		refresh_ = popup_->addAction(i18n("Refresh"));
 		connect(refresh_, SIGNAL(triggered()), this, SLOT (refresh()));
 
@@ -229,9 +204,6 @@ inline QString de_escape_xml(const QString& s) {
 			showTypes_ = popup_->addAction(i18n("Show Types"));
 			showTypes_->setCheckable(true);
 			connect(showTypes_, SIGNAL(triggered()), this, SLOT (refresh()));
-		} else {
-			//showTypes_ = popup_->addAction(i18n("Show Types"));
-			//connect(showTypes_, SIGNAL(triggered()), this, SLOT (refresh()));
 		}
 
 		popup_->addSeparator();

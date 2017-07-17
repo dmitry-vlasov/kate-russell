@@ -40,16 +40,6 @@ public Q_SLOTS:
 	virtual void refresh() = 0;
 
 	void pushShowAll();
-/*	void toggleShowAxioms();
-	void toggleShowConstants();
-	void toggleShowDefinitions();
-	void toggleShowImports();
-	void toggleShowProblems();
-	void toggleShowRules();
-	void toggleShowTheorems();
-	void toggleShowTheories();
-	void toggleShowTypes();
-*/
 	void toggleTreeMode();
 	void toggleSortingMode();
 
@@ -90,35 +80,6 @@ protected :
 	QAction*     showTypes_;
 	QAction*     treeMode_;
 	QAction*     sortingMode_;
-
-
-
-//	bool treeMode_;
-//	bool treeSort_;
-/*
-	bool showAxioms_;
-	bool showConstants_;
-	bool showDefinitions_;
-	bool showImports_;
-	bool showProblems_;
-	bool showRules_;
-	bool showTheorems_;
-	bool showTheories_;
-	bool showTypes_;
-
-	int showAllIndex_;
-	int showAxiomsIndex_;
-	int showConstantsIndex_;
-	int showDefinitionsIndex_;
-	int showImportsIndex_;
-	int showProblemsIndex_;
-	int showRulesIndex_;
-	int showTheoremsIndex_;
-	int showTheoriesIndex_;
-	int showTypesIndex_;
-*/
-//	int listTreeModeIndex_;
-//	int sortingModeIndex_;
 
 	bool expandTypes_;
 };

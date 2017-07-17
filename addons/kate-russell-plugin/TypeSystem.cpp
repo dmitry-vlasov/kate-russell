@@ -45,7 +45,6 @@ namespace russell {
 
 		setup ("Type system");
 
-		//showTypes_->setChecked(true);
 		treeMode_->setChecked(true);
 		expandTypes_ = true;
 	}
