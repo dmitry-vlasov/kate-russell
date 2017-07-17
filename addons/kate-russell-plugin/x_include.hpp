@@ -15,7 +15,7 @@
 #ifndef PLUGIN_KATE_RUSSELL_X_INCLUDE_HPP_
 #define PLUGIN_KATE_RUSSELL_X_INCLUDE_HPP_
 
-#include <sys/socket.h>
+//#include <sys/socket.h>
 
 #include <vector>
 #include <map>
@@ -61,7 +61,6 @@
 #include <QLabel>
 #include <QToolButton>
 #include <QWidget>
-//#include <QTest>
 
 #include <qevent.h>
 #include <qcheckbox.h>
@@ -83,22 +82,15 @@
 #include <kcombobox.h>
 #include <kactioncollection.h>
 #include <kcursor.h>
-//#include <KDELibs4Support/KDE/KComponentData>    //!!!
 #include <kmessagebox.h>
 
 #include <QStandardPaths>
-//#include <KDELibs4Support/KDE/KStandardDirs> //!!!
 
-//#include <KDELibs4Support/KDE/KPassivePopup>
 #include <KConfig>
-//#include <KDELibs4Support/KDE/KFileDialog>
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
 #include <kaboutdata.h>
 #include <kstringhandler.h>
-//#include <kmenu.h>
-//#include <kicon.h>
-//#include <kactionmenu.h>
 
 #include <ktexteditor/view.h>
 #include <ktexteditor/document.h>
@@ -106,20 +98,12 @@
 #include <KXMLGUIClient>
 #include <KActionMenu>
 #include <KConfigGroup>
-//#include <KNotification>
 #include <QFileDialog>
 
 #include <KTextEditor/Plugin>
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/View>
 #include <KTextEditor/SessionConfigInterface>
-//#include <KTextEditor/FileDialog>
-
-//#include <../kate/kateapp.h>
-//#include <kate/katedocmanager.h>
-//#include <kate/katemainwindow.h>
-//#include <kate/katepluginmanager.h>
-//#include <kate/kateconfigplugindialogpage.h>
 
 #endif /* PLUGIN_KATE_RUSSELL_X_INCLUDE_HPP_ */
 

@@ -58,7 +58,6 @@ public:
 
 	void setOutput(const QString& output) { output_ = output; }
 	const QString& getOutput() const;
-	const ConfigOld* getConfig() const;
 	void mineOutline (const QString&);
 	void mineStructure (const QString&);
 	void mineTypeSystem (const QString&);
@@ -141,7 +140,6 @@ private:
 	TypeSystem* typeSystem_;
 	Proof*      proof_;
 
-	mdl :: Launcher* launcher_;
 	mdl :: Client*   client_;
 
 	ErrorParser* errorParser_;

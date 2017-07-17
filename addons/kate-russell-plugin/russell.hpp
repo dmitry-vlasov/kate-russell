@@ -23,11 +23,7 @@
 
 #include "Kind.hpp"
 
-#include "Combinations.hpp"
-#include "ProjectConfigOld.hpp"
-#include "Indexes.hpp"
 #include "Session.hpp"
-#include "Ui.hpp"
 
 #include "ErrorParser.hpp"
 #include "Icon.hpp"

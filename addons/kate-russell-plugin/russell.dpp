@@ -30,18 +30,12 @@ namespace config {
 
 	//#define DEBUG_CONFIG
 
-	class Combinations;
-	class ConfigOld;
-	class Indexes;
 	class Session;
-	class Ui;
 }
-	using config :: ConfigOld;
 
 namespace mdl {
 
 	class Client;
-	class Launcher;
 	class Server;
 }
 
