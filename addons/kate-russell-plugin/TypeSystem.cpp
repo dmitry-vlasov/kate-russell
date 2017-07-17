@@ -45,13 +45,8 @@ namespace russell {
 
 		setup ("Type system");
 
-		showTypes_->setChecked(true);
+		//showTypes_->setChecked(true);
 		treeMode_->setChecked(true);
-
-		//if (showAxioms_)   showAxioms_->setChecked(true);
-		//if (showTheories_) showTheories_->setChecked(true);
-		//if (showTypes_)    showTypes_->setChecked(true);
-		//if (treeMode_)     treeMode_->setChecked(true);
 		expandTypes_ = true;
 	}
 	TypeSystem :: ~ TypeSystem() {

@@ -49,10 +49,10 @@ public Q_SLOTS:
 	void toggleShowTheorems();
 	void toggleShowTheories();
 	void toggleShowTypes();
-
-	void toggleListTreeMode();
-	void toggleSortingMode();
 */
+	void toggleTreeMode();
+	void toggleSortingMode();
+
 	void slotShowContextMenu (const QPoint&);
 	void gotoDefinition (QTreeWidgetItem*);
 
@@ -69,7 +69,6 @@ protected :
 		QTreeWidgetItem*,
 		const bool gotoDefinition = false
 	);
-	//void updateCheckboxes();
 		
 	KTextEditor::MainWindow* window_;
 	View*        view_;

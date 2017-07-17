@@ -374,7 +374,6 @@ namespace mdl{
 		}
 		if (!Connection::mod().execute (command)) return false;
 		view_->setOutput(Connection::mod().data());
-		qDebug() << view_->getOutput();
 		view_->update();
 		return true;
 

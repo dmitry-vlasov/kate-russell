@@ -59,15 +59,14 @@ inline QString de_escape_xml(const QString& s) {
 		View* view,
 		const Sort sort
 	) :
-	//QWidget (window->centralWidget()),
 	QWidget (window->activeView()),
 	window_ (window),
 	view_ (view),
 	sort_ (sort),
 
-	toolView_ (NULL),
-	tree_ (NULL),
-	popup_ (NULL),
+	toolView_ (nullptr),
+	tree_ (nullptr),
+	popup_ (nullptr),
 
 	refresh_(nullptr),
 	showAll_ (nullptr),
@@ -88,10 +87,10 @@ inline QString de_escape_xml(const QString& s) {
 	}
 
 	void 
-	Navigation :: update (const char* header) 
+	Navigation :: update (const char* header)
 	{
 		const QString output = view_->getOutput();
-		QDomDocument document (i18n(header));
+		QDomDocument document(i18n(header));
 		QString error;
 		if (!document.setContent (output, &error)) {
 			QMessageBox::information(this, QStringLiteral("Couldn't parse xml"), error);
@@ -104,7 +103,7 @@ inline QString de_escape_xml(const QString& s) {
 		QDomNode node = root.firstChild();
 		
 		tree_->clear();
-		QTreeWidgetItem* sibling = NULL;
+		QTreeWidgetItem* sibling = nullptr;
 		build (node, sibling);
 	}
 
@@ -129,11 +128,20 @@ inline QString de_escape_xml(const QString& s) {
 		}
 		showTheories_->setChecked(true);
 		showTypes_->setChecked(true);
-		//updateCheckboxes();
 		refresh();
 	}
 
 	void 
+	Navigation :: toggleTreeMode() {
+		refresh();
+	}
+	void
+	Navigation :: toggleSortingMode() {
+		//sortingMode_->setChecked(treeMode_->isChecked());
+		refresh();
+	}
+
+	void
 	Navigation :: slotShowContextMenu (const QPoint& point) {
 		popup_-> popup (tree_->mapToGlobal (point));
 	}
@@ -183,47 +191,56 @@ inline QString de_escape_xml(const QString& s) {
 		*/
 
 		refresh_ = popup_->addAction(i18n("Refresh"));
-		refresh_->setCheckable(true);
 		connect(refresh_, SIGNAL(triggered()), this, SLOT (refresh()));
 
 		if (sort_ != TYPE_SYSTEM) {
 			popup_->addSeparator();
 			showAll_ = popup_->addAction(i18n("Show All"));
-			showAll_->setCheckable(true);
+			connect(showAll_, SIGNAL(triggered()), this, SLOT (pushShowAll()));
+
 			showAxioms_ = popup_->addAction(i18n("Show Axioms"));
 			showAxioms_->setCheckable(true);
+			connect(showAxioms_, SIGNAL(triggered()), this, SLOT (refresh()));
 			showConstants_ = popup_->addAction(i18n("Show Constants"));
 			showConstants_->setCheckable(true);
+			connect(showConstants_, SIGNAL(triggered()), this, SLOT (refresh()));
 			showDefinitions_ = popup_->addAction(i18n("Show Definitions"));
 			showDefinitions_->setCheckable(true);
+			connect(showDefinitions_, SIGNAL(triggered()), this, SLOT (refresh()));
 			if (sort_ == OUTLINE) {
 				showImports_ = popup_->addAction(i18n("Show Imports"));
 				showImports_->setCheckable(true);
+				connect(showImports_, SIGNAL(triggered()), this, SLOT (refresh()));
 				showProblems_ = popup_->addAction(i18n("Show Problems"));
 				showProblems_->setCheckable(true);
+				connect(showProblems_, SIGNAL(triggered()), this, SLOT (refresh()));
 			}
 			showRules_ = popup_->addAction(i18n("Show Rules"));
 			showRules_->setCheckable(true);
+			connect(showRules_, SIGNAL(triggered()), this, SLOT (refresh()));
 			if (sort_ == OUTLINE) {
 				showTheorems_ = popup_->addAction(i18n("Show Theorems"));
 				showTheorems_->setCheckable(true);
+				connect(showTheorems_, SIGNAL(triggered()), this, SLOT (refresh()));
 			}
 			showTheories_ = popup_->addAction(i18n("Show Theories"));
 			showTheories_->setCheckable(true);
+			connect(showTheories_, SIGNAL(triggered()), this, SLOT (refresh()));
 			showTypes_ = popup_->addAction(i18n("Show Types"));
 			showTypes_->setCheckable(true);
+			connect(showTypes_, SIGNAL(triggered()), this, SLOT (refresh()));
 		} else {
-			showTypes_ = popup_->addAction(i18n("Show Types"));
-			showTypes_->setCheckable(true);
+			//showTypes_ = popup_->addAction(i18n("Show Types"));
+			//connect(showTypes_, SIGNAL(triggered()), this, SLOT (refresh()));
 		}
 
 		popup_->addSeparator();
 		treeMode_ = popup_->addAction(i18n ("List/Tree Mode"));
 		treeMode_->setCheckable(true);
+		connect(treeMode_, SIGNAL(triggered()), this, SLOT (toggleTreeMode()));
 		sortingMode_ = popup_->addAction(i18n("Enable Sorting"));
 		sortingMode_->setCheckable(true);
-
-		//updateCheckboxes();
+		connect(sortingMode_, SIGNAL(triggered()), this, SLOT (toggleSortingMode()));
 	
 		QStringList titles;
 		titles << i18nc ("@title:column", header) << i18nc ("@title:column", "Position");
@@ -242,6 +259,7 @@ inline QString de_escape_xml(const QString& s) {
 	QString 
 	Navigation :: getOptions() const
 	{
+		if (sort_ == TYPE_SYSTEM) return QStringLiteral("type");
 		QString options;
 		if (showAxioms_ && showAxioms_->isChecked()) {
 			if (options.size()) options += QStringLiteral(",");
@@ -328,7 +346,7 @@ inline QString de_escape_xml(const QString& s) {
 	)
 	{
 		QTreeWidgetItem* item = 
-			(treeMode_ && treeMode_->isChecked() && (parent != NULL)) ?
+			(treeMode_ && treeMode_->isChecked() && parent) ?
 			new QTreeWidgetItem (parent, sibling) :
 			new QTreeWidgetItem (tree_);
 		sibling = item;
@@ -355,7 +373,7 @@ inline QString de_escape_xml(const QString& s) {
 	)
 	{
 		QTreeWidgetItem* item =
-			(treeMode_ && treeMode_->isChecked() && (parent != NULL)) ?
+			(treeMode_ && treeMode_->isChecked() && parent) ?
 			new QTreeWidgetItem (parent, sibling) :
 			new QTreeWidgetItem (tree_);
 		sibling = item;
@@ -372,26 +390,9 @@ inline QString de_escape_xml(const QString& s) {
 			item->setText (4, QStringLiteral("no"));
 		}
 		QDomNode childNode = outlineNode.firstChild();
-		QTreeWidgetItem* childSibling = NULL;
+		QTreeWidgetItem* childSibling = nullptr;
 		build (childNode, childSibling, item);
 	}
-/*
-	void 
-	Navigation :: updateCheckboxes() 
-	{
-		popup_->setItemChecked (showAxiomsIndex_, showAxioms_);
-		popup_->setItemChecked (showConstantsIndex_, showConstants_);
-		popup_->setItemChecked (showDefinitionsIndex_, showDefinitions_);
-		popup_->setItemChecked (showImportsIndex_, showImports_);
-		popup_->setItemChecked (showProblemsIndex_, showProblems_);
-		popup_->setItemChecked (showRulesIndex_, showRules_);
-		popup_->setItemChecked (showTheoremsIndex_, showTheorems_);
-		popup_->setItemChecked (showTheoriesIndex_, showTheories_);
-		popup_->setItemChecked (showTypesIndex_, showTypes_);
-
-		popup_->setItemChecked (sortingModeIndex_, treeSort_);
-	}
-*/
 }
 }
 }
