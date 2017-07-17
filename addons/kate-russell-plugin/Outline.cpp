@@ -42,17 +42,7 @@ namespace russell {
 		);
 		tree_ = new QTreeWidget (toolView_);
 		popup_ = new QMenu(tree_);
-/*
-		showAxioms_ = true;
-		showConstants_ = true;
-		showDefinitions_ = true;
-		showImports_ = true;
-		showProblems_ = true;
-		showRules_ = true;
-		showTheorems_ = true;
-		showTheories_ = true;
-		showTypes_ = true;
-*/
+
 		setup ("Outline");
 
 		showAxioms_->setChecked(true);

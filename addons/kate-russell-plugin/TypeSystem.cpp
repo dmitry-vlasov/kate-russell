@@ -43,19 +43,15 @@ namespace russell {
 		tree_ = new QTreeWidget (toolView_);
 		popup_ = new QMenu(tree_);
 
-		//showAxioms_ = true;
-		//showTheories_ = true;
-		//showTypes_ = true;
-		//expandTypes_ = true;
-		//treeMode_ = true;
-		//updateCheckboxes();
-
 		setup ("Type system");
 
-		if (showAxioms_)   showAxioms_->setChecked(true);
-		if (showTheories_) showTheories_->setChecked(true);
-		if (showTypes_)    showTypes_->setChecked(true);
-		if (treeMode_)     treeMode_->setChecked(true);
+		showTypes_->setChecked(true);
+		treeMode_->setChecked(true);
+
+		//if (showAxioms_)   showAxioms_->setChecked(true);
+		//if (showTheories_) showTheories_->setChecked(true);
+		//if (showTypes_)    showTypes_->setChecked(true);
+		//if (treeMode_)     treeMode_->setChecked(true);
 		expandTypes_ = true;
 	}
 	TypeSystem :: ~ TypeSystem() {
@@ -63,7 +59,7 @@ namespace russell {
 
 	void 
 	TypeSystem :: update() {
-		Navigation :: update ("type_system");
+		Navigation :: update ("structure");
 	}
 
 	/****************************
@@ -73,9 +69,7 @@ namespace russell {
 	void 
 	TypeSystem :: refresh() 
 	{
-		if (window_->activeView() == NULL) {
-			return;
-		}
+		if (!window_->activeView()) return;
 		QString options = getOptions();
 		view_->mineTypeSystem (options);
 	}

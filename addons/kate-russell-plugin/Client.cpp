@@ -366,15 +366,15 @@ namespace mdl{
 			command += QStringLiteral("what=") + options;
 			break;
 		case View :: MINING_STRUCTURE :
-			//command = QStringLiteral(" --mine-structure ");
-			//break;
 		case View :: MINING_TYPE_SYSTEM :
-			//command = QStringLiteral(" --mine-type-system ");
-			//break;
+			command  = QStringLiteral("rus struct ");
+			command += QStringLiteral("what=") + options;
+			break;
 		default : return false;
 		}
 		if (!Connection::mod().execute (command)) return false;
 		view_->setOutput(Connection::mod().data());
+		qDebug() << view_->getOutput();
 		view_->update();
 		return true;
 

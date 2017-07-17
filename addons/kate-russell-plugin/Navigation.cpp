@@ -21,6 +21,34 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
+inline QString de_escape_xml(const QString& s) {
+	QString str;
+	for (int i = 0; i < s.length(); ++ i) {
+		if (s[i] == QLatin1Char('&')) {
+			++i;
+			if (s.mid(i, 4) == QStringLiteral("quot")) {
+				i += 4;
+				str += QLatin1Char('\"');
+			} else if (s.mid(i, 4) == QStringLiteral("apos")) {
+				i += 4;
+				str += QLatin1Char('\'');
+			} else if (s.mid(i, 3) == QStringLiteral("amp")) {
+				i += 3;
+				str += QLatin1Char('&');
+			} else if (s.mid(i, 2) == QStringLiteral("lt")) {
+				i += 2;
+				str += QLatin1Char('<');
+			} else if (s.mid(i, 2) == QStringLiteral("gt")) {
+				i += 2;
+				str += QLatin1Char('>');
+			} else {
+				str += QLatin1Char('&'); str += s[i];
+			}
+		} else str += s[i];
+	}
+	return str;
+}
+
 	/****************************
 	 *	Public members
 	 ****************************/
@@ -64,7 +92,9 @@ namespace russell {
 	{
 		const QString output = view_->getOutput();
 		QDomDocument document (i18n(header));
-		if (!document.setContent (output)) {
+		QString error;
+		if (!document.setContent (output, &error)) {
+			QMessageBox::information(this, QStringLiteral("Couldn't parse xml"), error);
 			return;
 		}
 		const QDomElement root = document.documentElement();
@@ -102,84 +132,7 @@ namespace russell {
 		//updateCheckboxes();
 		refresh();
 	}
-/*
-	void 
-	Navigation :: toggleShowAxioms() 
-	{
-		showAxioms_ = !showAxioms_;
-		popup_->setItemChecked (showAxiomsIndex_, showAxioms_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowConstants() 
-	{
-		showConstants_ = !showConstants_;
-		popup_->setItemChecked (showConstantsIndex_, showConstants_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowDefinitions() 
-	{
-		showDefinitions_ = !showDefinitions_;
-		popup_->setItemChecked (showDefinitionsIndex_, showDefinitions_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowImports() 
-	{
-		showImports_ = !showImports_;
-		popup_->setItemChecked (showImportsIndex_, showImports_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowProblems() 
-	{
-		showProblems_ = !showProblems_;
-		popup_->setItemChecked (showProblemsIndex_, showProblems_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowRules() 
-	{
-		showRules_ = !showRules_;
-		popup_->setItemChecked (showRulesIndex_, showRules_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowTheorems() 
-	{
-		showTheorems_ = !showTheorems_;
-		popup_->setItemChecked (showTheoremsIndex_, showTheorems_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowTheories() 
-	{
-		showTheories_ = !showTheories_;
-		popup_->setItemChecked (showTheoriesIndex_, showTheories_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleShowTypes() 
-	{
-		showTypes_ = !showTypes_;
-		popup_->setItemChecked (showTheoriesIndex_, showTypes_);
-		refresh();
-	}
-	void 
-	Navigation :: toggleListTreeMode() 
-	{
-		treeMode_ = !treeMode_;
-		refresh();
-	}
-	void 
-	Navigation :: toggleSortingMode() 
-	{
-		treeSort_ = !treeSort_;
-		popup_->setItemChecked (sortingModeIndex_, treeSort_);
-		refresh();
-	}
-*/
+
 	void 
 	Navigation :: slotShowContextMenu (const QPoint& point) {
 		popup_-> popup (tree_->mapToGlobal (point));
@@ -259,6 +212,9 @@ namespace russell {
 			showTheories_->setCheckable(true);
 			showTypes_ = popup_->addAction(i18n("Show Types"));
 			showTypes_->setCheckable(true);
+		} else {
+			showTypes_ = popup_->addAction(i18n("Show Types"));
+			showTypes_->setCheckable(true);
 		}
 
 		popup_->addSeparator();
@@ -286,19 +242,6 @@ namespace russell {
 	QString 
 	Navigation :: getOptions() const
 	{
-		/*
-		 {XmlNode::IMPORT,  {"import",  IMPORT_BIT}},
-	{XmlNode::CONST,   {"const",   CONST_BIT}},
-	{XmlNode::TYPE,    {"type",    TYPE_BIT}},
-	{XmlNode::RULE,    {"rule",    RULE_BIT}},
-	{XmlNode::AXIOM,   {"axiom",   AXIOM_BIT}},
-	{XmlNode::DEF,     {"def",     DEF_BIT}},
-	{XmlNode::THEOREM, {"theorem", THEOREM_BIT}},
-	{XmlNode::PROOF,   {"proof",   PROOF_BIT}},
-	{XmlNode::THEORY,  {"theory",  THEORY_BIT}},
-	{XmlNode::PROBLEM, {"problem", PROBLEM_BIT}}
-		 */
-
 		QString options;
 		if (showAxioms_ && showAxioms_->isChecked()) {
 			if (options.size()) options += QStringLiteral(",");
@@ -391,8 +334,12 @@ namespace russell {
 		sibling = item;
 		item->setIcon (0, Icon :: get (kind));
 		QDomElement outlineElement = outlineNode.toElement();
-		item->setText (0, outlineElement.attribute (QStringLiteral("name"), QStringLiteral("")));
-		item->setText (1, outlineElement.attribute (QStringLiteral("path"), QStringLiteral("")));
+		if (kind != CONSTANT) {
+			item->setText (0, de_escape_xml(outlineElement.attribute (QStringLiteral("name"), QStringLiteral(""))));
+		} else {
+			item->setText (0, de_escape_xml(outlineElement.text().trimmed()));
+		}
+		item->setText (1, de_escape_xml(outlineElement.attribute (QStringLiteral("path"), QStringLiteral(""))));
 		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
 		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
 		item->setText (4, QStringLiteral("yes"));
@@ -415,8 +362,8 @@ namespace russell {
 		item->setIcon (0, Icon :: get (kind));
 		tree_->expandItem (item);
 		QDomElement outlineElement = outlineNode.toElement();
-		item->setText (0, outlineElement.attribute (QStringLiteral("name"), QStringLiteral("")));
-		item->setText (1, outlineElement.attribute (QStringLiteral("path"), QStringLiteral("")));
+		item->setText (0, de_escape_xml(outlineElement.attribute (QStringLiteral("name"), QStringLiteral(""))));
+		item->setText (1, de_escape_xml(outlineElement.attribute (QStringLiteral("path"), QStringLiteral(""))));
 		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
 		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
 		if (gotoDefinition) {

@@ -43,10 +43,6 @@ namespace russell {
 		tree_ = new QTreeWidget (toolView_);
 		popup_ = new QMenu(tree_);
 
-		//showAxioms_ = true;
-		//showTheories_ = true;
-		//updateCheckboxes();
-
 		setup ("Structure");
 
 		showAxioms_->setChecked(true);
@@ -67,9 +63,7 @@ namespace russell {
 	void 
 	Structure :: refresh() 
 	{
-		if (window_->activeView() == NULL) {
-			return;
-		}
+		if (!window_->activeView()) return;
 		QString options = getOptions();
 		view_->mineStructure (options);
 	}
