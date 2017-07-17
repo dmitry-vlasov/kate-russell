@@ -11,11 +11,8 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_CPP_
-#define PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_CPP_
-
 #include "TypeSystem.moc"
-#include "russell.hpp"
+#include "TypeSystem.hpp"
 
 namespace plugin {
 namespace kate {
@@ -70,6 +67,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_CPP_ */
-

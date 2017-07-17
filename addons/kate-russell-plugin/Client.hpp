@@ -19,11 +19,12 @@
 #include <QListWidgetItem>
 #include <QString>
 
-#include "russell.dpp"
-
 namespace plugin {
 namespace kate {
 namespace russell {
+
+class View;
+
 namespace mdl {
 
 class Client : public QObject {

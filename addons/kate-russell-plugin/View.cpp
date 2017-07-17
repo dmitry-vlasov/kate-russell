@@ -12,13 +12,27 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_VIEW_CPP_
-#define PLUGIN_KATE_RUSSELL_VIEW_CPP_
+#include <QScrollBar>
 
 #include <KXMLGUIFactory>
-#include "View.moc"
-#include "russell.hpp"
+#include <KStringHandler>
+#include <KMessageBox>
+#include <KActionCollection>
+
+#include <KTextEditor/MainWindow>
+#include <KTextEditor/View>
+
 #include "ProjectConfigTab.hpp"
+#include "View.hpp"
+#include "Outline.hpp"
+#include "Structure.hpp"
+#include "TypeSystem.hpp"
+#include "Proof.hpp"
+#include "Client.hpp"
+#include "Server.hpp"
+#include "LatexToUnicode.hpp"
+
+#include "View.moc"
 
 namespace plugin {
 namespace kate {
@@ -1015,7 +1029,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_VIEW_CPP_ */
-
-

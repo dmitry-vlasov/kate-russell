@@ -12,17 +12,33 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_VIEW_HPP_
-#define PLUGIN_KATE_RUSSELL_VIEW_HPP_
+#pragma once
+
+#include <QProcess>
+#include <QPointer>
+
+#include <KXMLGUIClient>
+#include <KActionMenu>
+
+#include <KTextEditor/MainWindow>
+#include <KTextEditor/SessionConfigInterface>
 
 #include "ui_BottomTab.h"
-#include <ktexteditor/sessionconfiginterface.h>
-
-#include "russell.dpp"
+#include "ErrorParser.hpp"
 
 namespace plugin {
 namespace kate {
 namespace russell {
+
+class Outline;
+class Structure;
+class TypeSystem;
+class Proof;
+
+namespace mdl {
+	class Client;
+	class Server;
+}
 
 class View : public QObject, public KXMLGUIClient {
 Q_OBJECT
@@ -152,6 +168,3 @@ private:
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_VIEW_HPP_ */
-

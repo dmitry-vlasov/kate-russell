@@ -14,11 +14,21 @@
 #ifndef PLUGIN_KATE_RUSSELL_PROOF_HPP_
 #define PLUGIN_KATE_RUSSELL_PROOF_HPP_
 
-#include "russell.dpp"
+#include <QWidget>
+#include <QPoint>
+#include <QTreeWidget>
+#include <QTableWidget>
+#include <QDomNode>
+#include <QMenu>
+#include <QAction>
+
+#include <ktexteditor/mainwindow.h>
 
 namespace plugin {
 namespace kate {
 namespace russell {
+
+class View;
 
 class Proof : public QWidget {
 Q_OBJECT

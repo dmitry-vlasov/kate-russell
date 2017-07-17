@@ -11,12 +11,17 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_PROOF_CPP_
-#define PLUGIN_KATE_RUSSELL_PROOF_CPP_
+#include <QLineEdit>
+
+#include <KMessageBox>
+
+#include "Connection.hpp"
+#include "Proof.hpp"
+#include "View.hpp"
+#include "Client.hpp"
+#include "Icon.hpp"
 
 #include "Proof.moc"
-#include "russell.hpp"
-#include "Connection.hpp"
 
 namespace plugin {
 namespace kate {
@@ -32,7 +37,7 @@ namespace russell {
 		View* russellView
 	) :
 	//QWidget (mainWindow->centralWidget()),
-	QWidget (mainWindow->activeView()),
+	QWidget (),
 	mainWindow_ (mainWindow),
 	russellView_ (russellView),
 	proofView_
@@ -878,6 +883,4 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_PROOF_CPP_ */
 

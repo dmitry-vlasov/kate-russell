@@ -11,8 +11,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
-#define PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_
+#pragma once
 
 #include "Navigation.hpp"
 
@@ -35,6 +34,3 @@ public Q_SLOTS:
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_TYPE_SYSTEM_HPP_ */
-

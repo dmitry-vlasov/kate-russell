@@ -10,10 +10,10 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_ICON_HPP_
-#define PLUGIN_KATE_RUSSELL_ICON_HPP_
+#pragma once
 
-#include "russell.dpp"
+#include <QIcon>
+#include "Kind.hpp"
 
 namespace plugin {
 namespace kate {
@@ -49,6 +49,3 @@ public :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_ICON_HPP_ */
-

@@ -12,10 +12,7 @@
 /* License:       GNU General Public License Version 3                       */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_CPP_
-#define PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_CPP_
-
-#include "russell.hpp"
+#include "LatexToUnicode.hpp"
 
 namespace plugin {
 namespace kate {
@@ -922,6 +919,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_CPP_ */
-

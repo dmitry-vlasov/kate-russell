@@ -10,10 +10,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_ICON_CPP_
-#define PLUGIN_KATE_RUSSELL_ICON_CPP_
-
-#include "russell.hpp"
+#include "Icon.hpp"
 
 namespace plugin {
 namespace kate {
@@ -138,6 +135,4 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_ICON_CPP_ */
 

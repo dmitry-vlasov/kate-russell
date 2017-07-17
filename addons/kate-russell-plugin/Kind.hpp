@@ -12,12 +12,9 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_KIND_HPP_
-#define PLUGIN_KATE_RUSSELL_KIND_HPP_
+#pragma once
 
-namespace plugin {
-namespace kate {
-namespace russell {
+namespace plugin { namespace kate { namespace russell {
 
 	enum Kind {
 		SOURCE,
@@ -36,6 +33,4 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_KIND_HPP_ */
 

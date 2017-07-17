@@ -11,11 +11,9 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_OUTLINE_CPP_
-#define PLUGIN_KATE_RUSSELL_OUTLINE_CPP_
-
 #include "Outline.moc"
-#include "russell.hpp"
+
+#include "Outline.hpp"
 
 namespace plugin {
 namespace kate {
@@ -77,6 +75,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_OUTLINE_CPP_ */
-

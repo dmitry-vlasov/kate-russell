@@ -12,14 +12,18 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
+#include <QDebug>
+#include <QInputDialog>
+#include <QFileDialog>
+
+//#include <kmessagebox.h>
+#include <KMessageBox>
 #include <KConfigGroup>
 #include <KSharedConfig>
 
 #include "ProjectConfigTab.hpp"
-#include "russell.hpp"
 #include "Connection.hpp"
-#include <QDebug>
-#include <QInputDialog>
+#include "ProjectConfigTab.hpp"
 
 namespace plugin {
 namespace kate {

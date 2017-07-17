@@ -17,8 +17,6 @@
 #include <QTcpSocket>
 #include <QString>
 
-#include "russell.dpp"
-
 namespace plugin {
 namespace kate {
 namespace russell {

@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "RussellConfigPage.hpp"
 
 #include <QFileInfo>
@@ -11,7 +13,7 @@
 #include <kstringhandler.h>
 #include <kmessagebox.h>
 #include <ktexteditor/editor.h>
-#include <klocalizedstring.h>
+//#include <klocalizedstring.h>
 
 #include <kpluginfactory.h>
 #include <kpluginloader.h>

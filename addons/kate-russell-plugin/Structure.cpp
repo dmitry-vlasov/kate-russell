@@ -11,11 +11,9 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_STRUCTURE_CPP_
-#define PLUGIN_KATE_RUSSELL_STRUCTURE_CPP_
-
 #include "Structure.moc"
-#include "russell.hpp"
+
+#include "Structure.hpp"
 
 namespace plugin {
 namespace kate {
@@ -70,6 +68,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_STRUCTURE_CPP_ */
-

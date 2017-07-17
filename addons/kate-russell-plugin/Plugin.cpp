@@ -12,14 +12,13 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_PLUGIN_CPP_
-#define PLUGIN_KATE_RUSSELL_PLUGIN_CPP_
+#include <KPluginFactory>
 
-#include <kpluginfactory.h>
-
-#include "russell.hpp"
 #include "RussellConfigPage.hpp"
 #include "Connection.hpp"
+#include "Plugin.hpp"
+#include "View.hpp"
+#include "Server.hpp"
 
 K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<plugin::kate::russell::Plugin>();)
 
@@ -62,6 +61,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_PLUGIN_CPP_ */
-

@@ -12,10 +12,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_ERROR_PARSER_CPP_
-#define PLUGIN_KATE_RUSSELL_ERROR_PARSER_CPP_
-
-#include "russell.hpp"
+#include "ErrorParser.hpp"
 
 namespace plugin {
 namespace kate {
@@ -114,6 +111,3 @@ namespace russell {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_ERROR_PARSER_CPP_ */
-

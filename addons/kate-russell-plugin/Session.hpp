@@ -12,10 +12,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_CONFIG_SESSION_HPP_
-#define PLUGIN_KATE_RUSSELL_CONFIG_SESSION_HPP_
-
-#include "russell.dpp"
+#pragma once
 
 namespace plugin {
 namespace kate {
@@ -55,6 +52,3 @@ public :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_CONFIG_SESSION_HPP_ */
-

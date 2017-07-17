@@ -12,14 +12,15 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_ERROR_PARSER_HPP_
-#define PLUGIN_KATE_RUSSELL_ERROR_PARSER_HPP_
+#pragma once
 
-#include "russell.dpp"
+#include <QString>
 
 namespace plugin {
 namespace kate {
 namespace russell {
+
+class View;
 
 class ErrorParser {
 public :
@@ -42,6 +43,3 @@ private :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_ERROR_PARSER_HPP_ */
-

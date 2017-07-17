@@ -12,13 +12,12 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_MDL_SERVER_CPP_
-#define PLUGIN_KATE_RUSSELL_MDL_SERVER_CPP_
-
 #include <QByteArray>
 
-#include "russell.hpp"
+#include <KMessageBox>
+
 #include "Connection.hpp"
+#include "Server.hpp"
 #include "RussellConfigPage.hpp"
 
 namespace plugin {
@@ -128,6 +127,3 @@ namespace mdl {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_MDL_SERVER_CPP_ */
-

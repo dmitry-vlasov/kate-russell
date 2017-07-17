@@ -14,15 +14,17 @@
 
 #pragma once
 
-#include <ktexteditor/view.h>
-#include <ktexteditor/document.h>
+#include <QString>
 
-#include <ktexteditor/application.h>
-#include <ktexteditor/mainwindow.h>
+#include <KConfigGroup>
+
+#include <KTextEditor/View>
+#include <KTextEditor/Document>
+#include <KTextEditor/Application>
+#include <KTextEditor/MainWindow>
 #include <KTextEditor/ConfigPage>
 #include <KTextEditor/Plugin>
 
-#include "x_include.hpp"
 #include "ui_RussellConfig.h"
 
 namespace plugin {

@@ -14,9 +14,17 @@
 #ifndef PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_
 #define PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_
 
+#include <QWidget>
+#include <QPoint>
+#include <QTreeWidget>
+#include <QDomNode>
+#include <QMenu>
+#include <QAction>
+
+#include <ktexteditor/mainwindow.h>
+
 #include "Kind.hpp"
-#include "russell.dpp"
-#include "x_include.hpp"
+#include "View.hpp"
 
 namespace plugin {
 namespace kate {

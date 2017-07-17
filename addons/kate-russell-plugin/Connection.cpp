@@ -12,15 +12,15 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
+#include <cstring>
+//#include <iostream>
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QtNetwork>
 #include <QMetaObject>
-#include <cstring>
 
-#include "russell.hpp"
 #include "Connection.hpp"
-
 #include "RussellConfigPage.hpp"
 
 namespace plugin {
@@ -121,7 +121,7 @@ struct Return {
 	Connection :: connect()
 	{
 		if (tcpSocket_->state() == QTcpSocket::SocketState::ConnectedState) {
-			std :: cout << "already connected to server" << std :: endl;
+			//std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
 		tcpSocket_->disconnectFromHost();
@@ -130,7 +130,7 @@ struct Return {
 		tcpSocket_->connectToHost (host, port);
 		bool isConnected = tcpSocket_->waitForConnected(100);
 		if (!isConnected) {
-			std :: cout << "not connected to server:" << std :: endl;
+			//std :: cout << "not connected to server:" << std :: endl;
 			QTextStream (stdout) << "\t" << tcpSocket_->errorString() << "\n";
 			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}

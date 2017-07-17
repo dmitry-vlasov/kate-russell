@@ -14,8 +14,11 @@
 
 #pragma once
 
-#include "russell.dpp"
-#include "x_include.hpp"
+#include <QString>
+#include <QWidget>
+
+#include <KConfigGroup>
+
 #include "ui_ProjectsTab.h"
 
 namespace plugin {

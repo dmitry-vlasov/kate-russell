@@ -12,8 +12,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_PLUGIN_HPP_
-#define PLUGIN_KATE_RUSSELL_PLUGIN_HPP_
+#pragma once
 
 #include <ktexteditor/view.h>
 #include <ktexteditor/plugin.h>
@@ -44,6 +43,4 @@ public:
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_PLUGIN_HPP_ */
 

@@ -12,19 +12,21 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_MDL_CLIENT_CPP_
-#define PLUGIN_KATE_RUSSELL_MDL_CLIENT_CPP_
+#include <cstring>
 
 #include <QByteArray>
 #include <QDataStream>
 #include <QtNetwork>
 #include <QMetaObject>
-#include <cstring>
 
-#include "russell.hpp"
+#include <KMessageBox>
+
 #include "Connection.hpp"
 #include "RussellConfigPage.hpp"
 #include "ProjectConfigTab.hpp"
+#include "Client.hpp"
+#include "View.hpp"
+#include "Proof.hpp"
 
 namespace plugin {
 namespace kate {
@@ -531,6 +533,4 @@ namespace mdl{
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_MDL_CLIENT_CPP_ */
 

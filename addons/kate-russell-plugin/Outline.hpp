@@ -20,6 +20,8 @@ namespace plugin {
 namespace kate {
 namespace russell {
 
+class View;
+
 class Outline : public Navigation {
 Q_OBJECT
 public:

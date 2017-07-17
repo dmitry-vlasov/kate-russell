@@ -11,11 +11,11 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_NAVIGATION_CPP_
-#define PLUGIN_KATE_RUSSELL_NAVIGATION_CPP_
+#include <QMessageBox>
 
+#include "Icon.hpp"
 #include "Navigation.moc"
-#include "russell.hpp"
+#include "Navigation.hpp"
 
 namespace plugin {
 namespace kate {
@@ -59,7 +59,8 @@ inline QString de_escape_xml(const QString& s) {
 		View* view,
 		const Sort sort
 	) :
-	QWidget (window->activeView()),
+	//QWidget (window->activeView()),
+	QWidget(),
 	window_ (window),
 	view_ (view),
 	sort_ (sort),
@@ -368,6 +369,3 @@ inline QString de_escape_xml(const QString& s) {
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_NAVIGATION_CPP_ */
-

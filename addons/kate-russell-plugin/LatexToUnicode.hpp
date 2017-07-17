@@ -12,10 +12,9 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_HPP_
-#define PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_HPP_
+#pragma once
 
-#include "russell.dpp"
+#include <QString>
 
 namespace plugin {
 namespace kate {
@@ -74,6 +73,3 @@ private :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_LATEX_TO_UNICODE_HPP_ */
-

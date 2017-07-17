@@ -12,13 +12,12 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_MDL_SERVER_HPP_
-#define PLUGIN_KATE_RUSSELL_MDL_SERVER_HPP_
+#pragma once
 
 #include <QProcess>
 #include <QTcpSocket>
 
-#include "russell.dpp"
+#include <kprocess.h>
 
 namespace plugin {
 namespace kate {
@@ -41,6 +40,3 @@ private :
 }
 }
 }
-
-#endif /* PLUGIN_KATE_RUSSELL_MDL_SERVER_HPP_ */
-
