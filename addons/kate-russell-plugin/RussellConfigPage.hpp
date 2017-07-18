@@ -18,17 +18,11 @@
 
 #include <KConfigGroup>
 
-#include <KTextEditor/View>
-#include <KTextEditor/Document>
-#include <KTextEditor/Application>
-#include <KTextEditor/MainWindow>
 #include <KTextEditor/ConfigPage>
 #include <KTextEditor/Plugin>
 
 #include "ui_RussellConfig.h"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class Plugin;
@@ -78,6 +72,6 @@ private:
     Ui::RussellConfig configUi_;
 };
 
-}}}
+}
 
 

@@ -16,8 +16,6 @@
 
 #include <QString>
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class View;
@@ -40,6 +38,4 @@ private :
 	int       numWarnings_;
 };
 
-}
-}
 }

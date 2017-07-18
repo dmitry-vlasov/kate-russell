@@ -26,19 +26,14 @@
 #include "ui_BottomTab.h"
 #include "ErrorParser.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class Outline;
 class Structure;
 class TypeSystem;
 class Proof;
-
-namespace mdl {
-	class Client;
-	class Server;
-}
+class Client;
+class Server;
 
 class View : public QObject, public KXMLGUIClient {
 Q_OBJECT
@@ -66,8 +61,8 @@ public:
 	void clearOutput();
 	void openLocation(const QString&);
 
-	mdl :: Client* client();
-	mdl :: Server* server();
+	Client* client();
+	Server* server();
 	Proof* proof();
 	KTextEditor::Plugin* plugin() { return plugin_; }
 	KTextEditor::MainWindow* mainWindow() const { return mainWindow_; }
@@ -82,10 +77,10 @@ public:
 	QUrl currentFileUrl (const bool save = false) const;
 	bool currentIsRussell() const;
 	bool currentIsMetamath() const;
-	void update();
 
 private Q_SLOTS:
-	void refreshOutline();
+	void slotCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotRefreshOutline();
 	
 	// selecting warnings
 	void slotItemSelected (QTreeWidgetItem* item);
@@ -129,7 +124,6 @@ private:
 	void showBuffer (const bool = false);
 	void showErrors (const int, QProcess :: ExitStatus);
 	void reloadSource();
-	void openLocation();
 	QString currentIdentifier() const;
 	QString currentLatexExpression (int&, int&, int&) const;
 	bool checkLocal (const QUrl &url) const;
@@ -155,16 +149,12 @@ private:
 	Structure*  structure_;
 	TypeSystem* typeSystem_;
 	Proof*      proof_;
-
-	mdl :: Client*   client_;
+	Client*     client_;
 
 	ErrorParser* errorParser_;
 	QString      output_;
 	QString      outputBuffer_;
 	State_       state_;
-	bool         chain_;
 };
 
-}
-}
 }

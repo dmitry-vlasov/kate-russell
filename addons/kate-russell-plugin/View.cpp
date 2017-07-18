@@ -31,11 +31,10 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include "LatexToUnicode.hpp"
+#include "Connection.hpp"
 
 #include "View.moc"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -71,13 +70,12 @@ namespace russell {
 	typeSystem_ (new TypeSystem (mainWindow_, this)),
 	proof_ (new Proof (mainWindow_, this)),
 
-	client_ (new mdl :: Client (this)),
+	client_ (new Client (this)),
 
 	errorParser_ (new ErrorParser (this)),
 	output_ (),
 	outputBuffer_ (),
-	state_ (WAITING),
-	chain_ (false)
+	state_ (WAITING)
 	{
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: View (KTextEditor::MainWindow* mw)" << std :: endl;
@@ -98,7 +96,7 @@ namespace russell {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
 		#endif
-		mdl::Server::stop();
+		Server::stop();
 		mainWindow()->guiFactory()->removeClient (this);
 		delete toolView_;
 		delete outline_;
@@ -167,7 +165,7 @@ namespace russell {
 		gotoLocation (path, line, column);
 	}
 
-	mdl :: Client*
+	Client*
 	View :: client() {
 		return client_;
 	}
@@ -238,54 +236,60 @@ namespace russell {
 		return (path.endsWith (QStringLiteral(".smm")) || path.endsWith (QStringLiteral(".mm")));
 	}
 
-	void
-	View :: update()
-	{
-		//slotReadOutputStdOut (true);
-		//slotReadOutputStdErr (true);
-		QApplication :: restoreOverrideCursor();
-		switch (state_) {
-		case LOOKING_DEFINITION :
-			if (!output_.isEmpty()) {
-				/*KPassivePopup :: message
-				(
-					i18n ("Definition:"),
-					output_,
-					mainWindow()->activeView()
-				);*/
-			}
-			break;
-		case OPENING_DEFINITION :
-			openLocation();
-			break;
-		case MINING_OUTLINE :
-			outline_->update();
-			break;
-		case MINING_STRUCTURE :
-			structure_->update();
-			break;
-		case MINING_TYPE_SYSTEM :
-			typeSystem_->update();
-			break;
-		case PROVING :
-			reloadSource();
-			break;
-		default :
-			/*KPassivePopup :: message
-			(
-				i18n ("Success"),
-				i18n("Proving and verification completed without problems."),
-				toolView_
-			);*/;
-		}
-	}
-
 	/**********************************
 	 *	Private Q_SLOTS members
 	 **********************************/
 
+	void
+	View :: slotCommandCompleted(quint32 code, const QString& msg, const QString& data)
+	{
+		if (!code) {
+			output_ += msg;
+			outputBuffer_ += msg;
+			showBuffer(true);
+			//slotReadOutputStdOut (true);
+			//slotReadOutputStdErr (true);
+
+			QApplication :: restoreOverrideCursor();
+			switch (state_) {
+			case LOOKING_DEFINITION :
+				if (!data.isEmpty())
+					QMessageBox::information(mainWindow_->activeView(), i18n("Definition:"), data);
+				break;
+			case OPENING_DEFINITION :
+				openLocation(data);
+				break;
+			case MINING_OUTLINE :
+				outline_->update(data);
+				break;
+			case MINING_STRUCTURE :
+				structure_->update(data);
+				break;
+			case MINING_TYPE_SYSTEM :
+				typeSystem_->update(data);
+				break;
+			case PROVING :
+				reloadSource();
+				break;
+			default :
+				/*KPassivePopup :: message
+				(
+					i18n ("Success"),
+					i18n("Proving and verification completed without problems."),
+					toolView_
+				);*/;
+			}
+		} else {
+			state_ = WAITING;
+			outputBuffer_ += QStringLiteral("process crushed\n");
+			outputBuffer_ += QStringLiteral("error code: ");
+			outputBuffer_ += QString :: number (code);
+			outputBuffer_ += QStringLiteral("\n");
+		}
+	}
+
 	void 
-	View :: refreshOutline() {
+	View :: slotRefreshOutline() {
 		outline_->refresh();
 	}
 
@@ -361,7 +365,6 @@ namespace russell {
 	View :: slotProveVerify()
 	{
 		state_ = PROVING;
-		chain_ = true;
 		clearOutput();
 		outputBuffer_ += QStringLiteral("----- proving -----\n");
 		client_->prove (false);
@@ -375,7 +378,7 @@ namespace russell {
 	void 
 	View :: slotProveInteractive()
 	{
-		if (mdl::Server::is_running()) {
+		if (Server::is_running()) {
 			state_ = PROVING;
 			client_->execute(QStringLiteral("option --in prop.rus"));
 			client_->execute(QStringLiteral("read"));
@@ -405,7 +408,7 @@ namespace russell {
 	void
 	View :: slotConfirmProof(int proofIndex)
 	{
-		client_->setupIndex (proofIndex);
+		//client_->setupIndex (proofIndex);
 		client_->execute(QStringLiteral("confirm"));
 		client_->execute(QStringLiteral("write"));
 	}
@@ -431,7 +434,7 @@ namespace russell {
 	void
 	View :: proveIdInteractively()
 	{
-		if (!mdl::Server::is_running()) {
+		if (!Server::is_running()) {
 			KMessageBox :: sorry (0, i18n ("Server cound not start."));
 			return;
 		}
@@ -449,16 +452,16 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		if (!mdl::Server::is_running()) {
+		if (!Server::is_running()) {
 			KMessageBox :: sorry (0, i18n ("Server could not start."));
 			return;
 		}
 		proof_->fell();
-		client_->setupInFile();
-		client_->setupOutFile();
+		//client_->setupInFile();
+		//client_->setupOutFile();
 		client_->execute (QStringLiteral("read"));
 		client_->execute (QStringLiteral("check"));
-		client_->setupPosition (line, column);
+		//client_->setupPosition (line, column);
 		proof_->plant();
 		proof_->show();
 	}
@@ -468,13 +471,13 @@ namespace russell {
 	View :: slotManageServer()
 	{
 		QAction* action = NULL;
-		if (mdl::Server::is_running()) {
-			mdl::Server::stop();
+		if (Server::is_running()) {
+			Server::stop();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Start mdl server"));
 			action->setIcon (QIcon (QStringLiteral("go-next")));
 		} else {
-			mdl::Server::start();
+			Server::start();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Stop mdl server"));
 			action->setIcon (QIcon (QStringLiteral("application-exit")));
@@ -686,7 +689,7 @@ namespace russell {
 	void
 	View :: slotReadServerStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (mdl::Server::process().readAllStandardOutput());
+		QString serverStdOut = QString :: fromUtf8 (Server::process().readAllStandardOutput());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
 		int row = bottomUi_.serverListWidget->count();
 		bottomUi_.serverListWidget->insertItems (row, newLines);
@@ -696,7 +699,7 @@ namespace russell {
 	void 
 	View :: slotReadServerStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (mdl::Server::process().readAllStandardError());
+		QString serverStdOut = QString :: fromUtf8 (Server::process().readAllStandardError());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
 		int row = bottomUi_.serverListWidget->count();
 		bottomUi_.serverListWidget->insertItems (row - 1, newLines);
@@ -772,11 +775,6 @@ namespace russell {
 			return;
 		}    
 		activeView->document()->documentReload();
-	}
-	void 
-	View :: openLocation()
-	{
-		openLocation(output_);
 	}
 	QString 
 	View :: currentIdentifier() const
@@ -1018,14 +1016,14 @@ namespace russell {
 		//connect (client_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
 		//connect (client_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
 
-		connect (&mdl::Server::process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
-		connect (&mdl::Server::process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));
+		connect (&Server::process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
+		connect (&Server::process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));
 		connect (client_, SIGNAL (showServerMessages(QString)), this, SLOT (slotShowServerMessages(QString)));
 
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 
+		connect (&Connection::mod(), SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
+
 		//connect (mainWindow_->activeView(), SIGNAL (viewChanged()), this, SLOT (refreshOutline()));
 	}
-}
-}
 }

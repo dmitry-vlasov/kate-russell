@@ -22,8 +22,6 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 const QString& default_host() { static QString host = QStringLiteral("localhost"); return host; }
@@ -211,8 +209,8 @@ void RussellConfigPage::startDaemonSlot() {
         return;
     }
 */
-	if (mdl::Server::is_running()) {
-		mdl::Server::start();
+	if (Server::is_running()) {
+		Server::start();
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 		sleep(1);
 		QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
@@ -221,8 +219,8 @@ void RussellConfigPage::startDaemonSlot() {
 }
 
 void RussellConfigPage::stopDaemonSlot() {
-	if (mdl::Server::is_running()) {
-		mdl::Connection::mod().execute(QStringLiteral("exit"));
+	if (Server::is_running()) {
+		Connection::mod().execute(QStringLiteral("exit"));
 		/*for (int i=0; i<configUi.targetList->count(); i++) {
 			if (configUi.targetList->item(i)->text() == target) {
 				return true;
@@ -236,8 +234,8 @@ void RussellConfigPage::stopDaemonSlot() {
 }
 
 bool RussellConfigPage::checkDaemonSlot() {
-	bool ret = mdl::Connection::mod().execute(QStringLiteral("status"));
-	configUi_.aliveEdit->setText(ret ? mdl::Connection::get().messages() : QStringLiteral("is not running"));
+	bool ret = Connection::mod().connection();
+	configUi_.aliveEdit->setText(ret ? QStringLiteral("running") : QStringLiteral("is not running"));
 	configUi_.stopButton->setEnabled(ret);
 	configUi_.startButton->setEnabled(!ret);
 	return ret;
@@ -300,5 +298,4 @@ void RussellConfigPage::updateDone(int exitCode, QProcess::ExitStatus status) {
     QApplication::restoreOverrideCursor();
 }
 */
-}}}
-
+}

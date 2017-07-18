@@ -16,7 +16,6 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
-//#include <kmessagebox.h>
 #include <KMessageBox>
 #include <KConfigGroup>
 #include <KSharedConfig>
@@ -25,8 +24,6 @@
 #include "Connection.hpp"
 #include "ProjectConfigTab.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 SourceType file_type(const QString& file) {
@@ -37,16 +34,19 @@ SourceType file_type(const QString& file) {
 }
 
 void ProjectConfig::initProject() {
-	mdl::Connection::mod().execute(QStringLiteral("rus curr proj=") + name_);
-	mdl::Connection::mod().execute(QStringLiteral("rus opts verbose root=") + rusRoot_);
-	mdl::Connection::mod().execute(QStringLiteral("smm curr proj=") + name_);
-	mdl::Connection::mod().execute(QStringLiteral("smm opts verbose root=") + smmRoot_);
+	QString command;
+	command += QStringLiteral("rus curr proj=") + name_ + QStringLiteral(";\n");
+	command += QStringLiteral("rus opts verbose root=") + rusRoot_ + QStringLiteral(";\n");
+	command += QStringLiteral("smm curr proj=") + name_ + QStringLiteral(";\n");
+	command += QStringLiteral("smm opts verbose root=") + smmRoot_ + QStringLiteral(";\n");
+	Connection::mod().execute(command);
 }
 
 void ProjectConfig::loadMain() {
-	mdl::Connection::mod().execute(QStringLiteral("rus read in=") + rusMain_);
-	mdl::Connection::mod().execute(QStringLiteral("rus parse"));
-	//mdl::Connection::mod().execute(QStringLiteral("smm read in=") + smmMain);
+	QString command;
+	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
+	command += QStringLiteral("rus parse");
+	Connection::mod().execute(command);
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
@@ -271,5 +271,4 @@ void ProjectConfigTab::removeConfigForProject(int i) {
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Smm root").arg(i));
 }
 
-}}}
-
+}

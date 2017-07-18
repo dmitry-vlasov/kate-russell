@@ -14,8 +14,6 @@
 
 #include "ErrorParser.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -108,6 +106,4 @@ namespace russell {
 		item->setData (1, Qt :: ToolTipRole, "<qt>" + message + "</qt>");
 		item->setData (2, Qt :: ToolTipRole, "<qt>" + message + "</qt>");
 	}*/
-}
-}
 }

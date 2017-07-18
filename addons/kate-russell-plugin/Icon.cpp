@@ -12,8 +12,6 @@
 
 #include "Icon.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -133,6 +131,3 @@ namespace russell {
 		return proved_;
 	}*/
 }
-}
-}
-

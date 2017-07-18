@@ -14,8 +14,6 @@
 #include "TypeSystem.moc"
 #include "TypeSystem.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -49,8 +47,8 @@ namespace russell {
 	}
 
 	void 
-	TypeSystem :: update() {
-		Navigation :: update ("structure");
+	TypeSystem :: update(const QString& data) {
+		Navigation :: update ("structure", data);
 	}
 
 	/****************************
@@ -64,6 +62,4 @@ namespace russell {
 		QString options = getOptions();
 		view_->mineTypeSystem (options);
 	}
-}
-}
 }

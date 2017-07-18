@@ -15,8 +15,6 @@
 
 #include "Outline.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -57,8 +55,8 @@ namespace russell {
 	}
 
 	void 
-	Outline :: update() {
-		Navigation :: update ("outline");
+	Outline :: update(const QString& data) {
+		Navigation :: update ("outline", data);
 	}
 
 	/****************************
@@ -72,6 +70,4 @@ namespace russell {
 		QString options = getOptions();
 		view_->mineOutline (options);
 	}
-}
-}
 }

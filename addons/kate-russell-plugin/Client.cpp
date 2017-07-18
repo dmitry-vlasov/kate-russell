@@ -12,14 +12,15 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#include <cstring>
-
 #include <QByteArray>
 #include <QDataStream>
 #include <QtNetwork>
 #include <QMetaObject>
+#include <QMessageBox>
 
 #include <KMessageBox>
+
+#include <KTextEditor/View>
 
 #include "Connection.hpp"
 #include "RussellConfigPage.hpp"
@@ -28,10 +29,7 @@
 #include "View.hpp"
 #include "Proof.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
-namespace mdl{
 
 	/****************************
 	 *	Public members
@@ -46,7 +44,7 @@ namespace mdl{
 	Client :: execute(const QString& command) {
 		return Connection::mod().execute (command);
 	}
-
+/*
 	void
 	Client :: setupInFile()
 	{
@@ -102,6 +100,7 @@ namespace mdl{
 		command += QStringLiteral(" ");
 		Connection::mod().execute (command);
 	}
+*/
 	void
 	Client :: expandNode (const long node)
 	{
@@ -256,18 +255,13 @@ namespace mdl{
 		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
-		QString command = QStringLiteral("rus curr proj=") + conf->name();
-		if (!Connection::mod().execute (command)) return false;
-		command = QStringLiteral("rus lookup what=def in=") + conf->trimFile(file) + QStringLiteral(" ");
+		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		//if (!Connection::mod().execute (command)) return false;
+		command += QStringLiteral("rus lookup what=def in=") + conf->trimFile(file) + QStringLiteral(" ");
 		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
 		command += QStringLiteral("col=") + QString::number(column);
 		if (!Connection::mod().execute (command)) return false;
 		view_->clearOutput();
-
-		if (!Connection::mod().data().isEmpty()) {
-			QString def = i18n("Definition:");
-			QMessageBox::information(view_->mainWindow()->activeView(), def, Connection::mod().data());
-		}
 		return true;
 /*
 		QString command; // (config_->getProver());
@@ -307,9 +301,9 @@ namespace mdl{
 		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
-		QString command = QStringLiteral("rus curr proj=") + conf->name();
-		if (!Connection::mod().execute (command)) return false;
-		command = QStringLiteral("rus lookup what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
+		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		//if (!Connection::mod().execute (command)) return false;
+		command += QStringLiteral("rus lookup what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
 		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
 		command += QStringLiteral("col=") + QString::number(column);
 		if (!Connection::mod().execute (command)) return false;
@@ -319,7 +313,7 @@ namespace mdl{
 			QString def = i18n("Definition:");
 			QMessageBox::information(view_->mainWindow()->activeView(), def, Connection::mod().data());
 		}*/
-		view_->openLocation(Connection::mod().data());
+		//view_->openLocation(Connection::mod().data());
 		return true;
 /*
 		if (!view_->currentIsRussell()) {
@@ -360,11 +354,11 @@ namespace mdl{
 		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
-		QString command = QStringLiteral("rus curr proj=") + conf->name();
-		if (!Connection::mod().execute (command)) return false;
+		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		//if (!Connection::mod().execute (command)) return false;
 		switch (view_->getState()) {
 		case View :: MINING_OUTLINE :
-			command  = QStringLiteral("rus outline in=") + conf->trimFile(file) + QStringLiteral(" ");
+			command += QStringLiteral("rus outline in=") + conf->trimFile(file) + QStringLiteral(" ");
 			command += QStringLiteral("what=") + options;
 			break;
 		case View :: MINING_STRUCTURE :
@@ -375,8 +369,8 @@ namespace mdl{
 		default : return false;
 		}
 		if (!Connection::mod().execute (command)) return false;
-		view_->setOutput(Connection::mod().data());
-		view_->update();
+		//view_->setOutput(Connection::mod().data());
+		//view_->update();
 		return true;
 
 		///////////////////
@@ -530,7 +524,3 @@ namespace mdl{
 		);
 	}
 }
-}
-}
-}
-

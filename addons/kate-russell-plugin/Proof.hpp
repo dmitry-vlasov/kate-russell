@@ -11,8 +11,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_PROOF_HPP_
-#define PLUGIN_KATE_RUSSELL_PROOF_HPP_
+#pragma once
 
 #include <QWidget>
 #include <QPoint>
@@ -24,8 +23,6 @@
 
 #include <ktexteditor/mainwindow.h>
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class View;
@@ -99,8 +96,3 @@ private :
 };
 
 }
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_PROOF_HPP_ */
-

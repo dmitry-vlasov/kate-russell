@@ -13,12 +13,12 @@
 
 #include <QMessageBox>
 
+#include <KTextEditor/View>
+
 #include "Icon.hpp"
 #include "Navigation.moc"
 #include "Navigation.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 inline QString de_escape_xml(const QString& s) {
@@ -60,7 +60,7 @@ inline QString de_escape_xml(const QString& s) {
 		const Sort sort
 	) :
 	//QWidget (window->activeView()),
-	QWidget(),
+	QWidget(window->activeView()),
 	window_ (window),
 	view_ (view),
 	sort_ (sort),
@@ -88,9 +88,8 @@ inline QString de_escape_xml(const QString& s) {
 	}
 
 	void 
-	Navigation :: update (const char* header)
+	Navigation :: update (const char* header, const QString& output)
 	{
-		const QString output = view_->getOutput();
 		QDomDocument document(i18n(header));
 		QString error;
 		if (!document.setContent (output, &error)) {
@@ -366,6 +365,4 @@ inline QString de_escape_xml(const QString& s) {
 		QTreeWidgetItem* childSibling = nullptr;
 		build (childNode, childSibling, item);
 	}
-}
-}
 }

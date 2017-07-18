@@ -20,12 +20,10 @@
 #include "View.hpp"
 #include "Server.hpp"
 
-K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<plugin::kate::russell::Plugin>();)
+K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<russell::Plugin>();)
 
 #include "Plugin.moc"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -39,8 +37,8 @@ namespace russell {
 		#endif
 		//KGlobal :: locale()->insertCatalog ("kate-russell-plugin");
 
-		if (RussellConfig::daemon_autostart() && !mdl::Connection::mod().execute(QStringLiteral("status"))) {
-			mdl::Server::start();
+		if (RussellConfig::daemon_autostart() && !Connection::mod().execute(QStringLiteral("status"))) {
+			Server::start();
 		}
 	}
 	Plugin :: ~ Plugin() {
@@ -58,6 +56,4 @@ namespace russell {
 		if (number != 0) return nullptr;
 		return new RussellConfigPage(parent, this);
 	}
-}
-}
 }

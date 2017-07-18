@@ -12,20 +12,14 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_
-#define PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_
+#pragma once
 
-#include <QTcpSocket>
-#include <QListWidgetItem>
 #include <QString>
+#include <QObject>
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class View;
-
-namespace mdl {
 
 class Client : public QObject {
 Q_OBJECT
@@ -36,10 +30,10 @@ public :
 	void readFile();
 	void checkFile();
 	void writeFile();
-	void setupInFile();
-	void setupOutFile();
-	void setupPosition (const int line, const int column);
-	void setupIndex (const int index);
+	//void setupInFile();
+	//void setupOutFile();
+	//void setupPosition (const int line, const int column);
+	//void setupIndex (const int index);
 	void startProving();
 	void expandNode (const long);
 
@@ -70,9 +64,3 @@ private :
 };
 
 }
-}
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_MDL_CLIENT_HPP_ */
-

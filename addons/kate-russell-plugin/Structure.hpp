@@ -11,13 +11,10 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
-#define PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_
+#pragma once
 
 #include "Navigation.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class Structure : public Navigation {
@@ -26,15 +23,10 @@ public:
 	Structure (KTextEditor::MainWindow*, View*);
 	virtual ~ Structure();
 
-	void update();
+	void update(const QString& data);
 
 public Q_SLOTS:
 	virtual void refresh();
 };
 
 }
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_STRUCTURE_HPP_ */
-

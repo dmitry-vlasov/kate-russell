@@ -15,8 +15,6 @@
 
 #include "Navigation.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class TypeSystem : public Navigation {
@@ -25,12 +23,10 @@ public:
 	TypeSystem (KTextEditor::MainWindow*, View*);
 	virtual ~ TypeSystem();
 
-	void update();
+	void update(const QString& data);
 
 public Q_SLOTS:
 	virtual void refresh();
 };
 
-}
-}
 }

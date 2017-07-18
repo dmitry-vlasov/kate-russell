@@ -79,7 +79,7 @@
 				<DetectChar attribute="MdlNormal" context="#stay" char="{" beginRegion="Brace1"/>
 				<DetectChar attribute="MdlNormal" context="#stay" char="}" endRegion="Brace1"/>
 				<DetectChar attribute="MdlNormal" context="Type" char=":"/>				
-				<RegExpr attribute="MdlForm" context="#stay" String="\b[_\w][_-\w\d]*(?=[\s]*[(])" />
+				<RegExpr attribute="MdlForm" context="#stay" String="\b[_\w][_\w\d]*(?=[\s]*[(])" />
 			</context>
 			<context attribute="MdlExpression" name="Expression">
 				<LineContinue attribute="String" context="#stay"/>

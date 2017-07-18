@@ -11,8 +11,7 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_
-#define PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_
+#pragma once
 
 #include <QWidget>
 #include <QPoint>
@@ -21,13 +20,11 @@
 #include <QMenu>
 #include <QAction>
 
-#include <ktexteditor/mainwindow.h>
+#include <KTextEditor/MainWindow>
 
 #include "Kind.hpp"
 #include "View.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class Navigation : public QWidget {
@@ -42,7 +39,7 @@ public:
 	Navigation (KTextEditor::MainWindow*, View*, const Sort);
 	virtual ~ Navigation();
 
-	void update (const char*);
+	void update (const char*, const QString& data);
 
 public Q_SLOTS:
 	virtual void refresh() = 0;
@@ -93,8 +90,3 @@ protected :
 };
 
 }
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_NAVIGATION_HPP_ */
-

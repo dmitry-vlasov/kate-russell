@@ -11,13 +11,10 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#ifndef PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
-#define PLUGIN_KATE_RUSSELL_OUTLINE_HPP_
+#pragma once
 
 #include "Navigation.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class View;
@@ -28,15 +25,10 @@ public:
 	Outline (KTextEditor::MainWindow*, View*);
 	virtual ~ Outline();
 
-	void update();
+	void update(const QString& data);
 
 public Q_SLOTS:
 	void refresh();
 };
 
 }
-}
-}
-
-#endif /* PLUGIN_KATE_RUSSELL_OUTLINE_HPP_ */
-

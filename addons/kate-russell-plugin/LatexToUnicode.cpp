@@ -14,8 +14,6 @@
 
 #include "LatexToUnicode.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -916,6 +914,4 @@ namespace russell {
 		Pair_ ("_(", "\u208D"),
 		Pair_ ("^2", "\u00B2"), 
 	};
-}
-}
 }

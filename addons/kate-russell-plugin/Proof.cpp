@@ -23,8 +23,6 @@
 
 #include "Proof.moc"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -130,7 +128,7 @@ namespace russell {
 		russellView_->client()->execute (QString(QStringLiteral("info")));
 		root_ = NULL;
 		proofs_.clear();
-		const QString& output =  mdl::Connection::get().data(); //russellView_->client()->getData();
+		const QString output; // =  Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
@@ -166,7 +164,7 @@ namespace russell {
 
 		// request for the result of grow operation
 		russellView_->client()->execute (QString(QStringLiteral("info")));
-		const QString& output = mdl::Connection::get().data(); //russellView_->client()->getData();
+		const QString output; // = Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
@@ -225,7 +223,7 @@ namespace russell {
 		russellView_->client()->execute (options);
 		russellView_->client()->execute (QString(QStringLiteral("info")));
 		QString nodeXML;
-		nodeXML += mdl::Connection::get().data(); //russellView_->client()->getData();
+		//nodeXML += Connection::get().data(); //russellView_->client()->getData();
 		updateXML (nodeXML);
 	}
 	void
@@ -881,6 +879,3 @@ namespace russell {
 		return evidenceList;
 	}
 }
-}
-}
-

@@ -15,14 +15,10 @@
 #pragma once
 
 #include <QProcess>
-#include <QTcpSocket>
 
-#include <kprocess.h>
+#include <KProcess>
 
-namespace plugin {
-namespace kate {
 namespace russell {
-namespace mdl {
 
 class Server {
 public :
@@ -36,7 +32,4 @@ private :
 	KProcess process_;
 };
 
-}
-}
-}
 }

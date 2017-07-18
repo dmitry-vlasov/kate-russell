@@ -12,11 +12,8 @@
 /*****************************************************************************/
 
 #include "Structure.moc"
-
 #include "Structure.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 	/****************************
@@ -50,8 +47,8 @@ namespace russell {
 	}
 
 	void 
-	Structure :: update() {
-		Navigation :: update ("structure");
+	Structure :: update(const QString& data) {
+		Navigation :: update ("structure", data);
 	}
 
 	/****************************
@@ -65,6 +62,4 @@ namespace russell {
 		QString options = getOptions();
 		view_->mineStructure (options);
 	}
-}
-}
 }

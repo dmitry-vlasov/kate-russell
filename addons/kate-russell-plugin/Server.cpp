@@ -20,10 +20,7 @@
 #include "Server.hpp"
 #include "RussellConfigPage.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
-namespace mdl {
 
 	/****************************
 	 *	Public members
@@ -32,7 +29,7 @@ namespace mdl {
 	bool
 	Server :: start()
 	{
-		if (Connection::mod().established() || mod().process_.state() != QProcess::NotRunning) {
+		if (Connection::mod().connection() || mod().process_.state() != QProcess::NotRunning) {
 			return true;
 		}
 		QString command = RussellConfig::daemon_invocation();
@@ -123,7 +120,4 @@ namespace mdl {
 		return false;
 	}
 */
-}
-}
-}
 }

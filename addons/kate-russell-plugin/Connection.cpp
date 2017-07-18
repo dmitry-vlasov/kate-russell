@@ -12,9 +12,6 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#include <cstring>
-//#include <iostream>
-
 #include <QByteArray>
 #include <QDataStream>
 #include <QtNetwork>
@@ -23,78 +20,30 @@
 #include "Connection.hpp"
 #include "RussellConfigPage.hpp"
 
-namespace plugin {
-namespace kate {
+#define OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT true
+
 namespace russell {
-namespace mdl{
-
-using std::string;
-
-struct Return {
-	Return(const string& t = "", bool s = true) : msg(t), code(s ? 0 : -1) { }
-	Return(const string& t, const string& d, bool s = true) : msg(t), data(d), code(s ? 0 : -1) { }
-	operator bool() const { return success(); }
-	string msg;
-	string data;
-	uint   code;
-
-	bool success() const { return !code; }
-
-	string to_string() const {
-		uint len = msg.size() + data.size() + sizeof(uint) * 3;
-		char array[len];
-		char* arr = array;
-
-		*reinterpret_cast<uint*>(arr) = code;
-		arr += sizeof(uint);
-
-		*reinterpret_cast<uint*>(arr) = msg.size();
-		arr += sizeof(uint);
-		for (char c : msg) *arr++ = c;
-
-		*reinterpret_cast<uint*>(arr) = data.size();
-		arr += sizeof(uint);
-		for (char c : data) *arr++ = c;
-
-		return string(array, len);
-	}
-	static Return from_string(const string& str) {
-		const char* array = str.c_str();
-		Return ret;
-
-		ret.code = *reinterpret_cast<const uint*>(array);
-		array += sizeof(uint);
-
-		uint msg_len = *reinterpret_cast<const uint*>(array);
-		array += sizeof(uint);
-		while (msg_len-- > 0) ret.msg += *array++;
-
-		uint data_len = *reinterpret_cast<const uint*>(array);
-		array += sizeof(uint);
-		while (data_len-- > 0) ret.data += *array++;
-
-		return ret;
-	}
-};
 
 	/****************************
 	 *	Public members
 	 ****************************/
 
 	Connection :: Connection():
-	tcpSocket_ (new QTcpSocket()),
+	socket_ (new QTcpSocket()),
 	data_ (),
 	messages_ (),
-	code_(0) {
+	code_(0),
+	size_(0) {
+		connect(socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
 	Connection ::  ~ Connection() {
-		delete tcpSocket_;
+		delete socket_;
 	}
 
 	bool
 	Connection :: execute (const QString& command)
 	{
-		if (!connect()) {
+		if (!connection()) {
 			return false;
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
@@ -107,9 +56,8 @@ struct Return {
 		messages_.clear();
 		code_ = 1;
 		if (!runCommand(command)) return false;
-		if (!readOutput()) return false;
 		if (command == QStringLiteral("exit")) {
-			tcpSocket_->disconnectFromHost();
+			socket_->disconnectFromHost();
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "\n\n\n";
@@ -118,23 +66,52 @@ struct Return {
 	}
 
 	bool
-	Connection :: connect()
+	Connection :: connection()
 	{
-		if (tcpSocket_->state() == QTcpSocket::SocketState::ConnectedState) {
+		if (socket_->state() == QTcpSocket::SocketState::ConnectedState) {
 			//std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
-		tcpSocket_->disconnectFromHost();
+		socket_->disconnectFromHost();
 		QString host = russell::RussellConfig::host();
 		int port = russell::RussellConfig::port();
-		tcpSocket_->connectToHost (host, port);
-		bool isConnected = tcpSocket_->waitForConnected(100);
+		socket_->connectToHost (host, port);
+		bool isConnected = socket_->waitForConnected(100);
 		if (!isConnected) {
 			//std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << tcpSocket_->errorString() << "\n";
+			QTextStream (stdout) << "\t" << socket_->errorString() << "\n";
 			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}
 		return isConnected;
+	}
+
+	/****************************
+	 *	Private slots
+	 ****************************/
+
+	void
+	Connection::readyRead()
+	{
+		while (socket_->bytesAvailable() > 0) {
+			buffer_.append(socket_->readAll());
+			// While can process data, process it
+			while ((size_ == 0 && buffer_.size() >= 4) || (size_ > 0 && buffer_.size() >= size_)) {
+				//if size of data has received completely, then store it on our global variable
+				if (size_ == 0 && buffer_.size() >= 4) {
+					QDataStream data(&buffer_, QIODevice::ReadOnly);
+					data.setByteOrder(QDataStream::LittleEndian);
+					data >> size_;
+					buffer_.remove(0, 4);
+				}
+				// If data has received completely, then emit our SIGNAL with the data
+				if (size_ > 0 && buffer_.size() >= size_) {
+					makeOutput();
+					size_ = 0;
+					buffer_.clear();
+					emit dataReceived(code_, messages_, data_);
+				}
+			}
+		}
 	}
 
 	/****************************
@@ -151,50 +128,42 @@ struct Return {
 			const QChar qch = command[i];
 			asciiCommand [i + sizeof(uint)] = qch.toLatin1();
 		}
-		tcpSocket_->write (asciiCommand, msg_len);
-		bool written = tcpSocket_->waitForBytesWritten(100);
+		socket_->write (asciiCommand, msg_len);
+		bool written = socket_->waitForBytesWritten(100);
 		delete[] asciiCommand;
 		return written;
 	}
-	bool
-	Connection :: readOutput()
+	void
+	Connection :: makeOutput()
 	{
-		if (tcpSocket_->waitForReadyRead (100)) {
-			QByteArray read;
-			bool start = true;
-			while (true) {
-				size_t bytesAvailable = 0;
-				if (start || tcpSocket_->waitForReadyRead (100)) {
-					bytesAvailable = tcpSocket_->bytesAvailable();
-					read.append (tcpSocket_->read (bytesAvailable));
-				}
-				start = false;
-				if (bytesAvailable == 0) {
-					break;
-				}
- 			}
-			std::string str(read.data() + sizeof(uint), read.size() - sizeof(uint));
-			Return ret = Return::from_string(str);
-			data_ += QString :: fromUtf8(ret.data.c_str(), ret.data.size());
-			messages_ += QString :: fromUtf8(ret.msg.c_str(), ret.msg.size());
-			code_ = ret.code;
+		QDataStream data(&buffer_, QIODevice::ReadOnly);
+		data.setByteOrder(QDataStream::LittleEndian);
+		data >> code_;
+		quint32 len = 0;
+		quint8  c = 0;
+
+		data >> len;
+		char msg[len];
+		for (int i = 0; i < len; ++ i) {
+			data >> c;
+			msg[i] = c;
+		}
+		messages_ = QString::fromUtf8(msg, len);
+
+		data >> len;
+		char dat[len];
+		for (int i = 0; i < len; ++ i) data >> (qint8&)dat[i];
+		data_ = QString::fromUtf8(dat, len);
 
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
-			QTextStream (stdout) << "read from server: " << read.size() << " bytes \n";
-			QTextStream (stdout) << "------------------\n";
-			QTextStream (stdout) << "data: " << data_.size() <<  " bytes \n";
-			if (data_.size()) QTextStream (stdout) << data_ << "\n";
-			QTextStream (stdout) << "messages: " << messages_.size() << " bytes  \n";
-			if (messages_.size()) QTextStream (stdout) << messages_ << "\n";
-			QTextStream (stdout) << "------------------\n";
+		QTextStream (stdout) << "read from server: " << size_ << " bytes \n";
+		QTextStream (stdout) << "------------------\n";
+		QTextStream (stdout) << "data: " << data_.size() <<  " bytes \n";
+		if (data_.size()) QTextStream (stdout) << data_ << "\n";
+		QTextStream (stdout) << "messages: " << messages_.size() << " bytes  \n";
+		if (messages_.size()) QTextStream (stdout) << messages_ << "\n";
+		QTextStream (stdout) << "------------------\n";
 #endif
-			//showServerMessages (messages_);
-			return true;
-		}
-		return false;
+		//showServerMessages (messages_);
 	}
 }
-}
-}
-}
-

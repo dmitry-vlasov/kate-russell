@@ -15,8 +15,6 @@
 #include <QIcon>
 #include "Kind.hpp"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class Icon {
@@ -46,6 +44,4 @@ public :
 	//static const QIcon& proved();
 };
 
-}
-}
 }

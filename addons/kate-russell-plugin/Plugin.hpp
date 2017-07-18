@@ -14,15 +14,13 @@
 
 #pragma once
 
-#include <ktexteditor/view.h>
-#include <ktexteditor/plugin.h>
-#include <ktexteditor/application.h>
-#include <ktexteditor/mainwindow.h>
+//#include <KTextEditor/View>
+#include <KTextEditor/Plugin>
+//#include <KTextEditor/Application>
+#include <KTextEditor/MainWindow>
 
-#include <kpluginfactory.h>
+//#include <KPluginFactory>
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 typedef QList<QVariant> VariantList;
@@ -41,6 +39,3 @@ public:
 };
 
 }
-}
-}
-

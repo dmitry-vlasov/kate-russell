@@ -14,7 +14,7 @@
 
 #pragma once
 
-namespace plugin { namespace kate { namespace russell {
+namespace russell {
 
 	enum Kind {
 		SOURCE,
@@ -30,7 +30,5 @@ namespace plugin { namespace kate { namespace russell {
 		PROOF,
 		TYPE
 	};
-}
-}
 }
 

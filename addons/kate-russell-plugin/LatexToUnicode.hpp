@@ -16,8 +16,6 @@
 
 #include <QString>
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 class LatexToUnicode {
@@ -70,6 +68,4 @@ private :
 	static const Pair_ subSuperScripts_ [];
 };
 
-}
-}
 }

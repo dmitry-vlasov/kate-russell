@@ -15,42 +15,41 @@
 #pragma once
 
 #include <QTcpSocket>
+#include <QByteArray>
 #include <QString>
 
-namespace plugin {
-namespace kate {
 namespace russell {
-namespace mdl {
 
 class Connection : public QObject {
+Q_OBJECT
 public :
 	static const Connection& get() { return mod(); }
 	static Connection& mod() { static Connection conn; return conn; }
 
 	bool execute (const QString&);
 	bool success() const { return !code_; }
-	const QString& data() const { return data_; }
-	const QString& messages() const { return messages_; }
-	uint code() const { return code_; }
-	bool established() { return execute(QStringLiteral("status")); }
+	bool connection();
+
+Q_SIGNALS:
+    void dataReceived(quint32, QString, QString);
+
+private Q_SLOTS:
+	void readyRead();
 
 private :
 	Connection();
 	virtual ~ Connection();
 
-	bool connect();
 	bool runCommand (const QString&);
 	bool readOutput();
+	void makeOutput();
 
-	QTcpSocket* tcpSocket_;
+	QTcpSocket* socket_;
+	QByteArray  buffer_;
 	QString data_;
 	QString messages_;
-	uint    code_;
+	quint32 code_;
+	quint32 size_;
 };
 
 }
-}
-}
-}
-
-

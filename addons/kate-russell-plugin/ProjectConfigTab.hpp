@@ -21,8 +21,6 @@
 
 #include "ui_ProjectsTab.h"
 
-namespace plugin {
-namespace kate {
 namespace russell {
 
 enum class SourceType { RUS, SMM, MM, OTHER };
@@ -88,6 +86,3 @@ private:
 };
 
 }
-}
-}
-
