@@ -103,7 +103,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startRussellSlot()));
 	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopRussellSlot()));
 	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkRussellSlot()));
-	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot(QString&)));
+	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot(QString)));
 	connect(&Server::russell().process(), SIGNAL(started()), this, SLOT(startedRussellSlot()));
 	connect(
 		&Server::russell().process(),
@@ -370,7 +370,7 @@ void RussellConfigPage::finishedMetamathSlot(int exitCode, QProcess::ExitStatus 
 
 
 
-void RussellConfigPage::checkPortSlot(QString& port_str) {
+void RussellConfigPage::checkPortSlot(QString port_str) {
 	bool ok = true;
 	port_str.toInt(&ok);
 	if (!ok) {

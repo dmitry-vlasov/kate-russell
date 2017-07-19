@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <KProcess>
+#include <QProcess>
 #include "RussellConfigPage.hpp"
 
 namespace russell {
@@ -25,13 +25,13 @@ public :
 	Process(const QString& i, Kind k) : invocation_(i), kind_(k) { }
 	bool start();
 	bool stop();
-	KProcess& process() { return process_; }
+	QProcess& process() { return process_; }
 	bool isRunning() const;
 
 private :
 	QString  invocation_;
 	Kind     kind_;
-	KProcess process_;
+	QProcess process_;
 };
 
 struct Server {

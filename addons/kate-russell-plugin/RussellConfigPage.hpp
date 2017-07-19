@@ -72,7 +72,7 @@ private Q_SLOTS:
     void startedMetamathSlot();
     void finishedMetamathSlot(int exitCode, QProcess::ExitStatus exitStatus);
 
-    void checkPortSlot(QString&);
+    void checkPortSlot(QString);
 
 private:
 

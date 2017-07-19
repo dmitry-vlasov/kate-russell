@@ -44,7 +44,10 @@ namespace russell {
 		stop();
 
 		qDebug() << invocation_;
-		process_.setShellCommand(invocation_);
+		QStringList com = invocation_.split(QLatin1Char(' '));
+		process_.setProgram(com.first());
+		com.removeFirst();
+		process_.setArguments(com);
 		process_.start();
 
 		/*
