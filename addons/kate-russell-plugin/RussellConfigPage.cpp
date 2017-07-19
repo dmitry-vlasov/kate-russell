@@ -91,11 +91,11 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     connect(configUi.addButton, SIGNAL(clicked()), this, SLOT(addGlobalTagTarget()));
     connect(configUi.delButton, SIGNAL(clicked()), this, SLOT(delGlobalTagTarget()));
 */
-	connect(configUi_.resetButton, SIGNAL(clicked()), this, SLOT(resetConfigSlot()));
-	connect(configUi_.startButton, SIGNAL(clicked()), this, SLOT(startDaemonSlot()));
-	connect(configUi_.stopButton, SIGNAL(clicked()), this, SLOT(stopDaemonSlot()));
-	connect(configUi_.checkButton, SIGNAL(clicked()), this, SLOT(checkDaemonSlot()));
-	connect(configUi_.portEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot()));
+	connect(configUi_.russellResetButton, SIGNAL(clicked()), this, SLOT(resetConfigSlot()));
+	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startDaemonSlot()));
+	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopDaemonSlot()));
+	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkDaemonSlot()));
+	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot()));
 
 /*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
             this,    SLOT(updateDone(int,QProcess::ExitStatus)));
@@ -117,10 +117,10 @@ QIcon RussellConfigPage::icon() const {
 
 void RussellConfigPage::apply() {
     KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
-    config.writeEntry("DaemonHost", configUi_.hostEdit->text());
-    config.writeEntry("DaemonPort", configUi_.portEdit->text());
-    config.writeEntry("DaemonInvocation", configUi_.invocationEdit->text());
-    config.writeEntry("DaemonAutostart", configUi_.autostartCheckBox->isChecked() ? "true" : "false");
+    config.writeEntry("DaemonHost", configUi_.russellHostEdit->text());
+    config.writeEntry("DaemonPort", configUi_.russellPortEdit->text());
+    config.writeEntry("DaemonInvocation", configUi_.russellInvocationEdit->text());
+    config.writeEntry("DaemonAutostart", configUi_.russellAutostartCheckBox->isChecked() ? "true" : "false");
     /*
     QString nr;
     for (int i=0; i<configUi.targetList->count(); i++) {
@@ -132,10 +132,10 @@ void RussellConfigPage::apply() {
 
 void RussellConfigPage::reset() {
     KConfigGroup config(KSharedConfig::openConfig(), "Russell");
-    configUi_.hostEdit->setText(config.readEntry(QStringLiteral("DaemonHost"), default_host()));
-    configUi_.portEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
-    configUi_.invocationEdit->setText(config.readEntry(QStringLiteral("DaemonInvocation"), default_invocation()));
-    configUi_.autostartCheckBox->setChecked(to_bool(config.readEntry(QStringLiteral("DaemonAutostart"), to_string(default_autostart()))));
+    configUi_.russellHostEdit->setText(config.readEntry(QStringLiteral("DaemonHost"), default_host()));
+    configUi_.russellPortEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
+    configUi_.russellInvocationEdit->setText(config.readEntry(QStringLiteral("DaemonInvocation"), default_invocation()));
+    configUi_.russellAutostartCheckBox->setChecked(to_bool(config.readEntry(QStringLiteral("DaemonAutostart"), to_string(default_autostart()))));
 
 /*
     int numEntries = config.readEntry(QStringLiteral("GlobalNumTargets"), 0);
@@ -154,18 +154,18 @@ void RussellConfigPage::reset() {
 }
 
 void RussellConfigPage::defaults() {
-	configUi_.hostEdit->setText(default_host());
-	configUi_.portEdit->setText(QString::number(default_port()));
-	configUi_.invocationEdit->setText(default_invocation());
-	configUi_.autostartCheckBox->setChecked(default_autostart());
+	configUi_.russellHostEdit->setText(default_host());
+	configUi_.russellPortEdit->setText(QString::number(default_port()));
+	configUi_.russellInvocationEdit->setText(default_invocation());
+	configUi_.russellAutostartCheckBox->setChecked(default_autostart());
 	checkDaemonSlot();
 }
 
 void RussellConfigPage::resetConfigSlot() {
-	configUi_.hostEdit->setText(default_host());
-	configUi_.portEdit->setText(QString::number(default_port()));
-	configUi_.invocationEdit->setText(default_invocation());
-	configUi_.autostartCheckBox->setChecked(default_autostart());
+	configUi_.russellHostEdit->setText(default_host());
+	configUi_.russellPortEdit->setText(QString::number(default_port()));
+	configUi_.russellInvocationEdit->setText(default_invocation());
+	configUi_.russellAutostartCheckBox->setChecked(default_autostart());
 	checkDaemonSlot();
 /*
     QFileDialog dialog;
@@ -201,7 +201,7 @@ void RussellConfigPage::startDaemonSlot() {
 
 	//QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
 /*
-	QString command = configUi_.invocationEdit->text();
+	QString command = configUi_.russellinvocationEdit->text();
     process.start(command);
 
     if(!process.waitForStarted(100)) {
@@ -235,9 +235,9 @@ void RussellConfigPage::stopDaemonSlot() {
 
 bool RussellConfigPage::checkDaemonSlot() {
 	bool ret = Connection::mod().connection();
-	configUi_.aliveEdit->setText(ret ? QStringLiteral("running") : QStringLiteral("is not running"));
-	configUi_.stopButton->setEnabled(ret);
-	configUi_.startButton->setEnabled(!ret);
+	configUi_.russellAliveEdit->setText(ret ? QStringLiteral("running") : QStringLiteral("is not running"));
+	configUi_.russellStopButton->setEnabled(ret);
+	configUi_.russellStartButton->setEnabled(!ret);
 	return ret;
 /*
     if (process.state() != QProcess::NotRunning) {

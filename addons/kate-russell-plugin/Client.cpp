@@ -457,7 +457,7 @@ namespace russell {
 	void
 	Client :: executeCommand()
 	{
-		QComboBox* commandComboBox = view_->getBottomUi().commandComboBox;
+		QComboBox* commandComboBox = view_->getBottomUi().russellCommandComboBox;
 		QString command = commandComboBox->currentText();
 		bool addCommand = true;
 		for (int i = 0; i < commandComboBox->count(); ++ i) {
@@ -510,14 +510,14 @@ namespace russell {
 	{
 		QObject :: connect
 		(
-			view_->getBottomUi().executeButton,
+			view_->getBottomUi().russellExecuteButton,
 			SIGNAL (pressed()),
 			this,
 			SLOT (executeCommand())
 		);
 		QObject :: connect
 		(
-			view_->getBottomUi().clearButton,
+			view_->getBottomUi().russellClearButton,
 			SIGNAL (pressed()),
 			this,
 			SLOT (clearConsole())

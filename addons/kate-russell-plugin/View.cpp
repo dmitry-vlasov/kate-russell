@@ -1001,7 +1001,7 @@ namespace russell {
 		);*/
 		connect
 		(
-			bottomUi_.executeButton,
+			bottomUi_.russellExecuteButton,
 			SIGNAL (pressed()),
 			client_,
 			SLOT (executeCommand())

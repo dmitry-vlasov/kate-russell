@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>340</height>
+    <width>574</width>
+    <height>597</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,20 +18,20 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="configGroupBox">
+    <widget class="QGroupBox" name="russellConfigGroupBox">
      <property name="title">
-      <string>Russell daemon configs</string>
+      <string>Russell config</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="1" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="russellHostLabel">
         <property name="text">
          <string>Host</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="hostEdit">
+       <widget class="QLineEdit" name="russellHostEdit">
         <property name="text">
          <string>localhost</string>
         </property>
@@ -41,35 +41,35 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="portEdit">
+       <widget class="QLineEdit" name="russellPortEdit">
         <property name="text">
          <string>808011</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="russellInvocationLabel">
         <property name="text">
          <string>Invocation</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLineEdit" name="invocationEdit">
+       <widget class="QLineEdit" name="russellInvocationEdit">
         <property name="text">
          <string>mdl -d</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="russellPortLabel">
         <property name="text">
          <string>Port</string>
         </property>
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QPushButton" name="resetButton">
+       <widget class="QPushButton" name="russellResetButton">
         <property name="text">
          <string>Reset</string>
         </property>
@@ -79,34 +79,34 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="stateGroupBox">
+    <widget class="QGroupBox" name="russellStateGroupBox">
      <property name="title">
-      <string>Daemon state</string>
+      <string>Russell Daemon state</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QPushButton" name="startButton">
+       <widget class="QPushButton" name="russellStartButton">
         <property name="text">
          <string>Start</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="stopButton">
+       <widget class="QPushButton" name="russellStopButton">
         <property name="text">
          <string>Stop</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="checkButton">
+       <widget class="QPushButton" name="russellCheckButton">
         <property name="text">
          <string>Check:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="aliveEdit">
+       <widget class="QLineEdit" name="russellAliveEdit">
         <property name="text">
          <string>not running</string>
         </property>
@@ -116,7 +116,83 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="autostartCheckBox">
+       <widget class="QCheckBox" name="russellAutostartCheckBox">
+        <property name="text">
+         <string>Autostart</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="metamathConfigGroupBox">
+     <property name="title">
+      <string>Metamath config</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPushButton" name="metamathInvocationButton">
+        <property name="text">
+         <string>invocation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="metamathInvocationEdit">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <zorder>metamathInvocationEdit</zorder>
+     <zorder>verticalSpacer</zorder>
+     <zorder>metamathInvocationButton</zorder>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="metamathStateGroupBox">
+     <property name="title">
+      <string>Metamath Daemon state</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="metamathStartButton">
+        <property name="text">
+         <string>Start</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="metamathStopButton">
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="metamathCheckButton">
+        <property name="text">
+         <string>Check:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="metamathAliveEdit">
+        <property name="text">
+         <string>not running</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="metamathAutostartCheckBox">
         <property name="text">
          <string>Autostart</string>
         </property>
@@ -133,7 +209,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>90</height>
+       <height>205</height>
       </size>
      </property>
     </spacer>
