@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <QProcess>
 #include <QString>
 
 #include <KConfigGroup>
@@ -29,11 +30,12 @@ class Plugin;
 
 class RussellConfig {
 public:
-	static QString host();
-    static int     port();
-    static QString daemon_invocation();
-    static bool    daemon_autostart();
-    static bool    daemon_running();
+	static QString russellHost();
+    static int     russlelPort();
+    static QString russellInvocation();
+    static bool    russellAutostart();
+    static QString metamathInvocation();
+    static bool    metamathAutostart();
 private:
     RussellConfig();
     static RussellConfig& instance() {
@@ -47,7 +49,7 @@ class RussellConfigPage : public KTextEditor::ConfigPage {
     Q_OBJECT
 public:
     explicit RussellConfigPage(QWidget* parent = nullptr, Plugin *plugin = nullptr);
-    ~RussellConfigPage() {}
+    ~RussellConfigPage() { apply(); }
 
     QString name() const Q_DECL_OVERRIDE;
     QString fullName() const Q_DECL_OVERRIDE;
@@ -58,17 +60,25 @@ public:
     void defaults() Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
-    void resetConfigSlot();
-    void startDaemonSlot();
-    void stopDaemonSlot();
-    bool checkDaemonSlot();
+    void resetRussellConfigSlot();
+    void startRussellSlot();
+    void stopRussellSlot();
+    bool checkRussellSlot();
+    void startedRussellSlot();
+    void finishedRussellSlot(int exitCode, QProcess::ExitStatus exitStatus);
+
+    void startMetamathSlot();
+    void stopMetamathSlot();
+    void startedMetamathSlot();
+    void finishedMetamathSlot(int exitCode, QProcess::ExitStatus exitStatus);
+
     void checkPortSlot(QString&);
 
 private:
 
     bool listContains(const QString &target);
 
-    Plugin*          plugin_;
+    Plugin* plugin_;
     Ui::RussellConfig configUi_;
 };
 

@@ -31,9 +31,8 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include "LatexToUnicode.hpp"
-#include "Connection.hpp"
-
 #include "View.moc"
+#include "Execute.hpp"
 
 namespace russell {
 
@@ -96,7 +95,7 @@ namespace russell {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
 		#endif
-		Server::stop();
+		Server::russell().stop();
 		mainWindow()->guiFactory()->removeClient (this);
 		delete toolView_;
 		delete outline_;
@@ -378,7 +377,7 @@ namespace russell {
 	void 
 	View :: slotProveInteractive()
 	{
-		if (Server::is_running()) {
+		if (Server::russell().isRunning()) {
 			state_ = PROVING;
 			client_->execute(QStringLiteral("option --in prop.rus"));
 			client_->execute(QStringLiteral("read"));
@@ -434,7 +433,7 @@ namespace russell {
 	void
 	View :: proveIdInteractively()
 	{
-		if (!Server::is_running()) {
+		if (!Server::russell().isRunning()) {
 			KMessageBox :: sorry (0, i18n ("Server cound not start."));
 			return;
 		}
@@ -452,7 +451,7 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		if (!Server::is_running()) {
+		if (!Server::russell().isRunning()) {
 			KMessageBox :: sorry (0, i18n ("Server could not start."));
 			return;
 		}
@@ -471,13 +470,13 @@ namespace russell {
 	View :: slotManageServer()
 	{
 		QAction* action = NULL;
-		if (Server::is_running()) {
-			Server::stop();
+		if (Server::russell().isRunning()) {
+			Server::russell().stop();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Start mdl server"));
 			action->setIcon (QIcon (QStringLiteral("go-next")));
 		} else {
-			Server::start();
+			Server::russell().start();
 			action = actionCollection()->action (QStringLiteral("start_server"));
 			action->setText (i18n ("Stop mdl server"));
 			action->setIcon (QIcon (QStringLiteral("application-exit")));
@@ -687,33 +686,53 @@ namespace russell {
 */
 
 	void
-	View :: slotReadServerStdOut()
+	View :: slotReadRussellStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::process().readAllStandardOutput());
+		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardOutput());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->insertItems (row, newLines);
-		row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->setCurrentRow (row - 1);
+		int row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->insertItems (row, newLines);
+		row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->setCurrentRow (row - 1);
 	}
 	void 
-	View :: slotReadServerStdErr()
+	View :: slotReadRussellStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::process().readAllStandardError());
+		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
 		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->insertItems (row - 1, newLines);
-		row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->setCurrentRow (row);
+		int row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->insertItems (row - 1, newLines);
+		row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->setCurrentRow (row);
+	}
+	void
+	View :: slotReadMetamathStdOut()
+	{
+		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
+		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
+		int row = bottomUi_.metamathListWidget->count();
+		bottomUi_.metamathListWidget->insertItems (row, newLines);
+		row = bottomUi_.metamathListWidget->count();
+		bottomUi_.metamathListWidget->setCurrentRow (row - 1);
+	}
+	void
+	View :: slotReadMetamathStdErr()
+	{
+		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
+		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
+		int row = bottomUi_.metamathListWidget->count();
+		bottomUi_.metamathListWidget->insertItems (row - 1, newLines);
+		row = bottomUi_.metamathListWidget->count();
+		bottomUi_.metamathListWidget->setCurrentRow (row);
 	}
 	void
 	View :: slotShowServerMessages (QString messages)
 	{
 		QStringList newLines = messages.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->insertItems (row, newLines);
-		row = bottomUi_.serverListWidget->count();
-		bottomUi_.serverListWidget->setCurrentRow (row - 1);
+		int row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->insertItems (row, newLines);
+		row = bottomUi_.russellListWidget->count();
+		bottomUi_.russellListWidget->setCurrentRow (row - 1);
 	}
 
 	/****************************
@@ -999,13 +1018,14 @@ namespace russell {
 			SIGNAL (itemClicked (QTreeWidgetItem*, int)),
 			SLOT (slotItemSelected (QTreeWidgetItem*))
 		);*/
+		/*
 		connect
 		(
 			bottomUi_.russellExecuteButton,
 			SIGNAL (pressed()),
 			client_,
 			SLOT (executeCommand())
-		);
+		);*/
 
 		bottomUi_.outputTextEdit->setReadOnly (true);
 	}
@@ -1016,13 +1036,16 @@ namespace russell {
 		//connect (client_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
 		//connect (client_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
 
-		connect (&Server::process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadServerStdErr()));
-		connect (&Server::process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadServerStdOut()));
+		connect (&Server::russell().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
+		connect (&Server::russell().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
+		connect (&Server::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
+		connect (&Server::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
+
 		connect (client_, SIGNAL (showServerMessages(QString)), this, SLOT (slotShowServerMessages(QString)));
 
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 
-		connect (&Connection::mod(), SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
+		connect (&Execute::russell(), SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
 
 		//connect (mainWindow_->activeView(), SIGNAL (viewChanged()), this, SLOT (refreshOutline()));
 	}

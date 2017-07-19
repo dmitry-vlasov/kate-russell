@@ -15,13 +15,13 @@
 
 #include <KMessageBox>
 
-#include "Connection.hpp"
 #include "Proof.hpp"
 #include "View.hpp"
 #include "Client.hpp"
 #include "Icon.hpp"
 
 #include "Proof.moc"
+#include "Execute.hpp"
 
 namespace russell {
 

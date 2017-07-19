@@ -15,8 +15,9 @@
 #include <KPluginFactory>
 
 #include "RussellConfigPage.hpp"
-#include "Connection.hpp"
 #include "Plugin.hpp"
+
+#include "Execute.hpp"
 #include "View.hpp"
 #include "Server.hpp"
 
@@ -37,8 +38,11 @@ namespace russell {
 		#endif
 		//KGlobal :: locale()->insertCatalog ("kate-russell-plugin");
 
-		if (RussellConfig::daemon_autostart() && !Connection::mod().execute(QStringLiteral("status"))) {
-			Server::start();
+		if (RussellConfig::russellAutostart() && !Execute::russell().connection()) {
+			Server::russell().start();
+		}
+		if (RussellConfig::metamathAutostart()) {
+			Server::metamath().start();
 		}
 	}
 	Plugin :: ~ Plugin() {

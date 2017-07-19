@@ -175,7 +175,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="server">
+     <widget class="QWidget" name="russell">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -183,11 +183,11 @@
        </sizepolicy>
       </property>
       <attribute name="title">
-       <string>Server</string>
+       <string>Russell</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QListWidget" name="serverListWidget">
+        <widget class="QListWidget" name="russellListWidget">
          <property name="font">
           <font>
            <family>Monospace</family>

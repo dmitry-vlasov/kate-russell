@@ -22,10 +22,11 @@
 
 #include <KTextEditor/View>
 
-#include "Connection.hpp"
 #include "RussellConfigPage.hpp"
 #include "ProjectConfigTab.hpp"
 #include "Client.hpp"
+
+#include "Execute.hpp"
 #include "View.hpp"
 #include "Proof.hpp"
 
@@ -42,7 +43,7 @@ namespace russell {
 
 	bool
 	Client :: execute(const QString& command) {
-		return Connection::mod().execute (command);
+		return Execute::russell().execute (command);
 	}
 /*
 	void
@@ -106,7 +107,7 @@ namespace russell {
 	{
 		QString command = QStringLiteral("expand ");
 		command += QString::number(node);
-		Connection::mod().execute (command);
+		Execute::russell().execute (command);
 	}
 
 		bool
@@ -260,7 +261,7 @@ namespace russell {
 		command += QStringLiteral("rus lookup what=def in=") + conf->trimFile(file) + QStringLiteral(" ");
 		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
 		command += QStringLiteral("col=") + QString::number(column);
-		if (!Connection::mod().execute (command)) return false;
+		if (!Execute::russell().execute (command)) return false;
 		view_->clearOutput();
 		return true;
 /*
@@ -306,7 +307,7 @@ namespace russell {
 		command += QStringLiteral("rus lookup what=loc in=") + conf->trimFile(file) + QStringLiteral(" ");
 		command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
 		command += QStringLiteral("col=") + QString::number(column);
-		if (!Connection::mod().execute (command)) return false;
+		if (!Execute::russell().execute (command)) return false;
 		view_->clearOutput();
 
 		/*if (!Connection::mod().data().isEmpty()) {
@@ -368,7 +369,7 @@ namespace russell {
 			break;
 		default : return false;
 		}
-		if (!Connection::mod().execute (command)) return false;
+		if (!Execute::russell().execute (command)) return false;
 		//view_->setOutput(Connection::mod().data());
 		//view_->update();
 		return true;
@@ -475,29 +476,29 @@ namespace russell {
 		}
 		command = command.trimmed();
 		if (command.size() == 0) {
-			int row = view_->getBottomUi().serverListWidget->count();
-			view_->getBottomUi().serverListWidget->insertItem (row, QStringLiteral("> "));
-			row = view_->getBottomUi().serverListWidget->count();
-			view_->getBottomUi().serverListWidget->setCurrentRow (row);
+			int row = view_->getBottomUi().russellListWidget->count();
+			view_->getBottomUi().russellListWidget->insertItem (row, QStringLiteral("> "));
+			row = view_->getBottomUi().russellListWidget->count();
+			view_->getBottomUi().russellListWidget->setCurrentRow (row);
 			return;
 		} else if (command == QStringLiteral("fell")) {
 			view_->proof()->fell();
 		} else if (reloadProverCommand (command)) {
 			view_->proof()->fell();
-			Connection::mod().execute (command);
+			Execute::russell().execute (command);
 		} else {
-			Connection::mod().execute (command);
+			Execute::russell().execute (command);
 		}
 	}
 	void
 	Client :: clearConsole()
 	{
-		QListWidget* serverListWidget = view_->getBottomUi().serverListWidget;
-		const int count = serverListWidget->count();
+		QListWidget* listWidget = view_->getBottomUi().russellListWidget;
+		const int count = listWidget->count();
 		for (int i = 0; i < count; ++ i) {
 			const int j = count - i - 1;
-			QListWidgetItem* item = serverListWidget->item(j);
-			serverListWidget->removeItemWidget (item);
+			QListWidgetItem* item = listWidget->item(j);
+			listWidget->removeItemWidget (item);
 		}
 	}
 
@@ -508,19 +509,21 @@ namespace russell {
 	void
 	Client :: setupSlotsAndSignals()
 	{
+		/*
 		QObject :: connect
 		(
 			view_->getBottomUi().russellExecuteButton,
 			SIGNAL (pressed()),
 			this,
 			SLOT (executeCommand())
-		);
+		);*/
+		/*
 		QObject :: connect
 		(
 			view_->getBottomUi().russellClearButton,
 			SIGNAL (pressed()),
 			this,
 			SLOT (clearConsole())
-		);
+		);*/
 	}
 }

@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_mdl_Client.hpp                       */
+/* File Name:       Execute.hpp                                              */
 /* Description:     a client for mdl as a server                             */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
@@ -20,12 +20,10 @@
 
 namespace russell {
 
-class Connection : public QObject {
+class Russell : public QObject {
 Q_OBJECT
 public :
-	static const Connection& get() { return mod(); }
-	static Connection& mod() { static Connection conn; return conn; }
-
+	Russell();
 	bool execute (const QString&);
 	bool success() const { return !code_; }
 	bool connection();
@@ -36,20 +34,34 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void readyRead();
 
-private :
-	Connection();
-	virtual ~ Connection();
-
+private:
 	bool runCommand (const QString&);
 	bool readOutput();
 	void makeOutput();
 
-	QTcpSocket* socket_;
-	QByteArray  buffer_;
+	QTcpSocket socket_;
+	QByteArray buffer_;
 	QString data_;
 	QString messages_;
 	quint32 code_;
 	quint32 size_;
 };
+
+struct Metamath {
+	bool execute (const QString& command);
+};
+
+class Execute {
+public :
+	static Russell& russell() { return mod().russell_; }
+	static Metamath& metamath() { return mod().metamath_; }
+
+private :
+	static Execute& mod() { static Execute exec; return exec; }
+	Execute() { }
+	Russell  russell_;
+	Metamath metamath_;
+};
+
 
 }

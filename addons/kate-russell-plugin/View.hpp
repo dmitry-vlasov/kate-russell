@@ -114,8 +114,10 @@ private Q_SLOTS:
 //	void slotReadOutputStdOut (const bool = false);
 
 	// server output slots
-	void slotReadServerStdErr();
-	void slotReadServerStdOut();
+	void slotReadRussellStdErr();
+	void slotReadRussellStdOut();
+	void slotReadMetamathStdErr();
+	void slotReadMetamathStdOut();
 
 	// client output slots
 	void slotShowServerMessages(QString);

@@ -14,22 +14,38 @@
 
 #pragma once
 
-#include <QProcess>
-
 #include <KProcess>
+#include "RussellConfigPage.hpp"
 
 namespace russell {
 
-class Server {
+class Process {
 public :
-	static bool start();
-	static bool stop();
-	static KProcess& process() { return mod().process_; }
-	static bool is_running() { return mod().process_.state() == QProcess::Running; }
+	enum Kind { RUSSELL, METAMATH };
+	Process(const QString& i, Kind k) : invocation_(i), kind_(k) { }
+	bool start();
+	bool stop();
+	KProcess& process() { return process_; }
+	bool isRunning() const;
+
+private :
+	QString  invocation_;
+	Kind     kind_;
+	KProcess process_;
+};
+
+struct Server {
+public :
+	static Process& russell() { return mod().russell_; }
+	static Process& metamath() { return mod().metamath_; }
 
 private :
 	static Server& mod() { static Server server; return server; }
-	KProcess process_;
+	Server() :
+		russell_(RussellConfig::russellInvocation(), Process::RUSSELL),
+		metamath_(RussellConfig::metamathInvocation(), Process::METAMATH) { }
+	Process russell_;
+	Process metamath_;
 };
 
 }

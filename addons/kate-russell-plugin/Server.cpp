@@ -12,12 +12,14 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
+#include <QProcess>
 #include <QByteArray>
 
 #include <KMessageBox>
 
-#include "Connection.hpp"
 #include "Server.hpp"
+
+#include "Execute.hpp"
 #include "RussellConfigPage.hpp"
 
 namespace russell {
@@ -27,21 +29,36 @@ namespace russell {
 	 ****************************/
 
 	bool
-	Server :: start()
-	{
-		if (Connection::mod().connection() || mod().process_.state() != QProcess::NotRunning) {
-			return true;
+	Process::isRunning() const {
+		switch (kind_) {
+		case RUSSELL:  return Execute::russell().connection();
+		case METAMATH: return process_.state() == QProcess::Running;
+		default: return false;
 		}
-		QString command = RussellConfig::daemon_invocation();
-		mod().process_.setShellCommand (command);
-		mod().process_.setOutputChannelMode (KProcess :: SeparateChannels);
-		mod().process_.start();
+	}
 
-		if(!mod().process_.waitForStarted(100)) {
-			KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, mod().process_.exitStatus()));
-			mod().process_.terminate();
+	bool
+	Process :: start()
+	{
+		if (isRunning()) return true;
+		stop();
+
+		qDebug() << invocation_;
+		process_.setShellCommand(invocation_);
+		process_.start();
+
+		/*
+		if (!process_.waitForStarted(300)) {
+			KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", invocation_, process_.exitStatus()));
+			process_.terminate();
 			return false;
 		}
+		*/
+
+		//qDebug() << process_;
+		qDebug() << process_.state();
+		qDebug() << process_.program();
+
 		return true;
 /*
 		QString invocation  (config_->getSourceRoot());
@@ -73,13 +90,13 @@ namespace russell {
 */
 	}
 	bool
-	Server :: stop()
+	Process :: stop()
 	{
-		if (mod().process_.state() != QProcess :: NotRunning) {
-			mod().process_.terminate();
-			if (!mod().process_.waitForFinished(100)) {
-				KMessageBox::error(0, i18n("Failed to terminate daemon, exitStatus = %1", mod().process_.exitStatus()));
-				mod().process_.kill();
+		if (process_.state() != QProcess :: NotRunning) {
+			process_.terminate();
+			if (!process_.waitForFinished(100)) {
+				KMessageBox::error(0, i18n("Failed to terminate daemon, exitStatus = %1", process_.exitStatus()));
+				process_.kill();
 				return false;
 			}
 			return true;
@@ -92,7 +109,7 @@ namespace russell {
 	 ****************************/
 /*
 	bool
-	Server :: lookForRunning()
+	Process :: lookForRunning()
 	{
 		//QString directory (config_->getSourceRoot());
 		QString command (QStringLiteral("lsof -i :"));

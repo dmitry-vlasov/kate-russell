@@ -17,8 +17,11 @@
 #include <QtNetwork>
 #include <QMetaObject>
 
-#include "Connection.hpp"
+#include <KMessageBox>
+
 #include "RussellConfigPage.hpp"
+#include "Server.hpp"
+#include "Execute.hpp"
 
 #define OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT true
 
@@ -28,20 +31,21 @@ namespace russell {
 	 *	Public members
 	 ****************************/
 
-	Connection :: Connection():
-	socket_ (new QTcpSocket()),
-	data_ (),
-	messages_ (),
+	bool
+	Metamath::execute (const QString& command) {
+		QByteArray data = command.toLatin1();
+		qint64 size = Server::metamath().process().write(data);
+		return size == data.size();
+	}
+
+	Russell :: Russell():
 	code_(0),
 	size_(0) {
-		connect(socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
-	}
-	Connection ::  ~ Connection() {
-		delete socket_;
+		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
 
 	bool
-	Connection :: execute (const QString& command)
+	Russell :: execute (const QString& command)
 	{
 		if (!connection()) {
 			return false;
@@ -57,7 +61,7 @@ namespace russell {
 		code_ = 1;
 		if (!runCommand(command)) return false;
 		if (command == QStringLiteral("exit")) {
-			socket_->disconnectFromHost();
+			socket_.disconnectFromHost();
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "\n\n\n";
@@ -66,20 +70,20 @@ namespace russell {
 	}
 
 	bool
-	Connection :: connection()
+	Russell :: connection()
 	{
-		if (socket_->state() == QTcpSocket::SocketState::ConnectedState) {
+		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
 			//std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
-		socket_->disconnectFromHost();
-		QString host = russell::RussellConfig::host();
-		int port = russell::RussellConfig::port();
-		socket_->connectToHost (host, port);
-		bool isConnected = socket_->waitForConnected(100);
+		socket_.disconnectFromHost();
+		QString host = russell::RussellConfig::russellHost();
+		int port = russell::RussellConfig::russlelPort();
+		socket_.connectToHost (host, port);
+		bool isConnected = socket_.waitForConnected(100);
 		if (!isConnected) {
 			//std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << socket_->errorString() << "\n";
+			QTextStream (stdout) << "\t" << socket_.errorString() << "\n";
 			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}
 		return isConnected;
@@ -90,10 +94,10 @@ namespace russell {
 	 ****************************/
 
 	void
-	Connection::readyRead()
+	Russell::readyRead()
 	{
-		while (socket_->bytesAvailable() > 0) {
-			buffer_.append(socket_->readAll());
+		while (socket_.bytesAvailable() > 0) {
+			buffer_.append(socket_.readAll());
 			// While can process data, process it
 			while ((size_ == 0 && buffer_.size() >= 4) || (size_ > 0 && buffer_.size() >= size_)) {
 				//if size of data has received completely, then store it on our global variable
@@ -119,7 +123,7 @@ namespace russell {
 	 ****************************/
 
 	bool
-	Connection :: runCommand (const QString& command)
+	Russell :: runCommand (const QString& command)
 	{
 		uint msg_len = command.length() + sizeof(uint);
 		char *asciiCommand = new char [msg_len];
@@ -128,13 +132,13 @@ namespace russell {
 			const QChar qch = command[i];
 			asciiCommand [i + sizeof(uint)] = qch.toLatin1();
 		}
-		socket_->write (asciiCommand, msg_len);
-		bool written = socket_->waitForBytesWritten(100);
+		socket_.write (asciiCommand, msg_len);
+		bool written = socket_.waitForBytesWritten(100);
 		delete[] asciiCommand;
 		return written;
 	}
 	void
-	Connection :: makeOutput()
+	Russell :: makeOutput()
 	{
 		QDataStream data(&buffer_, QIODevice::ReadOnly);
 		data.setByteOrder(QDataStream::LittleEndian);

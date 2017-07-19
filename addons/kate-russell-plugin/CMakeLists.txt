@@ -21,7 +21,7 @@ set (katerussell_SRC
 	
 	Client.cpp
 	Server.cpp
-	Connection.cpp
+	Execute.cpp
 	
 	Navigation.cpp
 	Outline.cpp

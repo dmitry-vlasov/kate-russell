@@ -19,57 +19,65 @@
 #include <kpluginloader.h>
 #include <kaboutdata.h>
 
-#include "Connection.hpp"
+#include "Execute.hpp"
 #include "Server.hpp"
 
 namespace russell {
 
-const QString& default_host() { static QString host = QStringLiteral("localhost"); return host; }
-int            default_port() { return 808011; }
-const QString& default_invocation() { static QString invoc = QStringLiteral("mdl -d"); return invoc; }
-bool           default_autostart() { return false; }
+const QString& default_russell_host() { static QString host = QStringLiteral("localhost"); return host; }
+int            default_russell_port() { return 808011; }
+const QString& default_russell_invocation() { static QString invoc = QStringLiteral("mdl -d"); return invoc; }
+bool           default_russell_autostart() { return false; }
+const QString& default_metamath_invocation() { static QString invoc = QStringLiteral("metamath"); return invoc; }
+bool           default_metamath_autostart() { return false; }
 inline QString to_string(bool v) { return v ? QStringLiteral("true") : QStringLiteral("false"); }
 inline bool    to_bool(const QString& s) { return s == QStringLiteral("true"); }
 
 RussellConfig::RussellConfig() : config(KSharedConfig::openConfig(), QStringLiteral("Russell")) {
 }
 
-QString RussellConfig::host() {
-	return instance().config.hasKey(QStringLiteral("DaemonHost")) ?
-		instance().config.readEntry(QStringLiteral("DaemonHost")) :
-		default_host();
+QString RussellConfig::russellHost() {
+	return instance().config.hasKey(QStringLiteral("RussellHost")) ?
+		instance().config.readEntry(QStringLiteral("RussellHost")) :
+		default_russell_host();
 }
 
-int RussellConfig::port() {
-	if (instance().config.hasKey(QStringLiteral("DaemonPort"))) {
-		QString port_str = instance().config.readEntry(QStringLiteral("DaemonPort"));
+int RussellConfig::russlelPort() {
+	if (instance().config.hasKey(QStringLiteral("RussellPort"))) {
+		QString port_str = instance().config.readEntry(QStringLiteral("RussellPort"));
 		bool ok = true;
 		int port = port_str.toInt(&ok);
 		if (!ok) {
 			KMessageBox::error(0, i18n("Port \"%1\" is not a decimal number", port_str));
 		}
-		return ok ? port : default_port();
+		return ok ? port : default_russell_port();
 	} else {
-		return default_port();
+		return default_russell_port();
 	}
 }
 
-QString RussellConfig::daemon_invocation() {
-	return instance().config.hasKey(QStringLiteral("DaemonHost")) ?
-		instance().config.readEntry(QStringLiteral("DaemonInvocation")) :
-		default_invocation();
+QString RussellConfig::russellInvocation() {
+	return instance().config.hasKey(QStringLiteral("RussellInvocation")) ?
+		instance().config.readEntry(QStringLiteral("RussellInvocation")) :
+		default_russell_invocation();
 }
 
-bool RussellConfig::daemon_autostart() {
-	return instance().config.hasKey(QStringLiteral("DaemonAutostart")) ?
-		to_bool(instance().config.readEntry(QStringLiteral("DaemonAutostart"))) :
-		default_autostart();
+bool RussellConfig::russellAutostart() {
+	return instance().config.hasKey(QStringLiteral("RussellAutostart")) ?
+		to_bool(instance().config.readEntry(QStringLiteral("RussellAutostart"))) :
+		default_russell_autostart();
 }
 
-bool RussellConfig::daemon_running() {
-	return instance().config.hasKey(QStringLiteral("DaemonAutostart")) ?
-		to_bool(instance().config.readEntry(QStringLiteral("DaemonAutostart"))) :
-		default_autostart();
+QString RussellConfig::metamathInvocation() {
+	return instance().config.hasKey(QStringLiteral("MetamathInvocation")) ?
+		instance().config.readEntry(QStringLiteral("MetamathInvocation")) :
+		default_russell_invocation();
+}
+
+bool RussellConfig::metamathAutostart() {
+	return instance().config.hasKey(QStringLiteral("MetamathAutostart")) ?
+		to_bool(instance().config.readEntry(QStringLiteral("MetamathAutostart"))) :
+		default_russell_autostart();
 }
 
 RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin_(plug)
@@ -91,16 +99,43 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     connect(configUi.addButton, SIGNAL(clicked()), this, SLOT(addGlobalTagTarget()));
     connect(configUi.delButton, SIGNAL(clicked()), this, SLOT(delGlobalTagTarget()));
 */
-	connect(configUi_.russellResetButton, SIGNAL(clicked()), this, SLOT(resetConfigSlot()));
-	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startDaemonSlot()));
-	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopDaemonSlot()));
-	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkDaemonSlot()));
-	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot()));
+	connect(configUi_.russellResetButton, SIGNAL(clicked()), this, SLOT(resetRussellConfigSlot()));
+	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startRussellSlot()));
+	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopRussellSlot()));
+	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkRussellSlot()));
+	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot(QString&)));
+	connect(&Server::russell().process(), SIGNAL(started()), this, SLOT(startedRussellSlot()));
+	connect(
+		&Server::russell().process(),
+		SIGNAL(finished(int, QProcess::ExitStatus)),
+		this,
+		SLOT(finishedRussellSlot(int, QProcess::ExitStatus))
+	);
+
+	connect(configUi_.metamathStartButton, SIGNAL(clicked()), this, SLOT(startMetamathSlot()));
+	connect(configUi_.metamathStopButton, SIGNAL(clicked()), this, SLOT(stopMetamathSlot()));
+	connect(&Server::metamath().process(), SIGNAL(started()), this, SLOT(startedMetamathSlot()));
+	connect(
+		&Server::metamath().process(),
+		SIGNAL(finished(int, QProcess::ExitStatus)),
+		this,
+		SLOT(finishedMetamathSlot(int, QProcess::ExitStatus))
+	);
 
 /*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
             this,    SLOT(updateDone(int,QProcess::ExitStatus)));
 */
     reset();
+
+    bool run = Server::russell().isRunning();
+	configUi_.russellAliveEdit->setText(run ? QStringLiteral("running") : QStringLiteral("stopped"));
+	configUi_.russellStopButton->setEnabled(run);
+	configUi_.russellStartButton->setEnabled(!run);
+
+	run = Server::metamath().isRunning();
+	configUi_.metamathAliveEdit->setText(run ? QStringLiteral("running") : QStringLiteral("stopped"));
+	configUi_.metamathStopButton->setEnabled(run);
+	configUi_.metamathStartButton->setEnabled(!run);
 }
 
 QString RussellConfigPage::name() const {
@@ -117,10 +152,12 @@ QIcon RussellConfigPage::icon() const {
 
 void RussellConfigPage::apply() {
     KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
-    config.writeEntry("DaemonHost", configUi_.russellHostEdit->text());
-    config.writeEntry("DaemonPort", configUi_.russellPortEdit->text());
-    config.writeEntry("DaemonInvocation", configUi_.russellInvocationEdit->text());
-    config.writeEntry("DaemonAutostart", configUi_.russellAutostartCheckBox->isChecked() ? "true" : "false");
+    config.writeEntry("RussellHost", configUi_.russellHostEdit->text());
+    config.writeEntry("RussellPort", configUi_.russellPortEdit->text());
+    config.writeEntry("RussellInvocation", configUi_.russellInvocationEdit->text());
+    config.writeEntry("RussellAutostart", configUi_.russellAutostartCheckBox->isChecked() ? "true" : "false");
+    config.writeEntry("MetamathInvocation", configUi_.metamathInvocationEdit->text());
+    config.writeEntry("MetamathAutostart", configUi_.metamathAutostartCheckBox->isChecked() ? "true" : "false");
     /*
     QString nr;
     for (int i=0; i<configUi.targetList->count(); i++) {
@@ -132,10 +169,12 @@ void RussellConfigPage::apply() {
 
 void RussellConfigPage::reset() {
     KConfigGroup config(KSharedConfig::openConfig(), "Russell");
-    configUi_.russellHostEdit->setText(config.readEntry(QStringLiteral("DaemonHost"), default_host()));
-    configUi_.russellPortEdit->setText(config.readEntry(QStringLiteral("DaemonPort"), QString::number(default_port())));
-    configUi_.russellInvocationEdit->setText(config.readEntry(QStringLiteral("DaemonInvocation"), default_invocation()));
-    configUi_.russellAutostartCheckBox->setChecked(to_bool(config.readEntry(QStringLiteral("DaemonAutostart"), to_string(default_autostart()))));
+    configUi_.russellHostEdit->setText(config.readEntry(QStringLiteral("RussellHost"), default_russell_host()));
+    configUi_.russellPortEdit->setText(config.readEntry(QStringLiteral("RussellPort"), QString::number(default_russell_port())));
+    configUi_.russellInvocationEdit->setText(config.readEntry(QStringLiteral("RussellInvocation"), default_russell_invocation()));
+    configUi_.russellAutostartCheckBox->setChecked(to_bool(config.readEntry(QStringLiteral("RussellAutostart"), to_string(default_russell_autostart()))));
+    configUi_.metamathInvocationEdit->setText(config.readEntry(QStringLiteral("MetamathInvocation"), default_metamath_invocation()));
+    configUi_.metamathAutostartCheckBox->setChecked(to_bool(config.readEntry(QStringLiteral("MetamathAutostart"), to_string(default_metamath_autostart()))));
 
 /*
     int numEntries = config.readEntry(QStringLiteral("GlobalNumTargets"), 0);
@@ -150,23 +189,25 @@ void RussellConfigPage::reset() {
     }
 */
     config.sync();
-    checkDaemonSlot();
+    checkRussellSlot();
 }
 
 void RussellConfigPage::defaults() {
-	configUi_.russellHostEdit->setText(default_host());
-	configUi_.russellPortEdit->setText(QString::number(default_port()));
-	configUi_.russellInvocationEdit->setText(default_invocation());
-	configUi_.russellAutostartCheckBox->setChecked(default_autostart());
-	checkDaemonSlot();
+	configUi_.russellHostEdit->setText(default_russell_host());
+	configUi_.russellPortEdit->setText(QString::number(default_russell_port()));
+	configUi_.russellInvocationEdit->setText(default_russell_invocation());
+	configUi_.russellAutostartCheckBox->setChecked(default_russell_autostart());
+	configUi_.metamathInvocationEdit->setText(default_metamath_invocation());
+	configUi_.metamathAutostartCheckBox->setChecked(default_metamath_autostart());
+	checkRussellSlot();
 }
 
-void RussellConfigPage::resetConfigSlot() {
-	configUi_.russellHostEdit->setText(default_host());
-	configUi_.russellPortEdit->setText(QString::number(default_port()));
-	configUi_.russellInvocationEdit->setText(default_invocation());
-	configUi_.russellAutostartCheckBox->setChecked(default_autostart());
-	checkDaemonSlot();
+void RussellConfigPage::resetRussellConfigSlot() {
+	configUi_.russellHostEdit->setText(default_russell_host());
+	configUi_.russellPortEdit->setText(QString::number(default_russell_port()));
+	configUi_.russellInvocationEdit->setText(default_russell_invocation());
+	configUi_.russellAutostartCheckBox->setChecked(default_russell_autostart());
+	checkRussellSlot();
 /*
     QFileDialog dialog;
     dialog.setFileMode(QFileDialog::Directory);
@@ -196,7 +237,7 @@ void RussellConfigPage::resetConfigSlot() {
 */
 }
 
-void RussellConfigPage::startDaemonSlot() {
+void RussellConfigPage::startRussellSlot() {
     //delete configUi.targetList->currentItem ();
 
 	//QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
@@ -209,18 +250,18 @@ void RussellConfigPage::startDaemonSlot() {
         return;
     }
 */
-	if (Server::is_running()) {
-		Server::start();
+	if (!Server::russell().isRunning()) {
+		Server::russell().start();
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-		sleep(1);
+		usleep(500);
 		QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
-		checkDaemonSlot();
+		checkRussellSlot();
 	}
 }
 
-void RussellConfigPage::stopDaemonSlot() {
-	if (Server::is_running()) {
-		Connection::mod().execute(QStringLiteral("exit"));
+void RussellConfigPage::stopRussellSlot() {
+	if (Server::russell().isRunning()) {
+		Execute::russell().execute(QStringLiteral("exit"));
 		/*for (int i=0; i<configUi.targetList->count(); i++) {
 			if (configUi.targetList->item(i)->text() == target) {
 				return true;
@@ -229,12 +270,12 @@ void RussellConfigPage::stopDaemonSlot() {
 		return false;
 		*/
 		//process.terminate();
-		checkDaemonSlot();
+		checkRussellSlot();
 	}
 }
 
-bool RussellConfigPage::checkDaemonSlot() {
-	bool ret = Connection::mod().connection();
+bool RussellConfigPage::checkRussellSlot() {
+	bool ret = Execute::russell().connection();
 	configUi_.russellAliveEdit->setText(ret ? QStringLiteral("running") : QStringLiteral("is not running"));
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);
@@ -277,6 +318,57 @@ bool RussellConfigPage::checkDaemonSlot() {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
  */
 }
+
+void RussellConfigPage::startedRussellSlot() {
+	configUi_.russellAliveEdit->setText(i18n("running"));
+	configUi_.russellStopButton->setEnabled(true);
+	configUi_.russellStartButton->setEnabled(false);
+}
+
+void RussellConfigPage::finishedRussellSlot(int exitCode, QProcess::ExitStatus exitStatus) {
+	QString text = i18n("stopped");
+	if (exitCode || exitStatus != QProcess::NormalExit) {
+		text += i18n(" error code: ") + QString::number(exitCode);
+	}
+	configUi_.russellAliveEdit->setText(text);
+	configUi_.russellStopButton->setEnabled(false);
+	configUi_.russellStartButton->setEnabled(true);
+}
+
+
+void RussellConfigPage::startMetamathSlot() {
+	if (!Server::metamath().isRunning()) {
+		Server::metamath().start();
+		//QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+		//usleep(500);
+		//QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+	}
+}
+
+void RussellConfigPage::stopMetamathSlot() {
+	if (Server::metamath().isRunning()) {
+		Execute::metamath().execute(QStringLiteral("exit\n"));
+	}
+}
+
+
+void RussellConfigPage::startedMetamathSlot() {
+	configUi_.metamathAliveEdit->setText(i18n("running"));
+	configUi_.metamathStopButton->setEnabled(true);
+	configUi_.metamathStartButton->setEnabled(false);
+}
+
+void RussellConfigPage::finishedMetamathSlot(int exitCode, QProcess::ExitStatus exitStatus) {
+	QString text = i18n("stopped");
+	if (exitCode || exitStatus != QProcess::NormalExit) {
+		text += i18n(" error code: ") + QString::number(exitCode);
+	}
+	configUi_.metamathAliveEdit->setText(text);
+	configUi_.metamathStopButton->setEnabled(false);
+	configUi_.metamathStartButton->setEnabled(true);
+}
+
+
 
 void RussellConfigPage::checkPortSlot(QString& port_str) {
 	bool ok = true;

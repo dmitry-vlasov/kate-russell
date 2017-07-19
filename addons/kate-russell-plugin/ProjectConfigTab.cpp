@@ -21,8 +21,8 @@
 #include <KSharedConfig>
 
 #include "ProjectConfigTab.hpp"
-#include "Connection.hpp"
 #include "ProjectConfigTab.hpp"
+#include "Execute.hpp"
 
 namespace russell {
 
@@ -39,14 +39,14 @@ void ProjectConfig::initProject() {
 	command += QStringLiteral("rus opts verbose root=") + rusRoot_ + QStringLiteral(";\n");
 	command += QStringLiteral("smm curr proj=") + name_ + QStringLiteral(";\n");
 	command += QStringLiteral("smm opts verbose root=") + smmRoot_ + QStringLiteral(";\n");
-	Connection::mod().execute(command);
+	Execute::russell().execute(command);
 }
 
 void ProjectConfig::loadMain() {
 	QString command;
 	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
 	command += QStringLiteral("rus parse");
-	Connection::mod().execute(command);
+	Execute::russell().execute(command);
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
