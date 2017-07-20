@@ -59,8 +59,8 @@ namespace russell {
 		*/
 
 		//qDebug() << process_;
-		qDebug() << process_.state();
-		qDebug() << process_.program();
+		//qDebug() << process_.state();
+		//qDebug() << process_.program();
 
 		return true;
 /*
