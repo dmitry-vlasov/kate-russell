@@ -16,7 +16,6 @@ set (katerussell_SRC
 	RussellConfigPage.cpp
 	
 	ErrorParser.cpp
-	Icon.cpp
 	LatexToUnicode.cpp
 	
 	Client.cpp
