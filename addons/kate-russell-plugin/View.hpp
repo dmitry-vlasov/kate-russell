@@ -24,7 +24,7 @@
 #include <KTextEditor/SessionConfigInterface>
 
 #include "ui_BottomTab.h"
-#include "ErrorParser.hpp"
+#include "Kind.hpp"
 
 namespace russell {
 
@@ -40,6 +40,7 @@ Q_OBJECT
 public:
 	enum State_ {
 		WAITING,
+		READING,
 		PROVING,
 		PROVING_INTERACTIVELY,
 		TRANSLATING,
@@ -75,17 +76,18 @@ public:
 	void gotoLocation (const QString&, const int, const int);
 
 	QUrl currentFileUrl (const bool save = false) const;
-	bool currentIsRussell() const;
-	bool currentIsMetamath() const;
+	QString currentFile (const bool save = false) const;
+	Lang currentFileType() const;
+	bool currentIsRus() const;
+	bool currentIsMm() const;
+	bool currentIsSmm() const;
 
 private Q_SLOTS:
+	void slotRead(KTextEditor::View*);
+	void slotDocumentSaved(KTextEditor::Document*, bool);
+
 	void slotCommandCompleted(quint32 code, const QString& msg, const QString& data);
 	void slotRefreshOutline();
-	
-	// selecting warnings
-	void slotItemSelected (QTreeWidgetItem* item);
-	void slotNext();
-	void slotPrev();
 
 	// prove slots
 	void slotProveVerify();
@@ -124,7 +126,6 @@ private Q_SLOTS:
 
 private:
 	void showBuffer (const bool = false);
-	void showErrors (const int, QProcess :: ExitStatus);
 	void reloadSource();
 	QString currentIdentifier() const;
 	QString currentLatexExpression (int&, int&, int&) const;
@@ -153,7 +154,6 @@ private:
 	Proof*      proof_;
 	Client*     client_;
 
-	ErrorParser* errorParser_;
 	QString      output_;
 	QString      outputBuffer_;
 	State_       state_;

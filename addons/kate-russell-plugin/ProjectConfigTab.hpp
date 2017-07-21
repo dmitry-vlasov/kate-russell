@@ -23,9 +23,6 @@
 
 namespace russell {
 
-enum class SourceType { RUS, SMM, MM, OTHER };
-SourceType file_type(const QString& file);
-
 class ProjectConfig {
 public:
 	const QString& name() const { return name_; }

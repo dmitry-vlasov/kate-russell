@@ -15,7 +15,6 @@ set (katerussell_SRC
 	ProjectConfigTab.cpp
 	RussellConfigPage.cpp
 	
-	ErrorParser.cpp
 	LatexToUnicode.cpp
 	
 	Client.cpp

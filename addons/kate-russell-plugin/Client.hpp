@@ -27,6 +27,7 @@ public :
 	Client (View*);
 	
 	bool execute(const QString&);
+	bool open(const QString& file);
 	void readFile();
 	void checkFile();
 	void writeFile();
@@ -38,12 +39,12 @@ public :
 	void expandNode (const long);
 
 	bool prove (const bool clearOutput = true);
-	bool translate (const bool clearOutput = true);
+	bool translate (const QString& file);
 	bool verify    (const bool clearOutput = true);
 	bool learn     (const bool clearOutput = true);
-	bool lookupDefinition (const int line, const int column);
-	bool lookupLocation   (const int line, const int column);
-	bool mine (const QString&);
+	bool lookupDefinition (const QString& file, const int line, const int column);
+	bool lookupLocation   (const QString& file, const int line, const int column);
+	bool mine (const QString& file, const QString& options);
 
 	bool prove (
 		const int line,

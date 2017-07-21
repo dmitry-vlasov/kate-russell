@@ -45,6 +45,24 @@ namespace russell {
 	Client :: execute(const QString& command) {
 		return Execute::russell().execute (command);
 	}
+	bool
+	Client::open(const QString& file) {
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command;
+		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		//command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
+		//command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
+
+		//if (!Connection::mod().execute (command)) return false;
+		command += QStringLiteral("rus read ");
+		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
+		command += QStringLiteral("rus verify ");
+		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
+		if (!Execute::russell().execute (command)) return false;
+		//view_->clearOutput();
+		return true;
+	}
 /*
 	void
 	Client :: setupInFile()
@@ -113,7 +131,7 @@ namespace russell {
 		bool
 	Client :: prove (const bool clearOutput)
 	{
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());
@@ -141,9 +159,29 @@ namespace russell {
 		return false;
 	}
 	bool
-	Client :: translate (const bool clearOutput)
+	Client :: translate (const QString& file)
 	{
-		if (!view_->currentIsRussell()) {
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command;
+		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
+		command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
+
+		//if (!Connection::mod().execute (command)) return false;
+		command += QStringLiteral("rus transl ");
+		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(" ");
+		command += QStringLiteral("out=") + conf->smmTarget(file) + QStringLiteral(";");
+		command += QStringLiteral("smm transl lang=mm ");
+		command += QStringLiteral("in=") + conf->smmTarget(file) + QStringLiteral(" ");
+		command += QStringLiteral("out=") + conf->mmTarget(file) + QStringLiteral(";");
+
+		if (!Execute::russell().execute (command)) return false;
+		view_->clearOutput();
+		return true;
+
+		/*
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());
@@ -174,12 +212,37 @@ namespace russell {
 		if (clearOutput) {
 			view_->clearOutput();
 		}
-    	return false; //startProcess (config_->getSourceRoot(), command);
+    	return false; //startProcess (config_->getSourceRoot(), command);*/
+
 	}
 	bool
 	Client :: verify (const bool clearOutput)
 	{
-		if (!view_->currentIsRussell() && !view_->currentIsMetamath()) {
+		if (!view_->currentIsRus()) return false;
+		QUrl url (view_->currentFileUrl());
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString file = url.toLocalFile();
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return false;
+		QString command;
+		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+
+		//if (!Connection::mod().execute (command)) return false;
+		command += QStringLiteral("rus verify ");
+		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(" ");
+		command += QStringLiteral("out=") + conf->smmTarget(file) + QStringLiteral(";");
+		command += QStringLiteral("smm transl lang=mm ");
+		command += QStringLiteral("in=") + conf->smmTarget(file) + QStringLiteral(" ");
+		command += QStringLiteral("out=") + conf->mmTarget(file) + QStringLiteral(";");
+
+		if (!Execute::russell().execute (command)) return false;
+		view_->clearOutput();
+		return true;
+		/*
+		if (!view_->currentIsRus() && !view_->currentIsMetamath()) {
 			return false;
 		}
 		QString command; // (config_->getVerifier());
@@ -201,7 +264,7 @@ namespace russell {
 			view_->currentIsMetamath() ?
 			globalPath.mid (config_->getSourceRoot().size() + 1, -1) :
 			globalPath.mid (config_->getTargetRoot().size() + 1, -1)
-		);*/
+		);* /
 		QString targetPath (midPath);
 		targetPath.chop (3);
 		targetPath += QStringLiteral("smm");
@@ -212,11 +275,12 @@ namespace russell {
 			view_->clearOutput();
 		}
     	return false; //startProcess (config_->getTargetRoot(), command);
+    	*/
 	}
 	bool
 	Client :: learn (const bool clearOutput)
 	{
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());
@@ -245,15 +309,8 @@ namespace russell {
     	return false; //startProcess (config_->getSourceRoot(), command);
 	}
 	bool
-	Client :: lookupDefinition (const int line, const int column)
+	Client :: lookupDefinition (const QString& file, const int line, const int column)
 	{
-		if (!view_->currentIsRussell()) return false;
-		QUrl url (view_->currentFileUrl());
-		if (url.isEmpty()) {
-			KMessageBox :: sorry (0, i18n ("There's no active window."));
-			return false;
-		}
-		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
 		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
@@ -291,15 +348,8 @@ namespace russell {
  */
 	}
 	bool
-	Client :: lookupLocation (const int line, const int column)
+	Client :: lookupLocation (const QString& file, const int line, const int column)
 	{
-		if (!view_->currentIsRussell()) return false;
-		QUrl url (view_->currentFileUrl());
-		if (url.isEmpty()) {
-			KMessageBox :: sorry (0, i18n ("There's no active window."));
-			return false;
-		}
-		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
 		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
@@ -317,7 +367,7 @@ namespace russell {
 		//view_->openLocation(Connection::mod().data());
 		return true;
 /*
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());
@@ -345,14 +395,8 @@ namespace russell {
    */
 	}
 	bool
-	Client :: mine (const QString& options)
+	Client :: mine (const QString& file, const QString& options)
 	{
-		QUrl url (view_->currentFileUrl());
-		if (url.isEmpty()) {
-			KMessageBox :: sorry (0, i18n ("There's no active window."));
-			return false;
-		}
-		QString file = url.toLocalFile();
 		const ProjectConfig* conf = ProjectConfig::find(file);
 		if (!conf) return false;
 		QString command = QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
@@ -376,7 +420,7 @@ namespace russell {
 
 		///////////////////
 /*
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());
@@ -415,7 +459,7 @@ namespace russell {
 	bool
 	Client :: prove (const int line, const int column, const bool clearOutput)
 	{
-		if (!view_->currentIsRussell()) {
+		if (!view_->currentIsRus()) {
 			return false;
 		}
 		QString command; // (config_->getProver());

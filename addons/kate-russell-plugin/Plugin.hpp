@@ -14,12 +14,8 @@
 
 #pragma once
 
-//#include <KTextEditor/View>
 #include <KTextEditor/Plugin>
-//#include <KTextEditor/Application>
 #include <KTextEditor/MainWindow>
-
-//#include <KPluginFactory>
 
 namespace russell {
 

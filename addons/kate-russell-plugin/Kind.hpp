@@ -14,21 +14,33 @@
 
 #pragma once
 
+#include <QString>
+
 namespace russell {
 
-	enum Kind {
-		SOURCE,
-		IMPORT,
-		THEORY,
-		CONTENTS,
-		CONSTANT,
-		RULE,
-		AXIOM,
-		DEFINITION,
-		THEOREM,
-		PROBLEM,
-		PROOF,
-		TYPE
-	};
+enum Kind {
+	SOURCE,
+	IMPORT,
+	THEORY,
+	CONTENTS,
+	CONSTANT,
+	RULE,
+	AXIOM,
+	DEFINITION,
+	THEOREM,
+	PROBLEM,
+	PROOF,
+	TYPE
+};
+
+enum class Lang { RUS, SMM, MM, OTHER };
+
+inline Lang file_type(const QString& file) {
+	if (file.endsWith(QStringLiteral(".rus"))) return Lang::RUS;
+	if (file.endsWith(QStringLiteral(".smm"))) return Lang::SMM;
+	if (file.endsWith(QStringLiteral(".mm")))  return Lang::MM;
+	return Lang::OTHER;
+}
+
 }
 

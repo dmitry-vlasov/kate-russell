@@ -23,15 +23,9 @@
 #include "ProjectConfigTab.hpp"
 #include "ProjectConfigTab.hpp"
 #include "Execute.hpp"
+#include "Kind.hpp"
 
 namespace russell {
-
-SourceType file_type(const QString& file) {
-	if (file.endsWith(QStringLiteral(".rus"))) return SourceType::RUS;
-	if (file.endsWith(QStringLiteral(".smm"))) return SourceType::SMM;
-	if (file.endsWith(QStringLiteral(".mm")))  return SourceType::MM;
-	return SourceType::OTHER;
-}
 
 void ProjectConfig::initProject() {
 	QString command;
@@ -47,14 +41,14 @@ void ProjectConfig::initProject() {
 void ProjectConfig::loadMain() {
 	QString command;
 	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
-	command += QStringLiteral("rus parse");
+	command += QStringLiteral("rus verify");
 	Execute::russell().execute(command);
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
 	switch (file_type(file)) {
-	case SourceType::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p; break;
-	case SourceType::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p; break;
+	case Lang::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p; break;
+	case Lang::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p; break;
 	default: break;
 	}
 	return nullptr;

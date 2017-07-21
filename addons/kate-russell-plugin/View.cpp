@@ -71,7 +71,6 @@ namespace russell {
 
 	client_ (new Client (this)),
 
-	errorParser_ (new ErrorParser (this)),
 	output_ (),
 	outputBuffer_ (),
 	state_ (WAITING)
@@ -103,7 +102,6 @@ namespace russell {
 		delete typeSystem_;
 		delete proof_;
 		delete client_;
-		delete errorParser_;
 	}
 
 	View :: State_
@@ -123,7 +121,6 @@ namespace russell {
 	{
 		output_.clear();
 		bottomUi_.outputTextEdit->clear();
-		bottomUi_.errTreeWidget->clear();
 		if ((state_ == LOOKING_DEFINITION) || (state_ == OPENING_DEFINITION) ||
 			(state_ == MINING_OUTLINE) || (state_ == MINING_STRUCTURE) || 
 			(state_ == MINING_TYPE_SYSTEM)) {
@@ -180,20 +177,26 @@ namespace russell {
 	void 
 	View :: mineOutline (const QString& options) 
 	{
+		QString file = currentFile();
+		if (!file.size()) return;
 		state_ = MINING_OUTLINE;
-		client_->mine (options);
+		client_->mine (file, options);
 	}
 	void 
 	View :: mineStructure (const QString& options) 
 	{
+		QString file = currentFile();
+		if (!file.size()) return;
 		state_ = MINING_STRUCTURE;
-		client_->mine (options);
+		client_->mine (file, options);
 	}
 	void 
 	View :: mineTypeSystem (const QString& options) 
 	{
+		QString file = currentFile();
+		if (!file.size()) return;
 		state_ = MINING_TYPE_SYSTEM;
-		client_->mine (options);
+		client_->mine (file, options);
 	}
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
@@ -220,24 +223,62 @@ namespace russell {
 		}
 		return activeView->document()->url();
 	}
-	bool
-	View :: currentIsRussell() const
+	QString
+	View :: currentFile (const bool save) const
 	{
-		QUrl url = currentFileUrl();
-		QString path (url.toLocalFile());
-		return (path.endsWith (QStringLiteral(".mdl")) || path.endsWith (QStringLiteral(".rus")));
+		QUrl url = currentFileUrl (save);
+		if (url.isEmpty()) {
+			//KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return QString();
+		}
+		QString file = url.toLocalFile();
+		if (file_type(file) == Lang::OTHER) {
+			//KMessageBox :: sorry (0, i18n ("Current file type is not supported."));
+			return QString();
+		}
+		return file;
+	}
+	Lang
+	View :: currentFileType() const {
+		return file_type(currentFile());
 	}
 	bool
-	View :: currentIsMetamath() const
-	{
-		QUrl url = currentFileUrl();
-		QString path (url.toLocalFile());
-		return (path.endsWith (QStringLiteral(".smm")) || path.endsWith (QStringLiteral(".mm")));
+	View :: currentIsRus() const {
+		return currentFileType() == Lang::RUS;
+	}
+	bool
+	View :: currentIsMm() const {
+		return currentFileType() == Lang::MM;
+	}
+	bool
+	View :: currentIsSmm() const {
+		return currentFileType() == Lang::SMM;
 	}
 
 	/**********************************
 	 *	Private Q_SLOTS members
 	 **********************************/
+
+	void
+	View::slotRead(KTextEditor::View* view) {
+		QString file = currentFile();
+		if (!file.size()) return;
+		connect(
+			view->document(),
+			SIGNAL(documentSavedOrUploaded(KTextEditor::Document*, bool)),
+			this,
+			SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
+		);
+		state_ = READING;
+		client_->open(file);
+	}
+	void
+	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
+		QString file = doc->url().toLocalFile();
+		if (!file.size()) return;
+		state_ = READING;
+		client_->open(file);
+	}
 
 	void
 	View :: slotCommandCompleted(quint32 code, const QString& msg, const QString& data)
@@ -279,84 +320,25 @@ namespace russell {
 				);*/;
 			}
 		} else {
-			state_ = WAITING;
-			outputBuffer_ += QStringLiteral("process crushed\n");
-			outputBuffer_ += QStringLiteral("error code: ");
-			outputBuffer_ += QString :: number (code);
-			outputBuffer_ += QStringLiteral("\n");
+			switch (state_) {
+			case READING:
+				QMessageBox::warning(mainWindow_->activeView(), i18n("Reading failed:"), msg);
+				break;
+			default :
+				QMessageBox::warning(mainWindow_->activeView(), i18n("Some error:"), msg);
+			}
+
+			//outputBuffer_ += QStringLiteral("process crushed\n");
+			//outputBuffer_ += QStringLiteral("error code: ");
+			//outputBuffer_ += QString :: number (code);
+			//outputBuffer_ += QStringLiteral("\n");
 		}
+		state_ = WAITING;
 	}
 
 	void 
 	View :: slotRefreshOutline() {
 		outline_->refresh();
-	}
-
-	// selecting warnings
-	void 
-	View :: slotItemSelected (QTreeWidgetItem* item)
-	{
-		// get stuff
-		const QString fileconfigName_ = item->data(0, Qt::UserRole).toString();
-		if (fileconfigName_.isEmpty()) {
-			return;
-		}
-		const int line = item->data (1, Qt::UserRole).toInt();
-		const int column = item->data (2, Qt::UserRole).toInt();
-
-		// open file (if needed, otherwise, this will activate only the right view...)
-		mainWindow_->openUrl (QUrl (fileconfigName_));
-
-		// any view active?
-		if (!mainWindow_->activeView()) {
-			return;	
-		}
-		// do it ;)
-		mainWindow_->activeView()->setCursorPosition (KTextEditor::Cursor (line - 1, column));
-		mainWindow_->activeView()->setFocus();
-	}
-	void 
-	View :: slotNext()
-	{
-		const int itemCount = bottomUi_.errTreeWidget->topLevelItemCount();
-		if (itemCount == 0) {
-			return;
-		}
-		QTreeWidgetItem *item = bottomUi_.errTreeWidget->currentItem();
-
-		int i = 
-			(item == 0) ? 
-			-1 : 
-			bottomUi_.errTreeWidget->indexOfTopLevelItem (item);
-		while (++ i < itemCount) {
-			item = bottomUi_.errTreeWidget->topLevelItem (i);
-			if (!item->text(1).isEmpty()) {
-				bottomUi_.errTreeWidget->setCurrentItem (item);
-				slotItemSelected (item);
-				return;
-			}
-		}
-	}
-	void 
-	View :: slotPrev()
-	{
-		const int itemCount = bottomUi_.errTreeWidget->topLevelItemCount();
-		if (itemCount == 0) {
-			return;
-		}
-		QTreeWidgetItem *item = bottomUi_.errTreeWidget->currentItem();
-		int i = 
-			(item == 0) ? 
-			itemCount : 
-			bottomUi_.errTreeWidget->indexOfTopLevelItem(item);
-		while (--i >= 0) {
-			item = bottomUi_.errTreeWidget->topLevelItem(i);
-			if (!item->text(1).isEmpty()) {
-				bottomUi_.errTreeWidget->setCurrentItem(item);
-				slotItemSelected(item);
-				return;
-			}
-		}
 	}
 
 	// main slots
@@ -387,10 +369,10 @@ namespace russell {
 		}
 	}
 	void
-	View :: slotTranslate()
-	{
-		state_ = TRANSLATING;
-		client_->translate();
+	View :: slotTranslate() {
+		QString file = currentFile();
+		if (!file.size()) return;
+		client_->translate(file);
 	}
 	void 
 	View :: slotVerify()
@@ -512,7 +494,7 @@ namespace russell {
 	void 
 	View :: lookupDefinition() 
 	{		
-		state_ = LOOKING_DEFINITION;
+		if (!currentIsRus()) return;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -525,12 +507,14 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		client_->lookupDefinition (line, column);
+		QString file = currentFile();
+		if (!file.size()) return;
+		state_ = LOOKING_DEFINITION;
+		client_->lookupDefinition (file, line, column);
 	}
 	void 
 	View :: openDefinition() 
 	{
-		state_ = OPENING_DEFINITION;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -543,7 +527,10 @@ namespace russell {
 		const int line = activeView->cursorPosition().line();
 		const int column = activeView->cursorPosition().column();
 
-		client_->lookupLocation (line, column);
+		QString file = currentFile();
+		if (!file.size()) return;
+		state_ = OPENING_DEFINITION;
+		client_->lookupLocation (file, line, column);
 	}
 	void 
 	View :: latexToUnicode() 
@@ -759,34 +746,6 @@ namespace russell {
 		}
 	}
 	void 
-	View :: showErrors (const int exitCode, QProcess :: ExitStatus exitStatus)
-	{	
-		bottomUi_.qtabwidget->setCurrentIndex (0);
-		bottomUi_.errTreeWidget->resizeColumnToContents (0);
-		bottomUi_.errTreeWidget->resizeColumnToContents (1);
-		bottomUi_.errTreeWidget->resizeColumnToContents (2);
-		bottomUi_.errTreeWidget->horizontalScrollBar()->setValue (0);
-		//bottomUi_.errTreeWidget->setSortingEnabled(true);
-		mainWindow_->showToolView(toolView_);
-
-		QStringList messsages;
-		if ((errorParser_->numErrors() > 0) || (errorParser_->numWarnings() > 0)) {
-			if (errorParser_->numErrors() > 0) {
-				messsages << i18np ("Found one error.", "Found %1 errors.", errorParser_->numErrors());
-			}
-			if (errorParser_->numWarnings()) {
-				messsages << i18np ("Found one warning.", "Found %1 warnings.", errorParser_->numWarnings());
-			}
-		} else {
-			if (exitStatus == QProcess :: NormalExit) {
-				messsages << i18n ("Exited with exitCode = %1", exitCode);
-			} else {
-				messsages << i18n ("Exited with crash status and exitCode = %1", exitCode);
-			}
-		}
-		//KPassivePopup :: message (i18n ("Failure"), messsages.join (QStringLiteral("\n")), toolView_);
-	}
-	void 
 	View :: reloadSource()
 	{
 		KTextEditor :: View* activeView = mainWindow()->activeView();
@@ -956,15 +915,15 @@ namespace russell {
 		//action->setText (i18n ("Stop"));
 		//+connect (action, SIGNAL (triggered (bool)), this, SLOT (slotStop()));
 
-		action = actionCollection()->addAction (QLatin1String("goto_next"));
-		action->setText (i18n ("Next Error"));
+		//action = actionCollection()->addAction (QLatin1String("goto_next"));
+		//action->setText (i18n ("Next Error"));
 		//a->setShortcut (QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_Right));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotNext()));
+		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotNext()));
 
-		action = actionCollection()->addAction (QLatin1String("goto_prev"));
-		action->setText (i18n ("Previous Error"));
+		//action = actionCollection()->addAction (QLatin1String("goto_prev"));
+		//action->setText (i18n ("Previous Error"));
 		//a->setShortcut (QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_Left));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotPrev()));
+		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotPrev()));
 
 		/*a = actionCollection()->addAction ("target_next");
 		a->setText (i18n ("Next Target"));
@@ -1048,5 +1007,8 @@ namespace russell {
 		connect (&Execute::russell(), SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
 
 		//connect (mainWindow_->activeView(), SIGNAL (viewChanged()), this, SLOT (refreshOutline()));
+
+		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
+		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 	}
 }
