@@ -242,7 +242,7 @@ namespace russell {
 		command += QStringLiteral("mm merge ");
 		command += QStringLiteral("in=") + conf->mmTarget(file) + QStringLiteral(" ");
 		command += QStringLiteral("out=") + conf->mergedTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out-root=");
+		command += QStringLiteral("out-root=") + conf->mmRoot();
 
 		if (!Execute::russell().execute (command)) return false;
 		view_->clearOutput();

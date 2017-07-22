@@ -27,6 +27,7 @@ public :
 	bool execute (const QString&);
 	bool success() const { return !code_; }
 	bool connection();
+	bool isBusy() const { return isBusy_; }
 
 Q_SIGNALS:
     void dataReceived(quint32, QString, QString);
@@ -35,7 +36,7 @@ private Q_SLOTS:
 	void readyRead();
 
 private:
-	bool runCommand (const QString&);
+	bool runCommand();
 	bool readOutput();
 	void makeOutput();
 
@@ -45,10 +46,16 @@ private:
 	QString messages_;
 	quint32 code_;
 	quint32 size_;
+	bool    isBusy_;
+	QString command_;
 };
 
 struct Metamath {
-	bool execute (const QString& command);
+	Metamath() : isBusy_(true) { }
+	bool execute(const QString& command);
+	bool isBusy() const { return isBusy_; }
+private:
+	bool isBusy_;
 };
 
 class Execute {

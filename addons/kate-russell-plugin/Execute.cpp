@@ -40,28 +40,31 @@ namespace russell {
 
 	Russell :: Russell():
 	code_(0),
-	size_(0) {
+	size_(0),
+	isBusy_(false) {
 		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
 
 	bool
 	Russell :: execute (const QString& command)
 	{
-		if (!connection()) {
+		if (!connection() || isBusy_) {
 			return false;
 		}
+		command_ = command;
+		isBusy_ = true;
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "========================================\n";
 		QTextStream (stdout) << " about to execute:\n";
-		QTextStream (stdout) << " \t" << command << "\n";
+		QTextStream (stdout) << " \t" << command_ << "\n";
 		QTextStream (stdout) << "========================================\n\n";
 #endif
 		data_.clear();
 		messages_.clear();
 		code_ = 1;
-		if (!runCommand(command)) return false;
-		if (command == QStringLiteral("exit")) {
-			socket_.disconnectFromHost();
+		if (!runCommand()) {
+			isBusy_ = false;
+			return false;
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "\n\n\n";
@@ -123,13 +126,13 @@ namespace russell {
 	 ****************************/
 
 	bool
-	Russell :: runCommand (const QString& command)
+	Russell :: runCommand()
 	{
-		uint msg_len = command.length() + sizeof(uint);
+		uint msg_len = command_.length() + sizeof(uint);
 		char *asciiCommand = new char [msg_len];
-		*((uint*)asciiCommand) = command.length();
-		for (int i = 0; i < command.length(); ++ i) {
-			const QChar qch = command[i];
+		*((uint*)asciiCommand) = command_.length();
+		for (int i = 0; i < command_.length(); ++ i) {
+			const QChar qch = command_[i];
 			asciiCommand [i + sizeof(uint)] = qch.toLatin1();
 		}
 		socket_.write (asciiCommand, msg_len);
@@ -169,5 +172,9 @@ namespace russell {
 		QTextStream (stdout) << "------------------\n";
 #endif
 		//showServerMessages (messages_);
+		if (command_ == QStringLiteral("exit")) {
+			socket_.disconnectFromHost();
+		}
+		isBusy_ = false;
 	}
 }
