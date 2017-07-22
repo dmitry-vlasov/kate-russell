@@ -220,10 +220,10 @@ namespace russell {
 	{
 		const ProjectConfig* conf = ProjectConfig::find(f);
 		if (!conf) return false;
-		QString file = conf->rusRoot() + conf->rusMain();
+		QString file = conf->rusRoot() + QStringLiteral("/") + conf->rusMain();
 
-		qDebug() << file;
-		qDebug() << conf->rusTarget(file);
+		//qDebug() << file;
+		//qDebug() << conf->rusTarget(file);
 
 		QString command;
 		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
@@ -245,7 +245,7 @@ namespace russell {
 		command += QStringLiteral("out-root=") + conf->mmRoot();
 
 		if (!Execute::russell().execute (command)) return false;
-		view_->clearOutput();
+		//view_->clearOutput();
 		return true;
 
 		/*
@@ -288,11 +288,11 @@ namespace russell {
 	Client::verifyMm(const QString& f) {
 		const ProjectConfig* conf = ProjectConfig::find(f);
 		if (!conf) return false;
-		QString file = conf->mmRoot();
+		QString file = conf->rusRoot() + QStringLiteral("/") +conf->rusMain();
 		QString command;
-		command += QStringLiteral("read ") + conf->mmRoot() + conf->mergedTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("verify proof *");
-		qDebug() << command;
+		command += QStringLiteral("read \"") + conf->mmRoot() + QStringLiteral("/") + conf->mergedTarget(file) + QStringLiteral("\"");
+		command += QStringLiteral(" / verify\n");
+		//qDebug() << command;
 		return Execute::metamath().execute(command);
 	}
 	bool

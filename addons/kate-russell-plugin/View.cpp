@@ -685,54 +685,56 @@ namespace russell {
 	}
 */
 
+	static void output(const QString& serverStdOut, QListWidget* listWidget)
+	{
+		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'));
+		QListWidgetItem* item = listWidget->currentItem();
+		if (item) {
+			item->setText(item->text() + newLines.first());
+		} else {
+			listWidget->insertItem(0, newLines.first());
+		}
+		newLines.removeFirst();
+		int row = listWidget->count();
+		listWidget->insertItems (row, newLines);
+		row = listWidget->count();
+		listWidget->setCurrentRow (row - 1);
+	}
+
 	void
 	View :: slotReadRussellStdOut()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardOutput());
-		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->insertItems (row, newLines);
-		row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->setCurrentRow (row - 1);
+		output(serverStdOut, bottomUi_.russellListWidget);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
-		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->insertItems (row - 1, newLines);
-		row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->setCurrentRow (row);
+		output(serverStdOut, bottomUi_.russellListWidget);
 	}
 	void
 	View :: slotReadMetamathStdOut()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
-		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.metamathListWidget->count();
-		bottomUi_.metamathListWidget->insertItems (row, newLines);
-		row = bottomUi_.metamathListWidget->count();
-		bottomUi_.metamathListWidget->setCurrentRow (row - 1);
+		qDebug() << serverStdOut;
+		output(serverStdOut, bottomUi_.metamathListWidget);
 	}
 	void
 	View :: slotReadMetamathStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
-		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.metamathListWidget->count();
-		bottomUi_.metamathListWidget->insertItems (row - 1, newLines);
-		row = bottomUi_.metamathListWidget->count();
-		bottomUi_.metamathListWidget->setCurrentRow (row);
+		output(serverStdOut, bottomUi_.metamathListWidget);
 	}
 	void
 	View :: slotShowServerMessages (QString messages)
 	{
-		QStringList newLines = messages.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
+		output(messages, bottomUi_.metamathListWidget);
+		/*QStringList newLines = messages.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
 		int row = bottomUi_.russellListWidget->count();
 		bottomUi_.russellListWidget->insertItems (row, newLines);
 		row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->setCurrentRow (row - 1);
+		bottomUi_.russellListWidget->setCurrentRow (row - 1);*/
 	}
 
 	/****************************

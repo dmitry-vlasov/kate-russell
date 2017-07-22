@@ -67,7 +67,7 @@ QString ProjectConfig::trimFile(const QString& file) const {
 	} else if (file.startsWith(smmRoot_)) {
 		return trimFileName(file, smmRoot_);
 	} else {
-		KMessageBox :: sorry(0, i18n ("The main file must be situated in the root directory."));
+		KMessageBox :: sorry(0, i18n ("The main file %1 must be situated in the root directory.", file));
 		return QStringLiteral("");
 	}
 }
