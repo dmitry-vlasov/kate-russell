@@ -41,8 +41,10 @@ public:
 	void loadMain();
 
 	QString trimFile(const QString& file) const;
+	QString rusTarget(const QString& file) const;
 	QString smmTarget(const QString& file) const;
 	QString mmTarget(const QString& file) const;
+	QString mergedTarget(const QString& file) const;
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;

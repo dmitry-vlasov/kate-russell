@@ -102,6 +102,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.russellResetButton, SIGNAL(clicked()), this, SLOT(resetRussellConfigSlot()));
 	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startRussellSlot()));
 	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopRussellSlot()));
+	connect(configUi_.russellKillButton, SIGNAL(clicked()), this, SLOT(killRussellSlot()));
 	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkRussellSlot()));
 	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot(QString)));
 	connect(&Server::russell().process(), SIGNAL(started()), this, SLOT(startedRussellSlot()));
@@ -114,6 +115,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 
 	connect(configUi_.metamathStartButton, SIGNAL(clicked()), this, SLOT(startMetamathSlot()));
 	connect(configUi_.metamathStopButton, SIGNAL(clicked()), this, SLOT(stopMetamathSlot()));
+	connect(configUi_.metamathKillButton, SIGNAL(clicked()), this, SLOT(killMetamathSlot()));
 	connect(&Server::metamath().process(), SIGNAL(started()), this, SLOT(startedMetamathSlot()));
 	connect(
 		&Server::metamath().process(),
@@ -130,11 +132,13 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     bool run = Server::russell().isRunning();
 	configUi_.russellAliveEdit->setText(run ? QStringLiteral("running") : QStringLiteral("stopped"));
 	configUi_.russellStopButton->setEnabled(run);
+	configUi_.russellKillButton->setEnabled(run);
 	configUi_.russellStartButton->setEnabled(!run);
 
 	run = Server::metamath().isRunning();
 	configUi_.metamathAliveEdit->setText(run ? QStringLiteral("running") : QStringLiteral("stopped"));
 	configUi_.metamathStopButton->setEnabled(run);
+	configUi_.metamathKillButton->setEnabled(run);
 	configUi_.metamathStartButton->setEnabled(!run);
 }
 
@@ -252,9 +256,9 @@ void RussellConfigPage::startRussellSlot() {
 */
 	if (!Server::russell().isRunning()) {
 		Server::russell().start();
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-		usleep(500);
-		QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+		//QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+		//usleep(500);
+		//QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 		checkRussellSlot();
 	}
 }
@@ -271,6 +275,12 @@ void RussellConfigPage::stopRussellSlot() {
 		*/
 		//process.terminate();
 		checkRussellSlot();
+	}
+}
+
+void RussellConfigPage::killRussellSlot() {
+	if (Server::russell().isRunning()) {
+		Server::russell().stop();
 	}
 }
 
@@ -322,6 +332,7 @@ bool RussellConfigPage::checkRussellSlot() {
 void RussellConfigPage::startedRussellSlot() {
 	configUi_.russellAliveEdit->setText(i18n("running"));
 	configUi_.russellStopButton->setEnabled(true);
+	configUi_.russellKillButton->setEnabled(true);
 	configUi_.russellStartButton->setEnabled(false);
 }
 
@@ -332,6 +343,7 @@ void RussellConfigPage::finishedRussellSlot(int exitCode, QProcess::ExitStatus e
 	}
 	configUi_.russellAliveEdit->setText(text);
 	configUi_.russellStopButton->setEnabled(false);
+	configUi_.russellKillButton->setEnabled(false);
 	configUi_.russellStartButton->setEnabled(true);
 }
 
@@ -347,6 +359,12 @@ void RussellConfigPage::startMetamathSlot() {
 
 void RussellConfigPage::stopMetamathSlot() {
 	if (Server::metamath().isRunning()) {
+		Server::metamath().stop();
+	}
+}
+
+void RussellConfigPage::killMetamathSlot() {
+	if (Server::metamath().isRunning()) {
 		Execute::metamath().execute(QStringLiteral("exit\n"));
 	}
 }
@@ -355,6 +373,7 @@ void RussellConfigPage::stopMetamathSlot() {
 void RussellConfigPage::startedMetamathSlot() {
 	configUi_.metamathAliveEdit->setText(i18n("running"));
 	configUi_.metamathStopButton->setEnabled(true);
+	configUi_.metamathKillButton->setEnabled(true);
 	configUi_.metamathStartButton->setEnabled(false);
 }
 
@@ -365,6 +384,7 @@ void RussellConfigPage::finishedMetamathSlot(int exitCode, QProcess::ExitStatus 
 	}
 	configUi_.metamathAliveEdit->setText(text);
 	configUi_.metamathStopButton->setEnabled(false);
+	configUi_.metamathKillButton->setEnabled(false);
 	configUi_.metamathStartButton->setEnabled(true);
 }
 

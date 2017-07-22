@@ -40,7 +40,8 @@ public :
 
 	bool prove (const bool clearOutput = true);
 	bool translate (const QString& file);
-	bool verify    (const bool clearOutput = true);
+	bool verify    (const QString& file);
+	bool verifyMm  (const QString& file);
 	bool learn     (const bool clearOutput = true);
 	bool lookupDefinition (const QString& file, const int line, const int column);
 	bool lookupLocation   (const QString& file, const int line, const int column);

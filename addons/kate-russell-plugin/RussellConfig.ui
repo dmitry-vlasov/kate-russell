@@ -128,6 +128,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="russellKillButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Kill</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -203,6 +213,16 @@
        <widget class="QCheckBox" name="metamathAutostartCheckBox">
         <property name="text">
          <string>Autostart</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="metamathKillButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Kill</string>
         </property>
        </widget>
       </item>

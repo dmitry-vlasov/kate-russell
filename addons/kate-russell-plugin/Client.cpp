@@ -216,31 +216,38 @@ namespace russell {
 
 	}
 	bool
-	Client :: verify (const bool clearOutput)
+	Client :: verify (const QString& f)
 	{
-		if (!view_->currentIsRus()) return false;
-		QUrl url (view_->currentFileUrl());
-		if (url.isEmpty()) {
-			KMessageBox :: sorry (0, i18n ("There's no active window."));
-			return false;
-		}
-		QString file = url.toLocalFile();
-		const ProjectConfig* conf = ProjectConfig::find(file);
+		const ProjectConfig* conf = ProjectConfig::find(f);
 		if (!conf) return false;
+		QString file = conf->rusRoot() + conf->rusMain();
+
+		qDebug() << file;
+		qDebug() << conf->rusTarget(file);
+
 		QString command;
 		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
+		command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
+		command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
 
 		//if (!Connection::mod().execute (command)) return false;
-		command += QStringLiteral("rus verify ");
-		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(" ");
+		command += QStringLiteral("rus transl ");
+		command += QStringLiteral("in=") + conf->rusTarget(file) + QStringLiteral(" ");
 		command += QStringLiteral("out=") + conf->smmTarget(file) + QStringLiteral(";");
+
 		command += QStringLiteral("smm transl lang=mm ");
 		command += QStringLiteral("in=") + conf->smmTarget(file) + QStringLiteral(" ");
 		command += QStringLiteral("out=") + conf->mmTarget(file) + QStringLiteral(";");
 
+		command += QStringLiteral("mm merge ");
+		command += QStringLiteral("in=") + conf->mmTarget(file) + QStringLiteral(" ");
+		command += QStringLiteral("out=") + conf->mergedTarget(file) + QStringLiteral(" ");
+		command += QStringLiteral("out-root=");
+
 		if (!Execute::russell().execute (command)) return false;
 		view_->clearOutput();
 		return true;
+
 		/*
 		if (!view_->currentIsRus() && !view_->currentIsMetamath()) {
 			return false;
@@ -276,6 +283,17 @@ namespace russell {
 		}
     	return false; //startProcess (config_->getTargetRoot(), command);
     	*/
+	}
+	bool
+	Client::verifyMm(const QString& f) {
+		const ProjectConfig* conf = ProjectConfig::find(f);
+		if (!conf) return false;
+		QString file = conf->mmRoot();
+		QString command;
+		command += QStringLiteral("read ") + conf->mmRoot() + conf->mergedTarget(file) + QStringLiteral(" ");
+		command += QStringLiteral("verify proof *");
+		qDebug() << command;
+		return Execute::metamath().execute(command);
 	}
 	bool
 	Client :: learn (const bool clearOutput)

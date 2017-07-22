@@ -63,12 +63,14 @@ private Q_SLOTS:
     void resetRussellConfigSlot();
     void startRussellSlot();
     void stopRussellSlot();
+    void killRussellSlot();
     bool checkRussellSlot();
     void startedRussellSlot();
     void finishedRussellSlot(int exitCode, QProcess::ExitStatus exitStatus);
 
     void startMetamathSlot();
     void stopMetamathSlot();
+    void killMetamathSlot();
     void startedMetamathSlot();
     void finishedMetamathSlot(int exitCode, QProcess::ExitStatus exitStatus);
 

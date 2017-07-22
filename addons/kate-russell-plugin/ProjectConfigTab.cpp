@@ -73,18 +73,27 @@ QString ProjectConfig::trimFile(const QString& file) const {
 }
 
 static QString trim_ext(const QString& file) {
-	if (file.endsWith(QStringLiteral(".smm"))) return file.mid(file.length() - 4);
-	if (file.endsWith(QStringLiteral(".rus"))) return file.mid(file.length() - 4);
-	if (file.endsWith(QStringLiteral(".mm")))  return file.mid(file.length() - 3);
+	if (file.endsWith(QStringLiteral(".smm"))) return file.mid(0, file.length() - 4);
+	if (file.endsWith(QStringLiteral(".rus"))) return file.mid(0, file.length() - 4);
+	if (file.endsWith(QStringLiteral(".mm")))  return file.mid(0, file.length() - 3);
 	KMessageBox :: sorry(0, i18n ("File %1 extension is not *.rus, *.smm or *.mm", file));
 	return QString();
+}
+
+QString ProjectConfig::rusTarget(const QString& file) const {
+	return trim_ext(trimFile(file)) + QStringLiteral(".rus");
 }
 
 QString ProjectConfig::smmTarget(const QString& file) const {
 	return trim_ext(trimFile(file)) + QStringLiteral(".smm");
 }
+
 QString ProjectConfig::mmTarget(const QString& file) const {
 	return trim_ext(trimFile(file)) + QStringLiteral(".mm");
+}
+
+QString ProjectConfig::mergedTarget(const QString& file) const {
+	return trim_ext(trimFile(file)) + QStringLiteral("_merged.mm");
 }
 
 ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QStringLiteral("Russell")) {
@@ -149,16 +158,21 @@ void ProjectConfigTab::addProjectSlot() {
 		QStringLiteral("project_%1").arg(project_count + 1),
 		&ok_pressed
 	);
+	if (!name.size()) {
+		KMessageBox :: sorry(0, i18n ("Empty project name is now allowed."));
+		return;
+	}
+	if (name.contains(QStringLiteral(" ")) || name.contains(QStringLiteral("\t")) ||
+		name.contains(QStringLiteral("\n")) || name.contains(QStringLiteral("\r"))) {
+		KMessageBox :: sorry(0, i18n ("Project name shouldn't contain space symbols."));
+		return;
+	}
 	if (!ok_pressed) return;
 	addProject(name);
 }
 
 void ProjectConfigTab::delProjectSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
-	if (!name.size()) {
-		KMessageBox :: sorry(0, i18n ("Empty project name is now allowed."));
-		return;
-	}
 	int index = configUi_.projectsComboBox->findText(name);
 	if (index == -1) {
 		KMessageBox :: sorry(0, i18n ("The project with this name is not defined."));

@@ -292,6 +292,9 @@ namespace russell {
 
 			QApplication :: restoreOverrideCursor();
 			switch (state_) {
+			case READING:
+				outline_->refresh();
+				break;
 			case LOOKING_DEFINITION :
 				if (!data.isEmpty())
 					QMessageBox::information(mainWindow_->activeView(), i18n("Definition:"), data);
@@ -310,6 +313,9 @@ namespace russell {
 				break;
 			case PROVING :
 				reloadSource();
+				break;
+			case VERIFYING :
+				client_->verifyMm(currentFile());
 				break;
 			default :
 				/*KPassivePopup :: message
@@ -372,13 +378,17 @@ namespace russell {
 	View :: slotTranslate() {
 		QString file = currentFile();
 		if (!file.size()) return;
+		state_ = TRANSLATING;
 		client_->translate(file);
 	}
 	void 
 	View :: slotVerify()
 	{
+		QString file = currentFile();
+		qDebug() << file;
+		if (!file.size()) return;
 		state_ = VERIFYING;
-		client_->verify();
+		client_->verify(file);
 	}
 	void 
 	View :: slotLearn()
