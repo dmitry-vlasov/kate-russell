@@ -75,6 +75,9 @@ namespace russell {
 	outputBuffer_ (),
 	state_ (WAITING)
 	{
+		if (instance_)
+			KMessageBox::error(0, i18n ("Russell plugin view is already initialized"));
+		instance_ = this;
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: View (KTextEditor::MainWindow* mw)" << std :: endl;
 		#endif
@@ -1021,4 +1024,6 @@ namespace russell {
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 	}
+
+	View* View::instance_ = nullptr;
 }

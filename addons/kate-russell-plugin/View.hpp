@@ -56,6 +56,8 @@ public:
 	View (KTextEditor::MainWindow*, KTextEditor::Plugin*);
 	virtual ~ View();
 
+	static View* get() { return instance_; }
+
 	State_ getState() const;
 	Ui :: Bottom& getBottomUi();
 	QWidget* toolView() const;
@@ -157,6 +159,7 @@ private:
 	QString      output_;
 	QString      outputBuffer_;
 	State_       state_;
+	static View* instance_;
 };
 
 }

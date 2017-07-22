@@ -22,6 +22,7 @@
 #include "RussellConfigPage.hpp"
 #include "Server.hpp"
 #include "Execute.hpp"
+#include "View.hpp"
 
 #define OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT true
 
@@ -35,7 +36,10 @@ namespace russell {
 	Metamath::execute (const QString& command) {
 		QByteArray data = command.toLatin1();
 		qint64 size = Server::metamath().process().write(data);
-		return size == data.size();
+		bool ret = size == data.size();
+		QListWidgetItem* item = View::get()->getBottomUi().metamathListWidget->currentItem();
+		item->setText(item->text() + command);
+		return ret;
 	}
 
 	Russell :: Russell():

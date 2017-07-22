@@ -359,13 +359,13 @@ void RussellConfigPage::startMetamathSlot() {
 
 void RussellConfigPage::stopMetamathSlot() {
 	if (Server::metamath().isRunning()) {
-		Server::metamath().stop();
+		Execute::metamath().execute(QStringLiteral("exit\n"));
 	}
 }
 
 void RussellConfigPage::killMetamathSlot() {
 	if (Server::metamath().isRunning()) {
-		Execute::metamath().execute(QStringLiteral("exit\n"));
+		Server::metamath().stop();
 	}
 }
 
