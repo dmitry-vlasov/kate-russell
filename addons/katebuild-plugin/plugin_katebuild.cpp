@@ -80,9 +80,10 @@ QObject *KateBuildPlugin::createView (KTextEditor::MainWindow *mainWindow)
 /******************************************************************/
 KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mw)
     : QObject (mw)
+    , m_win(mw)
     , m_buildWidget(0)
     , m_outputWidgetWidth(0)
-    , m_proc(0)
+    , m_proc(this)
     , m_buildCancelled(false)
     , m_displayModeBeforeBuild(1)
     // NOTE this will not allow spaces in file names.
@@ -93,8 +94,6 @@ KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
     , m_filenameDetectorGccWorked(false)
     , m_newDirDetector(QStringLiteral("make\\[.+\\]: .+ `.*'"))
 {
-    m_win=mw;
-
     KXMLGUIClient::setComponentName (QLatin1String("katebuild"), i18n ("Kate Build Plugin"));
     setXMLFile(QLatin1String("ui.rc"));
 
@@ -105,6 +104,7 @@ KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 
     QAction *a = actionCollection()->addAction(QStringLiteral("select_target"));
     a->setText(i18n("Select Target..."));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("select")));
     connect(a, SIGNAL(triggered(bool)), this, SLOT(slotSelectTarget()));
 
     a = actionCollection()->addAction(QStringLiteral("build_default_target"));
@@ -117,15 +117,18 @@ KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 
     a = actionCollection()->addAction(QStringLiteral("stop"));
     a->setText(i18n("Stop"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("edit-delete")));
     connect(a, SIGNAL(triggered(bool)), this, SLOT(slotStop()));
 
     a = actionCollection()->addAction(QStringLiteral("goto_next"));
     a->setText(i18n("Next Error"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("go-next")));
     actionCollection()->setDefaultShortcut(a, Qt::SHIFT+Qt::ALT+Qt::Key_Right);
     connect(a, SIGNAL(triggered(bool)), this, SLOT(slotNext()));
 
     a = actionCollection()->addAction(QStringLiteral("goto_prev"));
     a->setText(i18n("Previous Error"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("go-previous")));
     actionCollection()->setDefaultShortcut(a, Qt::SHIFT+Qt::ALT+Qt::Key_Left);
     connect(a, SIGNAL(triggered(bool)), this, SLOT(slotPrev()));
 
@@ -169,13 +172,10 @@ KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
     connect(m_targetsUi->buildButton, SIGNAL(clicked()), this, SLOT(slotBuildActiveTarget()));
     connect(m_targetsUi, SIGNAL(enterPressed()), this, SLOT(slotBuildActiveTarget()));
 
-    m_proc = new KProcess();
-
-    m_proc->setOutputChannelMode(KProcess::SeparateChannels);
-    connect(m_proc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(slotProcExited(int,QProcess::ExitStatus)));
-    connect(m_proc, SIGNAL(readyReadStandardError()),this, SLOT(slotReadReadyStdErr()));
-    connect(m_proc, SIGNAL(readyReadStandardOutput()),this, SLOT(slotReadReadyStdOut()));
-
+    m_proc.setOutputChannelMode(KProcess::SeparateChannels);
+    connect(&m_proc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(slotProcExited(int,QProcess::ExitStatus)));
+    connect(&m_proc, SIGNAL(readyReadStandardError()),this, SLOT(slotReadReadyStdErr()));
+    connect(&m_proc, SIGNAL(readyReadStandardOutput()),this, SLOT(slotReadReadyStdOut()));
 
     connect(m_win, SIGNAL(unhandledShortcutOverride(QEvent*)), this, SLOT(handleEsc(QEvent*)));
 
@@ -200,7 +200,6 @@ KateBuildView::KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 KateBuildView::~KateBuildView()
 {
     m_win->guiFactory()->removeClient( this );
-    delete m_proc;
     delete m_toolView;
 }
 
@@ -484,7 +483,7 @@ void KateBuildView::clearBuildResults()
 /******************************************************************/
 bool KateBuildView::startProcess(const QString &dir, const QString &command)
 {
-    if (m_proc->state() != QProcess::NotRunning) {
+    if (m_proc.state() != QProcess::NotRunning) {
         return false;
     }
 
@@ -501,12 +500,12 @@ bool KateBuildView::startProcess(const QString &dir, const QString &command)
     m_make_dir = dir;
     m_make_dir_stack.push(m_make_dir);
     // FIXME check
-    m_proc->setWorkingDirectory(m_make_dir);
-    m_proc->setShellCommand(command);
-    m_proc->start();
+    m_proc.setWorkingDirectory(m_make_dir);
+    m_proc.setShellCommand(command);
+    m_proc.start();
 
-    if(!m_proc->waitForStarted(500)) {
-        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, m_proc->exitStatus()));
+    if(!m_proc.waitForStarted(500)) {
+        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, m_proc.exitStatus()));
         return false;
     }
 
@@ -522,12 +521,12 @@ bool KateBuildView::startProcess(const QString &dir, const QString &command)
 /******************************************************************/
 bool KateBuildView::slotStop()
 {
-    if (m_proc->state() != QProcess::NotRunning) {
+    if (m_proc.state() != QProcess::NotRunning) {
         m_buildCancelled = true;
         QString msg = i18n("Building <b>%1</b> cancelled", m_currentlyBuildingTarget);
         m_buildUi.buildStatusLabel->setText(msg);
         m_buildUi.buildStatusLabel2->setText(msg);
-        m_proc->terminate();
+        m_proc.terminate();
         return true;
     }
     return false;
@@ -582,7 +581,7 @@ void KateBuildView::slotSelectTarget() {
 /******************************************************************/
 bool KateBuildView::buildCurrentTarget()
 {
-    if (m_proc->state() != QProcess::NotRunning) {
+    if (m_proc.state() != QProcess::NotRunning) {
         displayBuildResult(i18n("Already building..."), KTextEditor::Message::Warning);
         return false;
     }
@@ -708,7 +707,7 @@ void KateBuildView::slotReadReadyStdOut()
     // read data from procs stdout and add
     // the text to the end of the output
     // FIXME This works for utf8 but not for all charsets
-    QString l= QString::fromUtf8(m_proc->readAllStandardOutput());
+    QString l = QString::fromUtf8(m_proc.readAllStandardOutput());
     l.remove(QLatin1Char('\r'));
     m_output_lines += l;
 
@@ -755,7 +754,7 @@ void KateBuildView::slotReadReadyStdOut()
 void KateBuildView::slotReadReadyStdErr()
 {
     // FIXME This works for utf8 but not for all charsets
-    QString l= QString::fromUtf8(m_proc->readAllStandardError());
+    QString l = QString::fromUtf8(m_proc.readAllStandardError());
     l.remove(QLatin1Char('\r'));
     m_output_lines += l;
 

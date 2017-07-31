@@ -62,6 +62,7 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
     // handle activated (e.g. for pressing enter) + clicked (to avoid to need to do double-click e.g. on Windows)
     connect(this, SIGNAL(activated(QModelIndex)), this, SLOT(mouseClicked(QModelIndex)));
     connect(this, SIGNAL(clicked(QModelIndex)), this, SLOT(mouseClicked(QModelIndex)));
+    connect(this, SIGNAL(pressed(QModelIndex)), this, SLOT(mouseClicked(QModelIndex)));
 
     m_filelistReloadDocument = new QAction(QIcon::fromTheme(QLatin1String("view-refresh")), i18nc("@action:inmenu", "Reloa&d"), this);
     connect(m_filelistReloadDocument, SIGNAL(triggered(bool)), SLOT(slotDocumentReload()));
@@ -425,7 +426,12 @@ void KateFileTree::slotCopyFilename()
 {
     KTextEditor::Document *doc = model()->data(m_indexContextMenu, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
     if (doc) {
-        QApplication::clipboard()->setText(doc->url().url());
+        // ensure we prefer native separators, bug 381052
+        if (doc->url().isLocalFile()) {
+            QApplication::clipboard()->setText(QDir::toNativeSeparators(doc->url().toLocalFile()));
+        } else {
+            QApplication::clipboard()->setText(doc->url().url());
+        }
     }
 }
 
