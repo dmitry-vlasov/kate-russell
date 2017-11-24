@@ -41,12 +41,12 @@ class KateBtBrowserPlugin : public KTextEditor::Plugin
     Q_OBJECT
 
 public:
-    explicit KateBtBrowserPlugin(QObject *parent = 0, const QList<QVariant> & = QList<QVariant>());
-    virtual ~KateBtBrowserPlugin();
+    explicit KateBtBrowserPlugin(QObject *parent = nullptr, const QList<QVariant> & = QList<QVariant>());
+    ~KateBtBrowserPlugin() override;
 
     static KateBtBrowserPlugin &self();
 
-    QObject *createView(KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
+    QObject *createView(KTextEditor::MainWindow *mainWindow) override;
 
     KateBtDatabase &database();
     BtFileIndexer &fileIndexer();
@@ -57,8 +57,8 @@ Q_SIGNALS:
     void newStatus(const QString &);
 
 public:
-    int configPages() const Q_DECL_OVERRIDE;
-    KTextEditor::ConfigPage *configPage(int number, QWidget *parent = 0) Q_DECL_OVERRIDE;
+    int configPages() const override;
+    KTextEditor::ConfigPage *configPage(int number, QWidget *parent = nullptr) override;
 
     //
     // private data
@@ -79,7 +79,7 @@ public:
     /**
     * Virtual destructor.
     */
-    ~KateBtBrowserPluginView();
+    ~KateBtBrowserPluginView() override;
 
 private:
     KateBtBrowserPlugin *m_plugin;
@@ -93,7 +93,7 @@ class KateBtBrowserWidget : public QWidget, public Ui::BtBrowserWidget
 public:
     KateBtBrowserWidget(KTextEditor::MainWindow *mainwindow, QWidget *parent);
 
-    ~KateBtBrowserWidget();
+    ~KateBtBrowserWidget() override;
 
     void loadBacktrace(const QString &bt);
 
@@ -116,17 +116,17 @@ class KateBtConfigWidget : public KTextEditor::ConfigPage, private Ui::BtConfigW
 {
     Q_OBJECT
 public:
-    explicit KateBtConfigWidget(QWidget *parent = 0);
-    virtual ~KateBtConfigWidget();
+    explicit KateBtConfigWidget(QWidget *parent = nullptr);
+    ~KateBtConfigWidget() override;
 
-    QString name() const Q_DECL_OVERRIDE;
-    QString fullName() const Q_DECL_OVERRIDE;
-    QIcon icon() const Q_DECL_OVERRIDE;
+    QString name() const override;
+    QString fullName() const override;
+    QIcon icon() const override;
 
 public Q_SLOTS:
-    void apply() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
-    void defaults() Q_DECL_OVERRIDE;
+    void apply() override;
+    void reset() override;
+    void defaults() override;
 
 private Q_SLOTS:
     void add();
@@ -141,8 +141,8 @@ class KateBtConfigDialog : public QDialog
 {
     Q_OBJECT
 public:
-    KateBtConfigDialog(QWidget *parent = 0);
-    ~KateBtConfigDialog();
+    KateBtConfigDialog(QWidget *parent = nullptr);
+    ~KateBtConfigDialog() override;
 
 private:
     KateBtConfigWidget *m_configWidget;

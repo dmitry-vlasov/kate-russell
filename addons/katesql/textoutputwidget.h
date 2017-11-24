@@ -30,8 +30,8 @@ class TextOutputWidget : public QWidget
   Q_OBJECT
 
   public:
-    TextOutputWidget(QWidget *parent = 0);
-    ~TextOutputWidget();
+    TextOutputWidget(QWidget *parent = nullptr);
+    ~TextOutputWidget() override;
 
   public Q_SLOTS:
     void showErrorMessage(const QString &message);

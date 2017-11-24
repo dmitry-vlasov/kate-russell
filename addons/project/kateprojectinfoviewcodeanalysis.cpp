@@ -20,6 +20,8 @@
 
 #include "kateprojectinfoviewcodeanalysis.h"
 #include "kateprojectpluginview.h"
+#include "kateprojectcodeanalysistool.h"
+#include "tools/kateprojectcodeanalysisselector.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -32,11 +34,13 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
     : QWidget()
     , m_pluginView(pluginView)
     , m_project(project)
-    , m_messageWidget(0)
+    , m_messageWidget(nullptr)
     , m_startStopAnalysis(new QPushButton(i18n("Start Analysis...")))
     , m_treeView(new QTreeView())
     , m_model(new QStandardItemModel(m_treeView))
-    , m_analyzer(0)
+    , m_analyzer(nullptr)
+    , m_analysisTool(nullptr)
+    , m_toolSelector(new QComboBox())
 {
     /**
      * default style
@@ -59,6 +63,11 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
     m_treeView->sortByColumn(2, Qt::AscendingOrder);
 
     /**
+     * attach model to code analysis selector
+     */
+    m_toolSelector->setModel(KateProjectCodeAnalysisSelector::model(this));
+
+    /**
      * layout widget
      */
     QVBoxLayout *layout = new QVBoxLayout;
@@ -68,14 +77,15 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
     layout->addLayout(hlayout);
     hlayout->setSpacing(0);
     hlayout->addStretch();
+    hlayout->addWidget(m_toolSelector);
     hlayout->addWidget(m_startStopAnalysis);
     setLayout(layout);
 
     /**
      * connect needed signals
      */
-    connect(m_startStopAnalysis, SIGNAL(clicked(bool)), this, SLOT(slotStartStopClicked()));
-    connect(m_treeView, SIGNAL(clicked(const QModelIndex &)), this, SLOT(slotClicked(const QModelIndex &)));
+    connect(m_startStopAnalysis, &QPushButton::clicked, this, &KateProjectInfoViewCodeAnalysis::slotStartStopClicked);
+    connect(m_treeView, &QTreeView::clicked, this, &KateProjectInfoViewCodeAnalysis::slotClicked);
 }
 
 KateProjectInfoViewCodeAnalysis::~KateProjectInfoViewCodeAnalysis()
@@ -85,9 +95,10 @@ KateProjectInfoViewCodeAnalysis::~KateProjectInfoViewCodeAnalysis()
 void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
 {
     /**
-     * get files for cppcheck
+     * get files for the external tool
      */
-    QStringList files = m_project->files().filter(QRegExp(QStringLiteral("\\.(cpp|cxx|cc|c\\+\\+|c|tpp|txx)$")));
+    m_analysisTool = m_toolSelector->currentData(Qt::UserRole + 1).value<KateProjectCodeAnalysisTool*>();
+    m_analysisTool->setProject(m_project);
 
     /**
      * clear existing entries
@@ -100,17 +111,15 @@ void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
     m_analyzer = new QProcess(this);
     m_analyzer->setProcessChannelMode(QProcess::MergedChannels);
 
-    connect(m_analyzer, SIGNAL(readyRead()), this, SLOT(slotReadyRead()));
-    connect(m_analyzer, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(finished(int, QProcess::ExitStatus)));
+    connect(m_analyzer, &QProcess::readyRead, this, &KateProjectInfoViewCodeAnalysis::slotReadyRead);
+    connect(m_analyzer, static_cast<void(QProcess::*)(int,QProcess::ExitStatus)>(&QProcess::finished),
+            this, &KateProjectInfoViewCodeAnalysis::finished);
 
-    QStringList args;
-    args << QStringLiteral("-q") << QStringLiteral("--inline-suppr") << QStringLiteral("--enable=all") << QStringLiteral("--template={file}////{line}////{severity}////{message}") << QStringLiteral("--file-list=-");
-    m_analyzer->start(QStringLiteral("cppcheck"), args);
+    m_analyzer->start(m_analysisTool->path(), m_analysisTool->arguments());
 
     if (m_messageWidget) {
         delete m_messageWidget;
-        m_messageWidget = 0;
+        m_messageWidget = nullptr;
     }
 
     if (!m_analyzer->waitForStarted()) {
@@ -118,7 +127,7 @@ void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
         m_messageWidget->setCloseButtonVisible(true);
         m_messageWidget->setMessageType(KMessageWidget::Warning);
         m_messageWidget->setWordWrap(false);
-        m_messageWidget->setText(i18n("Please install 'cppcheck'."));
+        m_messageWidget->setText(m_analysisTool->notInstalledMessage());
         static_cast<QVBoxLayout *>(layout())->insertWidget(0, m_messageWidget);
         m_messageWidget->animatedShow();
         return;
@@ -126,7 +135,10 @@ void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
     /**
      * write files list and close write channel
      */
-    m_analyzer->write(files.join(QStringLiteral("\n")).toLocal8Bit());
+    const QString stdinMessage = m_analysisTool->stdinMessages();
+    if (!stdinMessage.isEmpty()) {
+        m_analyzer->write(stdinMessage.toLocal8Bit());
+    }
     m_analyzer->closeWriteChannel();
 }
 
@@ -140,7 +152,7 @@ void KateProjectInfoViewCodeAnalysis::slotReadyRead()
          * get one line, split it, skip it, if too few elements
          */
         QString line = QString::fromLocal8Bit(m_analyzer->readLine());
-        QStringList elements = line.split(QRegExp(QStringLiteral("////")), QString::SkipEmptyParts);
+        QStringList elements = m_analysisTool->parseLine(line);
         if (elements.size() < 4) {
             continue;
         }

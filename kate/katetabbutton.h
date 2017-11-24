@@ -32,15 +32,15 @@ class TabCloseButton : public QAbstractButton
 
 public:
     // constructor
-    TabCloseButton(QWidget * parent = 0);
+    TabCloseButton(QWidget * parent = nullptr);
     // paint close button depending on its state
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event) override;
     // returns the size hint depending on the style
-    QSize sizeHint() const Q_DECL_OVERRIDE;
+    QSize sizeHint() const override;
 
 protected:
-    void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 };
 
 /**
@@ -60,7 +60,7 @@ public:
     /**
      * Constructs a new tab bar button with \a text and \a parent.
      */
-    KateTabButton(const QString &text, QWidget *parent = 0);
+    KateTabButton(const QString &text, QWidget *parent = nullptr);
 
     /**
      * Returns @e true, if the tabbar is the currently active tab bar.

@@ -59,7 +59,7 @@ KateKonsolePlugin::KateKonsolePlugin( QObject* parent, const QList<QVariant>& ):
   m_previousEditorEnv=qgetenv("EDITOR");
   if (!KAuthorized::authorize(QStringLiteral("shell_access")))
   {
-    KMessageBox::sorry(0, i18n ("You do not have enough karma to access a shell or terminal emulation"));
+    KMessageBox::sorry(nullptr, i18n ("You do not have enough karma to access a shell or terminal emulation"));
   }
 }
 
@@ -77,7 +77,7 @@ QObject *KateKonsolePlugin::createView (KTextEditor::MainWindow *mainWindow)
 KTextEditor::ConfigPage *KateKonsolePlugin::configPage (int number, QWidget *parent)
 {
   if (number != 0)
-    return 0;
+    return nullptr;
   return new KateKonsoleConfigPage(parent, this);
 }
 
@@ -116,7 +116,7 @@ void KateKonsolePluginView::readConfig()
 
 KateConsole::KateConsole (KateKonsolePlugin* plugin, KTextEditor::MainWindow *mw, QWidget *parent)
     : QWidget (parent)
-    , m_part (0)
+    , m_part (nullptr)
     , m_mw (mw)
     , m_toolView (parent)
     , m_plugin(plugin)
@@ -131,16 +131,15 @@ KateConsole::KateConsole (KateKonsolePlugin* plugin, KTextEditor::MainWindow *mw
   QAction* a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_pipe_to_terminal"));
   a->setIcon(QIcon::fromTheme(QStringLiteral("utilities-terminal")));
   a->setText(i18nc("@action", "&Pipe to Terminal"));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotPipeToConsole()));
-
+  connect(a, &QAction::triggered, this, &KateConsole::slotPipeToConsole);
   a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_sync"));
   a->setText(i18nc("@action", "S&ynchronize Terminal with Current Document"));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotManualSync()));
+  connect(a, &QAction::triggered, this, &KateConsole::slotManualSync);
 
   a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_toggle_focus"));
   a->setIcon(QIcon::fromTheme(QStringLiteral("utilities-terminal")));
   a->setText(i18nc("@action", "&Focus Terminal"));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotToggleFocus()));
+  connect(a, &QAction::triggered, this, &KateConsole::slotToggleFocus);
 
   m_mw->guiFactory()->addClient (this);
 
@@ -151,7 +150,7 @@ KateConsole::~KateConsole ()
 { 
   m_mw->guiFactory()->removeClient (this);
   if (m_part)
-    disconnect ( m_part, SIGNAL(destroyed()), this, SLOT(slotDestroyed()) );
+    disconnect(m_part, &KParts::ReadOnlyPart::destroyed, this, &KateConsole::slotDestroyed);
 }
 
 void KateConsole::loadConsoleIfNeeded()
@@ -183,7 +182,7 @@ void KateConsole::loadConsoleIfNeeded()
   setFocusProxy(m_part->widget());
   m_part->widget()->show();
 
-  connect ( m_part, SIGNAL(destroyed()), this, SLOT(slotDestroyed()) );
+  connect(m_part, &KParts::ReadOnlyPart::destroyed, this, &KateConsole::slotDestroyed);
   connect ( m_part, SIGNAL(overrideShortcut(QKeyEvent*,bool&)),
                     this, SLOT(overrideShortcut(QKeyEvent*,bool&)));
   slotSync();
@@ -191,7 +190,7 @@ void KateConsole::loadConsoleIfNeeded()
 
 void KateConsole::slotDestroyed ()
 {
-  m_part = 0;
+  m_part = nullptr;
   m_currentPath.clear ();
 
   // hide the dockwidget
@@ -347,8 +346,8 @@ KateKonsoleConfigPage::KateKonsoleConfigPage( QWidget* parent, KateKonsolePlugin
   lo->addWidget(tmp);
   reset();
   lo->addStretch();
-  connect( cbAutoSyncronize, SIGNAL(stateChanged(int)), SIGNAL(changed()) );
-  connect( cbSetEditor, SIGNAL(stateChanged(int)), SIGNAL(changed()) );
+  connect(cbAutoSyncronize, &QCheckBox::stateChanged, this, &KateKonsoleConfigPage::changed);
+  connect(cbSetEditor, &QCheckBox::stateChanged, this, &KateKonsoleConfigPage::changed);
 }
 
 QString KateKonsoleConfigPage::name() const

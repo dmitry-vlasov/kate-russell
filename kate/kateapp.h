@@ -67,7 +67,7 @@ public:
     /**
      * application destructor
      */
-    ~KateApp();
+    ~KateApp() override;
 
     /**
      * static accessor to avoid casting ;)
@@ -140,7 +140,7 @@ public:
      * @param sgroup session group for this window
      * @return new constructed main window
      */
-    KateMainWindow *newMainWindow(KConfig *sconfig = 0, const QString &sgroup = QString());
+    KateMainWindow *newMainWindow(KConfig *sconfig = nullptr, const QString &sgroup = QString());
 
     /**
      * add the mainwindow given
@@ -324,7 +324,7 @@ protected:
     /**
      * Event filter for QApplication to handle mac os like file open
      */
-    bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     /**

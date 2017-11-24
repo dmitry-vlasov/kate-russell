@@ -45,7 +45,7 @@ class SnippetView : public QWidget, public Ui::SnippetViewBase
     Q_OBJECT
 
 public:
-    explicit SnippetView(KateSnippetGlobal* plugin, QWidget* parent = 0);
+    explicit SnippetView(KateSnippetGlobal* plugin, QWidget* parent = nullptr);
 
 public:
     void setupActionsForWindow(QWidget* widget);
@@ -101,7 +101,7 @@ private Q_SLOTS:
     void validateActions();
 
     /// insert snippet on double click
-    bool eventFilter(QObject* , QEvent* ) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject* , QEvent* ) override;
 private:
     QStandardItem* currentItem();
 

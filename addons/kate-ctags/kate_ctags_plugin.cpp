@@ -42,7 +42,7 @@ K_PLUGIN_FACTORY_WITH_JSON (KateCTagsPluginFactory, "katectagsplugin.json", regi
 
 /******************************************************************/
 KateCTagsPlugin::KateCTagsPlugin(QObject* parent, const QList<QVariant>&):
-KTextEditor::Plugin (parent), m_view(0)
+KTextEditor::Plugin (parent), m_view(nullptr)
 {
     // FIXME KF5
     //KGlobal::locale()->insertCatalog("kate-ctags-plugin");
@@ -59,7 +59,7 @@ QObject *KateCTagsPlugin::createView(KTextEditor::MainWindow *mainWindow)
 /******************************************************************/
 KTextEditor::ConfigPage *KateCTagsPlugin::configPage (int number, QWidget *parent)
 {
-  if (number != 0) return 0;
+  if (number != 0) return nullptr;
   return new KateCTagsConfigPage(parent, this);
 }
 
@@ -88,12 +88,12 @@ KateCTagsConfigPage::KateCTagsConfigPage( QWidget* parent, KateCTagsPlugin *plug
     m_confUi.updateDB->setToolTip(i18n("(Re-)generate the common CTags database."));
     m_confUi.updateDB->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
 
-    connect(m_confUi.updateDB,  SIGNAL(clicked()), this, SLOT(updateGlobalDB()));
-    connect(m_confUi.addButton, SIGNAL(clicked()), this, SLOT(addGlobalTagTarget()));
-    connect(m_confUi.delButton, SIGNAL(clicked()), this, SLOT(delGlobalTagTarget()));
+    connect(m_confUi.updateDB, &QPushButton::clicked, this, &KateCTagsConfigPage::updateGlobalDB);
+    connect(m_confUi.addButton, &QPushButton::clicked, this, &KateCTagsConfigPage::addGlobalTagTarget);
+    connect(m_confUi.delButton, &QPushButton::clicked, this, &KateCTagsConfigPage::delGlobalTagTarget);
 
-    connect(&m_proc, SIGNAL(finished(int,QProcess::ExitStatus)), 
-            this,    SLOT(updateDone(int,QProcess::ExitStatus)));
+    connect(&m_proc, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+             this, &KateCTagsConfigPage::updateDone);
     
     reset();
 }
@@ -232,7 +232,7 @@ void KateCTagsConfigPage::updateGlobalDB()
     m_proc.start(command);
 
     if(!m_proc.waitForStarted(500)) {
-        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, m_proc.exitStatus()));
+        KMessageBox::error(nullptr, i18n("Failed to run \"%1\". exitStatus = %2", command, m_proc.exitStatus()));
         return;
     }
     m_confUi.updateDB->setDisabled(true);

@@ -29,8 +29,8 @@ class ReplicodeConfig : public QTabWidget
 {
     Q_OBJECT
 public:
-    explicit ReplicodeConfig(QWidget *parent = 0);
-    virtual ~ReplicodeConfig();
+    explicit ReplicodeConfig(QWidget *parent = nullptr);
+    ~ReplicodeConfig() override;
 
 public Q_SLOTS:
     void reset();

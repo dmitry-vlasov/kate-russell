@@ -48,7 +48,7 @@ class PluginKateXMLCheckView : public QObject, public KXMLGUIClient
 
 public:
     PluginKateXMLCheckView(KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mainwin);
-    virtual ~PluginKateXMLCheckView();
+    ~PluginKateXMLCheckView() override;
 
     KTextEditor::MainWindow *m_mainWindow;
     QWidget *dock;
@@ -75,10 +75,10 @@ class PluginKateXMLCheck : public KTextEditor::Plugin
   Q_OBJECT
 
 public:
-  explicit PluginKateXMLCheck( QObject* parent = 0, const QVariantList& = QVariantList() );
+  explicit PluginKateXMLCheck( QObject* parent = nullptr, const QVariantList& = QVariantList() );
 
-    virtual ~PluginKateXMLCheck();
-     QObject *createView(KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
+    ~PluginKateXMLCheck() override;
+     QObject *createView(KTextEditor::MainWindow *mainWindow) override;
 };
 
 #endif // PLUGIN_KATEXMLCHECK_H

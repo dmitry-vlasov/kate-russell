@@ -150,7 +150,7 @@ static void slipInFilter(KProcess & proc, KTextEditor::View & view, QString comm
 void PluginKateTextFilter::slotEditFilter()
 {
   if (!KAuthorized::authorize(QStringLiteral("shell_access"))) {
-    KMessageBox::sorry(0,i18n(
+    KMessageBox::sorry(nullptr,i18n(
         "You are not allowed to execute arbitrary external applications. If "
         "you want to be able to do this, contact your system administrator."),
         i18n("Access Restrictions"));
@@ -204,14 +204,11 @@ void PluginKateTextFilter::runFilter(KTextEditor::View *kv, const QString &filte
   {
     m_pFilterProcess = new KProcess;
 
-    connect (m_pFilterProcess, SIGNAL(readyReadStandardOutput()),
-             this, SLOT(slotFilterReceivedStdout()));
+    connect(m_pFilterProcess, &KProcess::readyReadStandardOutput, this, &PluginKateTextFilter::slotFilterReceivedStdout);
 
-    connect (m_pFilterProcess, SIGNAL(readyReadStandardError()),
-             this, SLOT(slotFilterReceivedStderr()));
+    connect(m_pFilterProcess, &KProcess::readyReadStandardError, this, &PluginKateTextFilter::slotFilterReceivedStderr);
 
-    connect (m_pFilterProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
-             this, SLOT(slotFilterProcessExited(int,QProcess::ExitStatus)));
+    connect(m_pFilterProcess, static_cast<void (KProcess::*)(int, KProcess::ExitStatus)>(&KProcess::finished), this, &PluginKateTextFilter::slotFilterProcessExited);
   }
   m_pFilterProcess->setOutputChannelMode(
       mergeOutput ? KProcess::MergedChannels : KProcess::SeparateChannels
@@ -265,7 +262,7 @@ PluginViewKateTextFilter::PluginViewKateTextFilter(PluginKateTextFilter *plugin,
     QAction* a = actionCollection()->addAction(QStringLiteral("edit_filter"));
     a->setText(i18n("Filter Te&xt..."));
     actionCollection()->setDefaultShortcut(a, Qt::CTRL + Qt::Key_Backslash);
-    connect(a, SIGNAL(triggered(bool)), plugin, SLOT(slotEditFilter()));
+    connect(a, &QAction::triggered, plugin, &PluginKateTextFilter::slotEditFilter);
 
     // register us at the UI
     mainwindow->guiFactory()->addClient(this);

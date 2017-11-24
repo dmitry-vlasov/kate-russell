@@ -25,7 +25,7 @@
 ** MA 02110-1301, USA.
 */
 
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QStack>
 #include <QPointer>
@@ -61,18 +61,21 @@ class KateBuildView : public QObject, public KXMLGUIClient, public KTextEditor::
         };
 
         enum TreeWidgetRoles {
-            IsErrorRole = Qt::UserRole+1,
-            IsWarningRole
+            ErrorRole = Qt::UserRole+1
+        };
+
+        enum ErrorCategory {
+            CategoryInfo,
+            CategoryWarning,
+            CategoryError
         };
 
        KateBuildView(KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mw);
-        ~KateBuildView();
+        ~KateBuildView() override;
 
         // reimplemented: read and write session config
-        void readSessionConfig(const KConfigGroup& config) Q_DECL_OVERRIDE;
-        void writeSessionConfig(KConfigGroup& config) Q_DECL_OVERRIDE;
-
-        QWidget *toolView() const;
+        void readSessionConfig(const KConfigGroup& config) override;
+        void writeSessionConfig(KConfigGroup& config) override;
 
         bool buildCurrentTarget();
 
@@ -117,7 +120,7 @@ class KateBuildView : public QObject, public KXMLGUIClient, public KTextEditor::
         void slotAddProjectTarget();
 
     protected:
-        bool eventFilter(QObject *obj, QEvent *ev) Q_DECL_OVERRIDE;
+        bool eventFilter(QObject *obj, QEvent *ev) override;
 
     private:
         void processLine(const QString &);
@@ -136,16 +139,17 @@ class KateBuildView : public QObject, public KXMLGUIClient, public KTextEditor::
         int               m_outputWidgetWidth;
         TargetsUi        *m_targetsUi;
         KProcess          m_proc;
-        QString           m_output_lines;
+        QString           m_stdOut;
+        QString           m_stdErr;
         QString           m_currentlyBuildingTarget;
         bool              m_buildCancelled;
         int               m_displayModeBeforeBuild;
         QString           m_make_dir;
         QStack<QString>   m_make_dir_stack;
-        QRegExp           m_filenameDetector;
-        QRegExp           m_filenameDetectorIcpc;
+        QRegularExpression m_filenameDetector;
+        QRegularExpression m_filenameDetectorIcpc;
         bool              m_filenameDetectorGccWorked;
-        QRegExp           m_newDirDetector;
+        QRegularExpression m_newDirDetector;
         unsigned int      m_numErrors;
         unsigned int      m_numWarnings;
         QString           m_prevItemContent;
@@ -168,10 +172,10 @@ class KateBuildPlugin : public KTextEditor::Plugin
     Q_OBJECT
 
     public:
-        explicit KateBuildPlugin(QObject* parent = 0, const VariantList& = VariantList());
-        virtual ~KateBuildPlugin() {}
+        explicit KateBuildPlugin(QObject* parent = nullptr, const VariantList& = VariantList());
+        ~KateBuildPlugin() override {}
 
-        QObject *createView(KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
+        QObject *createView(KTextEditor::MainWindow *mainWindow) override;
  };
 
 #endif

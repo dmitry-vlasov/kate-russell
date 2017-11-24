@@ -30,7 +30,7 @@ class TargetFilterProxyModel: public QSortFilterProxyModel {
 public:
     TargetFilterProxyModel(QObject *parent): QSortFilterProxyModel(parent) {}
 
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const Q_DECL_OVERRIDE
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
     {
         if (m_filter.isEmpty()) {
             return true;
@@ -58,10 +58,10 @@ public:
         invalidateFilter();
     }
 
-    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE
+    Qt::ItemFlags flags(const QModelIndex &index) const override
     {
         if (!index.isValid()) {
-            return 0;
+            return nullptr;
         }
         return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
     }
@@ -84,8 +84,8 @@ SelectTargetView::SelectTargetView(QAbstractItemModel *model, QWidget* parent)
 
     setFocusProxy(u_filterEdit);
 
-    connect(u_filterEdit, SIGNAL(textChanged(QString)), this, SLOT(setFilter(QString)));
-    connect(u_treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(accept()));
+    connect(u_filterEdit, &QLineEdit::textChanged, this, &SelectTargetView::setFilter);
+    connect(u_treeView, &QTreeView::doubleClicked, this, &SelectTargetView::accept);
 
     u_filterEdit->installEventFilter(this);
 }

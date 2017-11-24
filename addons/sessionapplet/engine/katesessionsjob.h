@@ -29,8 +29,8 @@ class KateSessionsJob : public Plasma::ServiceJob
 {
     Q_OBJECT
 public:
-    KateSessionsJob(KateSessionsEngine* engine,const QString &destination, const QString &operation, const QVariantMap &parameters, QObject *parent=0);
-    ~KateSessionsJob() = default;
+    KateSessionsJob(KateSessionsEngine* engine,const QString &destination, const QString &operation, const QVariantMap &parameters, QObject *parent=nullptr);
+    ~KateSessionsJob() override = default;
 
     void start() override;
 

@@ -29,7 +29,7 @@ class SelectTargetView : public QDialog, public Ui::SelectTargetUi
 {
     Q_OBJECT
 public:
-    SelectTargetView(QAbstractItemModel *model, QWidget *parent = 0);
+    SelectTargetView(QAbstractItemModel *model, QWidget *parent = nullptr);
     const QModelIndex currentIndex() const;
 
     void setCurrentIndex(const QModelIndex &index);
@@ -38,7 +38,7 @@ public Q_SLOTS:
     void setFilter(const QString &filter);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     TargetFilterProxyModel *m_proxyModel;

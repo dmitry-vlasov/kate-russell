@@ -76,7 +76,7 @@ static QAction *menuEntry(QMenu *menu,
     if (menuAfter.isEmpty())  menuAfter = after;
 
     QAction *const action = menu->addAction(menuBefore + menuAfter + QLatin1Char('\t') + desc);
-    if (!action) return 0;
+    if (!action) return nullptr;
 
     action->setData(QString(before + QLatin1Char(' ') + after));
     return action;
@@ -88,7 +88,7 @@ public:
     TreeWidgetItem(QTreeWidget* parent, const QStringList &list):QTreeWidgetItem(parent, list){}
     TreeWidgetItem(QTreeWidgetItem* parent, const QStringList &list):QTreeWidgetItem(parent, list){}
 private:
-    bool operator<(const QTreeWidgetItem &other) const Q_DECL_OVERRIDE {
+    bool operator<(const QTreeWidgetItem &other) const override {
         if (childCount() == 0) {
             int line = data(0, ReplaceMatches::LineRole).toInt();
             int column = data(0, ReplaceMatches::ColumnRole).toInt();
@@ -122,7 +122,7 @@ K_PLUGIN_FACTORY_WITH_JSON (KatePluginSearchFactory, "katesearch.json", register
 
 KatePluginSearch::KatePluginSearch(QObject* parent, const QList<QVariant>&)
     : KTextEditor::Plugin (parent),
-    m_searchCommand(0)
+    m_searchCommand(nullptr)
 {
     m_searchCommand = new KateSearchCommand(this);
 }
@@ -135,12 +135,11 @@ KatePluginSearch::~KatePluginSearch()
 QObject *KatePluginSearch::createView(KTextEditor::MainWindow *mainWindow)
 {
     KatePluginSearchView *view = new KatePluginSearchView(this, mainWindow, KTextEditor::Editor::instance()->application());
-    connect(m_searchCommand, SIGNAL(setSearchPlace(int)), view, SLOT(setSearchPlace(int)));
-    connect(m_searchCommand, SIGNAL(setCurrentFolder()), view, SLOT(setCurrentFolder()));
-    connect(m_searchCommand, SIGNAL(setSearchString(QString)), view, SLOT(setSearchString(QString)));
-    connect(m_searchCommand, SIGNAL(startSearch()), view, SLOT(startSearch()));
+    connect(m_searchCommand, &KateSearchCommand::setSearchPlace, view, &KatePluginSearchView::setSearchPlace);
+    connect(m_searchCommand, &KateSearchCommand::setCurrentFolder, view, &KatePluginSearchView::setCurrentFolder);
+    connect(m_searchCommand, &KateSearchCommand::setSearchString, view, &KatePluginSearchView::setSearchString);
+    connect(m_searchCommand, &KateSearchCommand::startSearch, view, &KatePluginSearchView::startSearch);
     connect(m_searchCommand, SIGNAL(newTab()), view, SLOT(addTab()));
-
     return view;
 }
 
@@ -217,12 +216,12 @@ void KatePluginSearchView::nextFocus(QWidget *currentWidget, bool *found, bool n
 KatePluginSearchView::KatePluginSearchView(KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mainWin, KTextEditor::Application* application)
 : QObject (mainWin),
 m_kateApp(application),
-m_curResults(0),
+m_curResults(nullptr),
 m_searchJustOpened(false),
 m_switchToProjectModeWhenAvailable(false),
 m_searchDiskFilesDone(true),
 m_searchOpenFilesDone(true),
-m_projectPluginView(0),
+m_projectPluginView(nullptr),
 m_mainWindow (mainWin)
 {
     KXMLGUIClient::setComponentName (QStringLiteral("katesearch"), i18n ("Kate Search & Replace"));
@@ -236,26 +235,26 @@ m_mainWindow (mainWin)
     ContainerWidget *container = new ContainerWidget(m_toolView);
     m_ui.setupUi(container);
     container->setFocusProxy(m_ui.searchCombo);
-    connect(container, SIGNAL(nextFocus(QWidget*,bool*,bool)), this, SLOT(nextFocus(QWidget*,bool*,bool)));
+    connect(container, &ContainerWidget::nextFocus, this, &KatePluginSearchView::nextFocus);
 
     QAction *a = actionCollection()->addAction(QStringLiteral("search_in_files"));
     actionCollection()->setDefaultShortcut(a, QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_F));
     a->setText(i18n("Search in Files"));
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(openSearchView()));
+    connect(a, &QAction::triggered, this, &KatePluginSearchView::openSearchView);
 
     a = actionCollection()->addAction(QStringLiteral("search_in_files_new_tab"));
     a->setText(i18n("Search in Files (in new tab)"));
     // first add tab, then open search view, since open search view switches to show the search options
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(addTab()));
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(openSearchView()));
+    connect(a, &QAction::triggered, this, &KatePluginSearchView::addTab);
+    connect(a, &QAction::triggered, this, &KatePluginSearchView::openSearchView);
 
     a = actionCollection()->addAction(QStringLiteral("go_to_next_match"));
     a->setText(i18n("Go to Next Match"));
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(goToNextMatch()));
+    connect(a, &QAction::triggered, this, &KatePluginSearchView::goToNextMatch);
 
     a = actionCollection()->addAction(QStringLiteral("go_to_prev_match"));
     a->setText(i18n("Go to Previous Match"));
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(goToPreviousMatch()));
+    connect(a, &QAction::triggered, this, &KatePluginSearchView::goToPreviousMatch);
 
     m_ui.resultTabWidget->tabBar()->setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
     KAcceleratorManager::setNoAccel(m_ui.resultTabWidget);
@@ -290,23 +289,24 @@ m_mainWindow (mainWin)
     cmbUrl->setCompletionObject(cmpl);
     cmbUrl->setAutoDeleteCompletionObject(true);
 
-    connect(m_ui.newTabButton,     SIGNAL(clicked()), this, SLOT(addTab()));
-    connect(m_ui.resultTabWidget,  SIGNAL(tabCloseRequested(int)), this, SLOT(tabCloseRequested(int)));
-    connect(m_ui.resultTabWidget,  SIGNAL(currentChanged(int)), this, SLOT(resultTabChanged(int)));
+    connect(m_ui.newTabButton, &QToolButton::clicked, this, &KatePluginSearchView::addTab);
+    connect(m_ui.resultTabWidget, &QTabWidget::tabCloseRequested, this, &KatePluginSearchView::tabCloseRequested);
+    connect(m_ui.resultTabWidget, &QTabWidget::currentChanged, this, &KatePluginSearchView::resultTabChanged);
 
-    connect(m_ui.folderUpButton,   SIGNAL(clicked()), this, SLOT(navigateFolderUp()));
-    connect(m_ui.currentFolderButton, SIGNAL(clicked()), this, SLOT(setCurrentFolder()));
+    connect(m_ui.folderUpButton, &QToolButton::clicked, this, &KatePluginSearchView::navigateFolderUp);
+    connect(m_ui.currentFolderButton, &QToolButton::clicked, this, &KatePluginSearchView::setCurrentFolder);
+    connect(m_ui.expandResults, &QToolButton::clicked, this, &KatePluginSearchView::expandResults);
 
-    connect(m_ui.searchCombo,      SIGNAL(editTextChanged(QString)), &m_changeTimer, SLOT(start()));
-    connect(m_ui.matchCase,        SIGNAL(toggled(bool)), &m_changeTimer, SLOT(start()));
-    connect(m_ui.matchCase, &QToolButton::toggled, this, [this](bool) {
+    connect(m_ui.searchCombo, &QComboBox::editTextChanged, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
+    connect(m_ui.matchCase, &QToolButton::toggled, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
+    connect(m_ui.matchCase, &QToolButton::toggled, [=]{
         Results *res = qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
         if (res) {
             res->matchCase = m_ui.matchCase->isChecked();
         }
     });
-    connect(m_ui.useRegExp,        SIGNAL(toggled(bool)), &m_changeTimer, SLOT(start()));
-    connect(m_ui.useRegExp, &QToolButton::toggled, this, [this](bool) {
+    connect(m_ui.useRegExp, &QToolButton::toggled, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
+    connect(m_ui.useRegExp, &QToolButton::toggled, [=]{
         Results *res = qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
         if (res) {
             res->useRegExp = m_ui.useRegExp->isChecked();
@@ -314,68 +314,62 @@ m_mainWindow (mainWin)
     });
     m_changeTimer.setInterval(300);
     m_changeTimer.setSingleShot(true);
-    connect(&m_changeTimer, SIGNAL(timeout()), this, SLOT(startSearchWhileTyping()));
+    connect(&m_changeTimer, &QTimer::timeout, this, &KatePluginSearchView::startSearchWhileTyping);
 
-    connect(m_ui.searchCombo->lineEdit(), SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(m_ui.folderRequester,  SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(m_ui.filterCombo,      SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(m_ui.excludeCombo,     SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(m_ui.searchButton,     SIGNAL(clicked()),       this, SLOT(startSearch()));
+    connect(m_ui.searchCombo->lineEdit(), &QLineEdit::returnPressed, this, &KatePluginSearchView::startSearch);
+// connecting to returnPressed() of the folderRequester doesn't work, I haven't found out why yet. But connecting to the linedit works:
+    connect(m_ui.folderRequester->comboBox()->lineEdit(), &QLineEdit::returnPressed, this, &KatePluginSearchView::startSearch);
+    connect(m_ui.filterCombo, static_cast<void (KComboBox::*)()>(&KComboBox::returnPressed), this, &KatePluginSearchView::startSearch);
+    connect(m_ui.excludeCombo, static_cast<void (KComboBox::*)()>(&KComboBox::returnPressed), this, &KatePluginSearchView::startSearch);
+    connect(m_ui.searchButton, &QPushButton::clicked, this, &KatePluginSearchView::startSearch);
 
-    connect(m_ui.displayOptions,   SIGNAL(toggled(bool)), this, SLOT(toggleOptions(bool)));
-    connect(m_ui.searchPlaceCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(searchPlaceChanged()));
+    connect(m_ui.displayOptions, &QToolButton::toggled, this, &KatePluginSearchView::toggleOptions);
+    connect(m_ui.searchPlaceCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &KatePluginSearchView::searchPlaceChanged);
     connect(m_ui.searchPlaceCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
         if (m_ui.searchPlaceCombo->currentIndex() == Folder) {
             m_ui.displayOptions->setChecked(true);
         }
     });
 
-    connect(m_ui.stopButton,       SIGNAL(clicked()), &m_searchOpenFiles, SLOT(cancelSearch()));
-    connect(m_ui.stopButton,       SIGNAL(clicked()), &m_searchDiskFiles, SLOT(cancelSearch()));
-    connect(m_ui.stopButton,       SIGNAL(clicked()), &m_folderFilesList, SLOT(cancelSearch()));
-    connect(m_ui.stopButton,       SIGNAL(clicked()), &m_replacer,        SLOT(cancelReplace()));
+    connect(m_ui.stopButton, &QPushButton::clicked, &m_searchOpenFiles, &SearchOpenFiles::cancelSearch);
+    connect(m_ui.stopButton, &QPushButton::clicked, &m_searchDiskFiles, &SearchDiskFiles::cancelSearch);
+    connect(m_ui.stopButton, &QPushButton::clicked, &m_folderFilesList, &FolderFilesList::cancelSearch);
+    connect(m_ui.stopButton, &QPushButton::clicked, &m_replacer, &ReplaceMatches::cancelReplace);
 
-    connect(m_ui.nextButton,       SIGNAL(clicked()), this, SLOT(goToNextMatch()));
+    connect(m_ui.newTabButton, &QToolButton::clicked, this, &KatePluginSearchView::goToNextMatch);
 
-    connect(m_ui.replaceButton,     SIGNAL(clicked(bool)),   this, SLOT(replaceSingleMatch()));
-    connect(m_ui.replaceCheckedBtn, SIGNAL(clicked(bool)),   this, SLOT(replaceChecked()));
-    connect(m_ui.replaceCombo->lineEdit(), SIGNAL(returnPressed()), this, SLOT(replaceChecked()));
+    connect(m_ui.replaceButton, &QPushButton::clicked, this, &KatePluginSearchView::replaceSingleMatch);
+    connect(m_ui.replaceCheckedBtn, &QPushButton::clicked, this, &KatePluginSearchView::replaceChecked);
+    connect(m_ui.replaceCombo->lineEdit(), &QLineEdit::returnPressed, this, &KatePluginSearchView::replaceChecked);
 
 
 
     m_ui.displayOptions->setChecked(true);
 
-    connect(&m_searchOpenFiles, SIGNAL(matchFound(QString,QString,int,int,QString,int)),
-            this,                 SLOT(matchFound(QString,QString,int,int,QString,int)));
-    connect(&m_searchOpenFiles, SIGNAL(searchDone()),  this, SLOT(searchDone()));
-    connect(&m_searchOpenFiles, SIGNAL(searching(QString)), this, SLOT(searching(QString)));
+    connect(&m_searchOpenFiles, &SearchOpenFiles::matchFound, this, &KatePluginSearchView::matchFound);
+    connect(&m_searchOpenFiles, &SearchOpenFiles::searchDone, this, &KatePluginSearchView::searchDone);
+    connect(&m_searchOpenFiles, static_cast<void (SearchOpenFiles::*)(const QString&)>(&SearchOpenFiles::searching), this, &KatePluginSearchView::searching);
 
-    connect(&m_folderFilesList, SIGNAL(finished()),  this, SLOT(folderFileListChanged()));
-    connect(&m_folderFilesList, SIGNAL(searching(QString)),  this, SLOT(searching(QString)));
+    connect(&m_folderFilesList, &FolderFilesList::finished, this, &KatePluginSearchView::folderFileListChanged);
+    connect(&m_folderFilesList, &FolderFilesList::searching, this, &KatePluginSearchView::searching);
 
-    connect(&m_searchDiskFiles, SIGNAL(matchFound(QString,QString,int,int,QString,int)),
-            this,                 SLOT(matchFound(QString,QString,int,int,QString,int)));
-    connect(&m_searchDiskFiles, SIGNAL(searchDone()),  this, SLOT(searchDone()));
-    connect(&m_searchDiskFiles, SIGNAL(searching(QString)), this, SLOT(searching(QString)));
+    connect(&m_searchDiskFiles, &SearchDiskFiles::matchFound, this, &KatePluginSearchView::matchFound);
+    connect(&m_searchDiskFiles, &SearchDiskFiles::searchDone, this, &KatePluginSearchView::searchDone);
+    connect(&m_searchDiskFiles, static_cast<void (SearchDiskFiles::*)(const QString&)>(&SearchDiskFiles::searching), this, &KatePluginSearchView::searching);
 
-    connect(m_kateApp, SIGNAL(documentWillBeDeleted(KTextEditor::Document*)),
-            &m_searchOpenFiles, SLOT(cancelSearch()));
+    connect(m_kateApp, &KTextEditor::Application::documentWillBeDeleted, &m_searchOpenFiles, &SearchOpenFiles::cancelSearch);
 
-    connect(m_kateApp, SIGNAL(documentWillBeDeleted(KTextEditor::Document*)),
-            &m_replacer, SLOT(cancelReplace()));
+    connect(m_kateApp, &KTextEditor::Application::documentWillBeDeleted, &m_replacer, &ReplaceMatches::cancelReplace);
 
-    connect(m_kateApp, SIGNAL(documentWillBeDeleted(KTextEditor::Document*)),
-            this, SLOT(clearDocMarks(KTextEditor::Document*)));
+    connect(m_kateApp, &KTextEditor::Application::documentWillBeDeleted, this, &KatePluginSearchView::clearDocMarks);
 
-    connect(&m_replacer, SIGNAL(matchReplaced(KTextEditor::Document*,int,int,int)),
-            this, SLOT(addMatchMark(KTextEditor::Document*,int,int,int)));
+    connect(&m_replacer, &ReplaceMatches::matchReplaced, this, &KatePluginSearchView::addMatchMark);
 
     connect(&m_replacer, &ReplaceMatches::replaceStatus, this, &KatePluginSearchView::replaceStatus);
 
     // Hook into line edit context menus
     m_ui.searchCombo->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(m_ui.searchCombo, SIGNAL(customContextMenuRequested(QPoint)), this,
-            SLOT(searchContextMenu(QPoint)));
+    connect(m_ui.searchButton, &QPushButton::customContextMenuRequested, this, &KatePluginSearchView::searchContextMenu);
     m_ui.searchCombo->completer()->setCompletionMode(QCompleter::PopupCompletion);
     m_ui.searchCombo->completer()->setCaseSensitivity(Qt::CaseSensitive);
     m_ui.searchCombo->setInsertPolicy(QComboBox::NoInsert);
@@ -390,17 +384,14 @@ m_mainWindow (mainWin)
 
     m_toolView->setMinimumHeight(container->sizeHint().height());
 
-    connect(m_mainWindow, SIGNAL(unhandledShortcutOverride(QEvent*)),
-            this, SLOT(handleEsc(QEvent*)));
+    connect(m_mainWindow, &KTextEditor::MainWindow::unhandledShortcutOverride, this, &KatePluginSearchView::handleEsc);
 
     // watch for project plugin view creation/deletion
-    connect(m_mainWindow, SIGNAL(pluginViewCreated (const QString &, QObject *))
-        , this, SLOT(slotPluginViewCreated (const QString &, QObject *)));
+    connect(m_mainWindow, &KTextEditor::MainWindow::pluginViewCreated, this, &KatePluginSearchView::slotPluginViewCreated);
 
-    connect(m_mainWindow, SIGNAL(pluginViewDeleted (const QString &, QObject *))
-        , this, SLOT(slotPluginViewDeleted (const QString &, QObject *)));
+    connect(m_mainWindow, &KTextEditor::MainWindow::pluginViewDeleted, this, &KatePluginSearchView::slotPluginViewDeleted);
 
-    connect(m_mainWindow, SIGNAL(viewChanged(KTextEditor::View *)), this, SLOT(docViewChanged()));
+    connect(m_mainWindow, &KTextEditor::MainWindow::viewChanged, this, &KatePluginSearchView::docViewChanged);
 
 
     // update once project plugin state manually
@@ -408,7 +399,7 @@ m_mainWindow (mainWin)
     slotProjectFileNameChanged ();
 
     m_replacer.setDocumentManager(m_kateApp);
-    connect(&m_replacer, SIGNAL(replaceDone()), this, SLOT(replaceDone()));
+    connect(&m_replacer, &ReplaceMatches::replaceDone, this, &KatePluginSearchView::replaceDone);
 
     searchPlaceChanged();
 
@@ -656,7 +647,7 @@ void KatePluginSearchView::addHeaderItem()
 QTreeWidgetItem * KatePluginSearchView::rootFileItem(const QString &url, const QString &fName)
 {
     if (!m_curResults) {
-        return 0;
+        return nullptr;
     }
 
     QUrl fullUrl = QUrl::fromUserInput(url);
@@ -715,7 +706,7 @@ void KatePluginSearchView::addMatchMark(KTextEditor::Document* doc, int line, in
     KTextEditor::ConfigInterface* ciface = qobject_cast<KTextEditor::ConfigInterface*>(activeView);
     KTextEditor::Attribute::Ptr attr(new KTextEditor::Attribute());
 
-    bool replace = ((sender() == &m_replacer) || (sender() == 0) || (sender() == m_ui.replaceButton));
+    bool replace = ((sender() == &m_replacer) || (sender() == nullptr) || (sender() == m_ui.replaceButton));
     if (replace) {
         QColor replaceColor(Qt::green);
         if (ciface) replaceColor = ciface->configValue(QStringLiteral("replace-highlight-color")).value<QColor>();
@@ -1173,12 +1164,7 @@ void KatePluginSearchView::searchDone()
 
     // expand the "header item " to display all files and all results if configured
     QTreeWidgetItem *root = m_curResults->tree->topLevelItem(0);
-    m_curResults->tree->expandItem(root);
-    if (root && (root->childCount() > 1) && (!m_ui.expandResults->isChecked())) {
-        for (int i=0; i<root->childCount(); i++) {
-            m_curResults->tree->collapseItem(root->child(i));
-        }
-    }
+    expandResults();
 
     if (root) {
         switch (m_ui.searchPlaceCombo->currentIndex())
@@ -1222,7 +1208,7 @@ void KatePluginSearchView::searchDone()
     }
 
     indicateMatch(m_curResults->matches > 0);
-    m_curResults = 0;
+    m_curResults = nullptr;
     m_toolView->unsetCursor();
 
     if (fw == m_ui.stopButton) {
@@ -1250,7 +1236,7 @@ void KatePluginSearchView::searchWhileTypingDone()
         m_curResults->tree->setColumnWidth(0, m_curResults->tree->width()-30);
     }
 
-    QWidget *focusObject = 0;
+    QWidget *focusObject = nullptr;
     QTreeWidgetItem *root = m_curResults->tree->topLevelItem(0);
     if (root) {
         QTreeWidgetItem *child = root->child(0);
@@ -1263,7 +1249,7 @@ void KatePluginSearchView::searchWhileTypingDone()
                                                 "<b><i>%1 matches found</i></b>",
                                                 m_curResults->matches));
     }
-    m_curResults = 0;
+    m_curResults = nullptr;
 
     if (focusObject) {
         focusObject->setFocus();
@@ -1520,7 +1506,7 @@ void KatePluginSearchView::docViewChanged()
     // add the marks if it is not already open
     KTextEditor::Document *doc = m_mainWindow->activeView()->document();
     if (doc) {
-        QTreeWidgetItem *rootItem = 0;
+        QTreeWidgetItem *rootItem = nullptr;
         for (int i=0; i<res->tree->topLevelItemCount(); i++) {
             QString url = res->tree->topLevelItem(i)->data(0, ReplaceMatches::FileUrlRole).toString();
             QString fName = res->tree->topLevelItem(i)->data(0, ReplaceMatches::FileNameRole).toString();
@@ -1541,6 +1527,28 @@ void KatePluginSearchView::docViewChanged()
                 column = item->data(0, ReplaceMatches::ColumnRole).toInt();
                 len = item->data(0, ReplaceMatches::MatchLenRole).toInt();
                 addMatchMark(doc, line, column, len);
+            }
+        }
+    }
+}
+
+void KatePluginSearchView::expandResults()
+{
+    m_curResults =qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
+    if (!m_curResults) {
+        qWarning() << "Results not found";
+        return;
+    }
+
+    if (m_ui.expandResults->isChecked()) {
+        m_curResults->tree->expandAll();
+    }
+    else {
+        QTreeWidgetItem *root = m_curResults->tree->topLevelItem(0);
+        m_curResults->tree->expandItem(root);
+        if (root && (root->childCount() > 1)) {
+            for (int i=0; i<root->childCount(); i++) {
+                m_curResults->tree->collapseItem(root->child(i));
             }
         }
     }
@@ -1582,7 +1590,7 @@ void KatePluginSearchView::itemSelected(QTreeWidgetItem *item)
             int line;
             int column;
             int len;
-            QTreeWidgetItem *rootItem = (item->parent()==0) ? item : item->parent();
+            QTreeWidgetItem *rootItem = (item->parent()==nullptr) ? item : item->parent();
             for (int i=0; i<rootItem->childCount(); i++) {
                 item = rootItem->child(i);
                 line = item->data(0, ReplaceMatches::LineRole).toInt();
@@ -1900,8 +1908,7 @@ void KatePluginSearchView::addTab()
 
     res->tree->setRootIsDecorated(false);
 
-    connect(res->tree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),
-            this,      SLOT  (itemSelected(QTreeWidgetItem*)), Qt::QueuedConnection);
+    connect(res->tree, &QTreeWidget::itemDoubleClicked, this, &KatePluginSearchView::itemSelected, Qt::UniqueConnection);
 
     res->searchPlaceIndex = m_ui.searchPlaceCombo->currentIndex();
     res->useRegExp = m_ui.useRegExp->isChecked();
@@ -1924,7 +1931,7 @@ void KatePluginSearchView::tabCloseRequested(int index)
     }
     if (m_ui.resultTabWidget->count() > 1) {
         delete tmp; // remove the tab
-        m_curResults = 0;
+        m_curResults = nullptr;
     }
     if (m_ui.resultTabWidget->count() == 1) {
         m_ui.resultTabWidget->tabBar()->hide();
@@ -2057,7 +2064,7 @@ void KatePluginSearchView::slotPluginViewDeleted (const QString &name, QObject *
 {
     // remove view
     if (name == QStringLiteral("kateprojectplugin")) {
-        m_projectPluginView = 0;
+        m_projectPluginView = nullptr;
         slotProjectFileNameChanged ();
     }
 }

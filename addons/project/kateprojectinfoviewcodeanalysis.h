@@ -26,8 +26,10 @@
 #include <QPushButton>
 #include <QProcess>
 #include <QTreeView>
+#include <QComboBox>
 
 class KateProjectPluginView;
+class KateProjectCodeAnalysisTool;
 class KMessageWidget;
 
 /**
@@ -49,7 +51,7 @@ public:
     /**
      * deconstruct info view
      */
-    ~KateProjectInfoViewCodeAnalysis();
+    ~KateProjectInfoViewCodeAnalysis() override;
 
     /**
      * our project.
@@ -118,6 +120,11 @@ private:
      * running analyzer process
      */
     QProcess *m_analyzer;
+
+    KateProjectCodeAnalysisTool *m_analysisTool;
+
+    QComboBox *m_toolSelector;
+
 };
 
 #endif

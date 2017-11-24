@@ -31,8 +31,8 @@ class SQLManager : public QObject
   Q_OBJECT
 
   public:
-    SQLManager(QObject *parent = 0);
-    ~SQLManager();
+    SQLManager(QObject *parent = nullptr);
+    ~SQLManager() override;
 
     ConnectionModel *connectionModel();
     void createConnection(const Connection &conn);

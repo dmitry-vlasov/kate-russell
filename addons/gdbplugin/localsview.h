@@ -28,8 +28,8 @@ class LocalsView : public QTreeWidget
 {
 Q_OBJECT
 public:
-    LocalsView(QWidget *parent = 0);
-    ~LocalsView();
+    LocalsView(QWidget *parent = nullptr);
+    ~LocalsView() override;
 
 public Q_SLOTS:
     // An empty value string ends the locals
@@ -41,8 +41,8 @@ Q_SIGNALS:
     void localsVisible(bool visible);
 
 protected:
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
-    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
 private:
     void createWrappedItem(QTreeWidgetItem *parent, const QString &name, const QString &value);

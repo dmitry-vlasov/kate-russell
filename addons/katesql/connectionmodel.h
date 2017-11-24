@@ -31,11 +31,11 @@ class ConnectionModel : public QAbstractListModel
   Q_OBJECT
 
   public:
-    ConnectionModel(QObject *parent = 0);
-    virtual ~ConnectionModel();
+    ConnectionModel(QObject *parent = nullptr);
+    ~ConnectionModel() override;
 
-    int rowCount ( const QModelIndex & parent = QModelIndex() ) const Q_DECL_OVERRIDE;
-    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const Q_DECL_OVERRIDE;
+    int rowCount ( const QModelIndex & parent = QModelIndex() ) const override;
+    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const override;
 
     virtual int addConnection(Connection conn);
     virtual void removeConnection(const QString &name);

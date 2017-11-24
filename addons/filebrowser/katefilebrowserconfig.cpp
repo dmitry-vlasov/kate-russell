@@ -46,7 +46,7 @@
 class ActionLBItem : public QListWidgetItem
 {
   public:
-    ActionLBItem( QListWidget *lb = 0,
+    ActionLBItem( QListWidget *lb = nullptr,
                   const QIcon &pm = QIcon(),
                   const QString &text = QString(),
                   const QString &str = QString() ) :
@@ -85,10 +85,10 @@ KateFileBrowserConfigPage::KateFileBrowserConfigPage( QWidget *parent, KateFileB
   gbToolbar->setLayout(vbox);
 
   lo->addWidget( gbToolbar );
-  connect( acSel, SIGNAL(added(QListWidgetItem*)), this, SLOT(slotMyChanged()) );
-  connect( acSel, SIGNAL(removed(QListWidgetItem*)), this, SLOT(slotMyChanged()) );
-  connect( acSel, SIGNAL(movedUp(QListWidgetItem*)), this, SLOT(slotMyChanged()) );
-  connect( acSel, SIGNAL(movedDown(QListWidgetItem*)), this, SLOT(slotMyChanged()) );
+  connect(acSel, &KActionSelector::added, this, &KateFileBrowserConfigPage::slotMyChanged);
+  connect(acSel, &KActionSelector::removed, this, &KateFileBrowserConfigPage::slotMyChanged);
+  connect(acSel, &KActionSelector::movedUp, this, &KateFileBrowserConfigPage::slotMyChanged);
+  connect(acSel, &KActionSelector::movedDown, this, &KateFileBrowserConfigPage::slotMyChanged);
 
   // make it look nice
   lo->addStretch( 1 );
@@ -156,7 +156,7 @@ void KateFileBrowserConfigPage::init()
              << QStringLiteral("show hidden") /*<< QStringLiteral("view menu") << QStringLiteral("properties")*/
              << QStringLiteral("bookmarks") << QStringLiteral("sync_dir") << QStringLiteral("configure");
   QRegExp re(QStringLiteral ("&(?=[^&])"));
-  QAction *ac = 0;
+  QAction *ac = nullptr;
   QListWidget *lb;
   for ( QStringList::Iterator it = allActions.begin(); it != allActions.end(); ++it )
   {

@@ -30,7 +30,7 @@ KateProjectInfoViewTerminal::KateProjectInfoViewTerminal(KateProjectPluginView *
     : QWidget()
     , m_pluginView(pluginView)
     , m_project(project)
-    , m_konsolePart(0)
+    , m_konsolePart(nullptr)
 {
     /**
      * layout widget
@@ -51,7 +51,7 @@ KateProjectInfoViewTerminal::~KateProjectInfoViewTerminal()
      * avoid endless loop
      */
     if (m_konsolePart) {
-        disconnect(m_konsolePart, SIGNAL(destroyed()), this, SLOT(loadTerminal()));
+        disconnect(m_konsolePart, &KParts::ReadOnlyPart::destroyed, this, &KateProjectInfoViewTerminal::loadTerminal);
     }
 }
 
@@ -60,7 +60,7 @@ void KateProjectInfoViewTerminal::loadTerminal()
     /**
      * null in any case, if loadTerminal fails below and we are in the destroyed event
      */
-    m_konsolePart = 0;
+    m_konsolePart = nullptr;
 
     /**
      * get konsole part factory
@@ -97,7 +97,7 @@ void KateProjectInfoViewTerminal::loadTerminal()
     /**
      * guard destruction, create new terminal!
      */
-    connect(m_konsolePart, SIGNAL(destroyed()), this, SLOT(loadTerminal()));
+    connect(m_konsolePart, &KParts::ReadOnlyPart::destroyed, this, &KateProjectInfoViewTerminal::loadTerminal);
     connect(m_konsolePart, SIGNAL(overrideShortcut(QKeyEvent *, bool &)),
             this, SLOT(overrideShortcut(QKeyEvent *, bool &)));
 }

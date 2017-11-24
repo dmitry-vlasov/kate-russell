@@ -47,13 +47,13 @@ class KateKonsolePlugin: public KTextEditor::Plugin
   friend class KateKonsolePluginView;
   
   public:
-    explicit KateKonsolePlugin( QObject* parent = 0, const QList<QVariant>& = QList<QVariant>() );
-    virtual ~KateKonsolePlugin();
+    explicit KateKonsolePlugin( QObject* parent = nullptr, const QList<QVariant>& = QList<QVariant>() );
+    ~KateKonsolePlugin() override;
 
-    QObject *createView (KTextEditor::MainWindow *mainWindow) Q_DECL_OVERRIDE;
+    QObject *createView (KTextEditor::MainWindow *mainWindow) override;
 
-    int configPages() const Q_DECL_OVERRIDE { return 1; }
-    KTextEditor::ConfigPage *configPage (int number = 0, QWidget *parent = 0) Q_DECL_OVERRIDE;
+    int configPages() const override { return 1; }
+    KTextEditor::ConfigPage *configPage (int number = 0, QWidget *parent = nullptr) override;
 
     void readConfig();
 
@@ -77,7 +77,7 @@ class KateKonsolePluginView : public QObject
     /**
      * Virtual destructor.
      */
-    ~KateKonsolePluginView ();
+    ~KateKonsolePluginView () override;
 
     void readConfig();
 
@@ -106,7 +106,7 @@ class KateConsole : public QWidget, public KXMLGUIClient
     /**
      * destruct us
      */
-    ~KateConsole ();
+    ~KateConsole () override;
 
     void readConfig();
 
@@ -136,7 +136,7 @@ class KateConsole : public QWidget, public KXMLGUIClient
     /**
      * synchronize the konsole with the current document (cd to the directory)
      */
-    void slotSync(KTextEditor::View *view = 0);
+    void slotSync(KTextEditor::View *view = nullptr);
     /**
      * When syncing is done by the user, also show the terminal if it is hidden
      */
@@ -169,7 +169,7 @@ class KateConsole : public QWidget, public KXMLGUIClient
      * the konsole get shown
      * @param ev show event
      */
-    void showEvent(QShowEvent *ev) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *ev) override;
 
   private:
     /**
@@ -194,17 +194,17 @@ class KateConsole : public QWidget, public KXMLGUIClient
 class KateKonsoleConfigPage : public KTextEditor::ConfigPage {
     Q_OBJECT
   public:
-    explicit KateKonsoleConfigPage( QWidget* parent = 0, KateKonsolePlugin *plugin = 0 );
-    virtual ~KateKonsoleConfigPage()
+    explicit KateKonsoleConfigPage( QWidget* parent = nullptr, KateKonsolePlugin *plugin = nullptr );
+    ~KateKonsoleConfigPage() override
     {}
 
-    QString name() const Q_DECL_OVERRIDE;
-    QString fullName() const Q_DECL_OVERRIDE;
-    QIcon icon() const Q_DECL_OVERRIDE;
+    QString name() const override;
+    QString fullName() const override;
+    QIcon icon() const override;
 
-    void apply() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
-    void defaults() Q_DECL_OVERRIDE
+    void apply() override;
+    void reset() override;
+    void defaults() override
     {}
   private:
     class QCheckBox *cbAutoSyncronize;

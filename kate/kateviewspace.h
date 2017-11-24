@@ -39,7 +39,7 @@ class KateViewSpace : public QWidget
     Q_OBJECT
 
 public:
-    explicit KateViewSpace(KateViewManager *, QWidget *parent = 0, const char *name = 0);
+    explicit KateViewSpace(KateViewManager *, QWidget *parent = nullptr, const char *name = nullptr);
 
     /**
      * Returns \e true, if this view space is currently the active view space.
@@ -92,7 +92,7 @@ public:
     /**
      * Event filter to catch events from view space tool buttons.
      */
-    bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
     /**
      * Focus the previous tab in the tabbar.

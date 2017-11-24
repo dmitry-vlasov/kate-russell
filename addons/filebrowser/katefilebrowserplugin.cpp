@@ -43,7 +43,7 @@ KateFileBrowserPlugin::KateFileBrowserPlugin(QObject* parent, const QList<QVaria
 QObject *KateFileBrowserPlugin::createView (KTextEditor::MainWindow *mainWindow)
 {
   KateFileBrowserPluginView* view = new KateFileBrowserPluginView (this, mainWindow);
-  connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(viewDestroyed(QObject*)));
+  connect(view, &KateFileBrowserPluginView::destroyed, this, &KateFileBrowserPlugin::viewDestroyed);
   m_views.append(view);
   return view;
 }
@@ -62,7 +62,7 @@ int KateFileBrowserPlugin::configPages() const
 KTextEditor::ConfigPage *KateFileBrowserPlugin::configPage (int number, QWidget *parent)
 {
   if (number != 0)
-    return 0;
+    return nullptr;
   return new KateFileBrowserConfigPage(parent, m_views[0]->m_fileBrowser);
 }
 //END KateFileBrowserPlugin

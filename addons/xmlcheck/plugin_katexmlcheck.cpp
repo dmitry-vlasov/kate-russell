@@ -119,10 +119,10 @@ PluginKateXMLCheckView::PluginKateXMLCheckView( KTextEditor::Plugin *plugin,
 
     dock = m_mainWindow->createToolView(plugin, "kate_plugin_xmlcheck_ouputview", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("misc"), i18n("XML Checker Output"));
     listview = new QTreeWidget( dock );
-    m_tmp_file=0;
+    m_tmp_file=nullptr;
     QAction *a = actionCollection()->addAction("xml_check");
     a->setText(i18n("Validate XML"));
-    connect(a, SIGNAL(triggered()), this, SLOT(slotValidate()));
+    connect(a, &QAction::triggered, this, &PluginKateXMLCheckView::slotValidate);
     // TODO?:
     //(void)  new KAction ( i18n("Indent XML"), KShortcut(), this,
     //	SLOT(slotIndent()), actionCollection(), "xml_indent" );
@@ -135,7 +135,7 @@ PluginKateXMLCheckView::PluginKateXMLCheckView( KTextEditor::Plugin *plugin,
     headers << i18n("Message");
     listview->setHeaderLabels(headers);
     listview->setRootIsDecorated(false);
-    connect(listview, SIGNAL(itemClicked(QTreeWidgetItem*,int)), SLOT(slotClicked(QTreeWidgetItem*,int)));
+    connect(listview, &QTreeWidget::itemClicked, this, &PluginKateXMLCheckView::slotClicked);
 
     QHeaderView *header = listview->header();
     header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -151,7 +151,7 @@ PluginKateXMLCheckView::PluginKateXMLCheckView( KTextEditor::Plugin *plugin,
    connect(kv, SIGNAL(modifiedChanged()), this, SLOT(slotUpdate()));
 */
 
-    connect(&m_proc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(slotProcExited(int,QProcess::ExitStatus)));
+    connect(&m_proc, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &PluginKateXMLCheckView::slotProcExited);
     // we currently only want errors:
     m_proc.setProcessChannelMode(QProcess::SeparateChannels);
     // m_proc.setProcessChannelMode(QProcess::ForwardedChannels); // For Debugging. Do not use this.
@@ -186,7 +186,7 @@ void PluginKateXMLCheckView::slotProcExited(int exitCode, QProcess::ExitStatus e
     QApplication::restoreOverrideCursor();
     delete m_tmp_file;
     QString proc_stderr = QString::fromLocal8Bit(m_proc.readAllStandardError());
-    m_tmp_file=0;
+    m_tmp_file=nullptr;
     listview->clear();
     uint list_count = 0;
     uint err_count = 0;
@@ -205,7 +205,7 @@ void PluginKateXMLCheckView::slotProcExited(int exitCode, QProcess::ExitStatus e
         list_count++;
     }
     if( ! proc_stderr.isEmpty() ) {
-        QStringList lines = proc_stderr.split("\n", QString::SkipEmptyParts);
+        QStringList lines = proc_stderr.split('\n', QString::SkipEmptyParts);
         QString linenumber, msg;
         int line_count = 0;
         for(QStringList::Iterator it = lines.begin(); it != lines.end(); ++it) {
@@ -299,10 +299,10 @@ bool PluginKateXMLCheckView::slotValidate()
 	m_tmp_file = new QTemporaryFile();
 	if( !m_tmp_file->open() ) {
 		qDebug() << "Error (slotValidate()): could not create '" << m_tmp_file->fileName() << "': " << m_tmp_file->errorString();
-		KMessageBox::error(0, i18n("<b>Error:</b> Could not create "
+		KMessageBox::error(nullptr, i18n("<b>Error:</b> Could not create "
 			"temporary file '%1'.", m_tmp_file->fileName()));
 		delete m_tmp_file;
-		m_tmp_file=0L;
+		m_tmp_file=nullptr;
 		return false;
 	}
 
@@ -344,7 +344,7 @@ bool PluginKateXMLCheckView::slotValidate()
         // xmllint --noout --path "/home/user/my/with:colon/" --valid "/tmp/kate.X23725"
         // As workaround we can encode ':' with %3A
         QString path = kv->document()->url().toString(QUrl::RemoveFilename|QUrl::PreferLocalFile|QUrl::EncodeSpaces);
-        path.replace(":","%3A");
+        path.replace(':',"%3A");
         // because of such inconvinience with xmllint and pathes, maybe switch to xmlstarlet?
 
         qDebug() << "path=" << path;
@@ -392,7 +392,7 @@ bool PluginKateXMLCheckView::slotValidate()
         qDebug() << "args=" << args;
         qDebug() << "exit code:"<< m_proc.exitCode();
         if( ! m_proc.waitForStarted(-1) ) {
-		KMessageBox::error(0, i18n("<b>Error:</b> Failed to execute xmllint. Please make "
+		KMessageBox::error(nullptr, i18n("<b>Error:</b> Failed to execute xmllint. Please make "
 			"sure that xmllint is installed. It is part of libxml2."));
 		return false;
 	}

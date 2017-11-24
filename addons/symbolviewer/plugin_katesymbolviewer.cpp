@@ -79,7 +79,7 @@ KatePluginSymbolViewerView::KatePluginSymbolViewerView(KTextEditor::Plugin *plug
   setXMLFile(QLatin1String("ui.rc"));
 
   mw->guiFactory()->addClient (this);
-  m_symbols = 0;
+  m_symbols = nullptr;
 
   m_popup = new QMenu(m_symbols);
   m_popup->addAction(i18n("Refresh List"), this, SLOT(slotRefreshSymbol()));
@@ -106,10 +106,10 @@ KatePluginSymbolViewerView::KatePluginSymbolViewerView(KTextEditor::Plugin *plug
   func_on = true;
 
   m_updateTimer.setSingleShot(true);
-  connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(slotRefreshSymbol()));
+  connect(&m_updateTimer, &QTimer::timerId, this, &KatePluginSymbolViewerView::slotRefreshSymbol);
 
   m_currItemTimer.setSingleShot(true);
-  connect(&m_currItemTimer, SIGNAL(timeout()), this, SLOT(updateCurrTreeItem()));
+  connect(&m_currItemTimer, &QTimer::timeout, this, &KatePluginSymbolViewerView::updateCurrTreeItem);
 
   QPixmap cls( ( const char** ) class_xpm );
 
@@ -127,10 +127,10 @@ KatePluginSymbolViewerView::KatePluginSymbolViewerView(KTextEditor::Plugin *plug
   layout->addWidget(m_symbols, 10);
   layout->setContentsMargins(0,0,0,0);
 
-  connect(m_symbols, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(goToSymbol(QTreeWidgetItem*)));
-  connect(m_symbols, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotShowContextMenu(QPoint)));
+  connect(m_symbols, &QTreeWidget::itemClicked, this, &KatePluginSymbolViewerView::goToSymbol);
+  connect(m_symbols, &QTreeWidget::customContextMenuRequested, this, &KatePluginSymbolViewerView::slotShowContextMenu);
 
-  connect(m_mainWindow, SIGNAL(viewChanged(KTextEditor::View *)), this, SLOT(slotDocChanged()));
+  connect(m_mainWindow, &KTextEditor::MainWindow::viewChanged, this, &KatePluginSymbolViewerView::slotDocChanged);
 
   QStringList titles;
   titles << i18nc("@title:column", "Symbols") << i18nc("@title:column", "Position");
@@ -225,12 +225,10 @@ void KatePluginSymbolViewerView::slotDocChanged()
  KTextEditor::View *view = m_mainWindow->activeView();
  //qDebug()<<"Document changed !!!!" << view;
  if (view) {
-   connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View*,KTextEditor::Cursor)),
-           this, SLOT(cursorPositionChanged()), Qt::UniqueConnection);
+   connect(view, &KTextEditor::View::cursorPositionChanged, this, &KatePluginSymbolViewerView::cursorPositionChanged);
 
    if (view->document()) {
-     connect(view->document(), SIGNAL(textChanged(KTextEditor::Document*)),
-             this, SLOT(slotDocEdited()), Qt::UniqueConnection);
+     connect(view->document(), &KTextEditor::Document::textChanged, this, &KatePluginSymbolViewerView::slotDocEdited);
    }
  }
 }
@@ -261,8 +259,8 @@ void KatePluginSymbolViewerView::updateCurrTreeItem()
   int currLine = editView->cursorPositionVirtual().line();
 
   int newItemLine = 0;
-  QTreeWidgetItem *newItem = 0;
-  QTreeWidgetItem *tmp = 0;
+  QTreeWidgetItem *newItem = nullptr;
+  QTreeWidgetItem *tmp = nullptr;
   for (int i=0; i<m_symbols->topLevelItemCount(); i++) {
     tmp = newActveItem(newItemLine, currLine, m_symbols->topLevelItem(i));
     if (tmp) newItem = tmp;
@@ -277,8 +275,8 @@ void KatePluginSymbolViewerView::updateCurrTreeItem()
 
 QTreeWidgetItem *KatePluginSymbolViewerView::newActveItem(int &newItemLine, int currLine, QTreeWidgetItem *item)
 {
-  QTreeWidgetItem *newItem = 0;
-  QTreeWidgetItem *tmp = 0;
+  QTreeWidgetItem *newItem = nullptr;
+  QTreeWidgetItem *tmp = nullptr;
   int itemLine = item->data(1, Qt::DisplayRole).toInt();
 
   if ((itemLine <= currLine) && (itemLine > newItemLine)) {
@@ -364,7 +362,7 @@ void KatePluginSymbolViewerView::goToSymbol(QTreeWidgetItem *it)
 
   //qDebug()<<"Slot Activated at pos: "<<m_symbols->indexOfTopLevelItem(it);
 
-  kv->setCursorPosition (KTextEditor::Cursor (it->text(1).toInt(NULL, 10), 0));
+  kv->setCursorPosition (KTextEditor::Cursor (it->text(1).toInt(nullptr, 10), 0));
 }
 
 KatePluginSymbolViewer::KatePluginSymbolViewer( QObject* parent, const QList<QVariant>& )
@@ -392,8 +390,7 @@ KTextEditor::ConfigPage* KatePluginSymbolViewer::configPage(int, QWidget *parent
   p->expandTree->setChecked(config.readEntry(QLatin1String("ExpandTree"), false));
   p->treeView->setChecked(config.readEntry(QLatin1String("TreeView"), false));
   p->sortSymbols->setChecked(config.readEntry(QLatin1String("SortSymbols"), false));
-  connect( p, SIGNAL(configPageApplyRequest(KatePluginSymbolViewerConfigPage*)),
-           SLOT(applyConfig(KatePluginSymbolViewerConfigPage*)) );
+  connect(p, &KatePluginSymbolViewerConfigPage::configPageApplyRequest, this, &KatePluginSymbolViewer::applyConfig);
   return (KTextEditor::ConfigPage*)p;
 }
 
@@ -443,10 +440,10 @@ KatePluginSymbolViewerConfigPage::KatePluginSymbolViewerConfigPage(
 
 
 //  throw signal changed
-  connect(viewReturns, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
-  connect(expandTree, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
-  connect(treeView, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
-  connect(sortSymbols, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
+  connect(viewReturns, &QCheckBox::toggled, this, &KatePluginSymbolViewerConfigPage::changed);
+  connect(expandTree, &QCheckBox::toggled, this, &KatePluginSymbolViewerConfigPage::changed);
+  connect(treeView, &QCheckBox::toggled, this, &KatePluginSymbolViewerConfigPage::changed);
+  connect(sortSymbols, &QCheckBox::toggled, this, &KatePluginSymbolViewerConfigPage::changed);
 }
 
 KatePluginSymbolViewerConfigPage::~KatePluginSymbolViewerConfigPage() {}

@@ -33,18 +33,18 @@ class KateBookmarkHandler : public QObject, public KBookmarkOwner
     Q_OBJECT
 
   public:
-    explicit KateBookmarkHandler( KateFileBrowser *parent, QMenu *kpopupmenu = 0 );
-    ~KateBookmarkHandler();
+    explicit KateBookmarkHandler( KateFileBrowser *parent, QMenu *kpopupmenu = nullptr );
+    ~KateBookmarkHandler() override;
 
     // KBookmarkOwner interface:
-    QUrl currentUrl() const Q_DECL_OVERRIDE;
-    QString currentTitle() const Q_DECL_OVERRIDE;
+    QUrl currentUrl() const override;
+    QString currentTitle() const override;
 
     QMenu *menu() const
     {
       return m_menu;
     }
-    void openBookmark( const KBookmark &, Qt::MouseButtons, Qt::KeyboardModifiers ) Q_DECL_OVERRIDE;
+    void openBookmark( const KBookmark &, Qt::MouseButtons, Qt::KeyboardModifiers ) override;
 
   Q_SIGNALS:
     void openUrl( const QString& url );

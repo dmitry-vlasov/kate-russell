@@ -125,23 +125,23 @@ PluginKateXMLToolsView::PluginKateXMLToolsView(KTextEditor::MainWindow *mainWin)
     setXMLFile(QLatin1String("ui.rc"));
 
     QAction *actionInsert = new QAction(i18n("&Insert Element..."), this);
-    connect(actionInsert, SIGNAL(triggered()), &m_model, SLOT(slotInsertElement()));
+    connect(actionInsert, &QAction::triggered, &m_model, &PluginKateXMLToolsCompletionModel::slotInsertElement);
     actionCollection()->addAction("xml_tool_insert_element", actionInsert);
     actionCollection()->setDefaultShortcut(actionInsert, Qt::CTRL + Qt::Key_Return);
 
     QAction *actionClose = new QAction(i18n("&Close Element"), this);
-    connect(actionClose, SIGNAL(triggered()), &m_model, SLOT(slotCloseElement()));
+    connect(actionClose, &QAction::triggered, &m_model, &PluginKateXMLToolsCompletionModel::slotCloseElement);
     actionCollection()->addAction("xml_tool_close_element", actionClose);
     actionCollection()->setDefaultShortcut(actionClose, Qt::CTRL + Qt::Key_Less);
 
     QAction *actionAssignDTD = new QAction(i18n("Assign Meta &DTD..."), this);
-    connect(actionAssignDTD, SIGNAL(triggered()), &m_model, SLOT(getDTD()));
+    connect(actionAssignDTD, &QAction::triggered, &m_model, &PluginKateXMLToolsCompletionModel::getDTD);
     actionCollection()->addAction("xml_tool_assign", actionAssignDTD);
 
     mainWin->guiFactory()->addClient(this);
 
-    connect(KTextEditor::Editor::instance()->application(), SIGNAL(documentDeleted(KTextEditor::Document *)),
-            &m_model, SLOT(slotDocumentDeleted(KTextEditor::Document *)));
+    connect(KTextEditor::Editor::instance()->application(), &KTextEditor::Application::documentDeleted,
+            &m_model, &PluginKateXMLToolsCompletionModel::slotDocumentDeleted);
 }
 
 PluginKateXMLToolsView::~PluginKateXMLToolsView()
@@ -154,7 +154,7 @@ PluginKateXMLToolsView::~PluginKateXMLToolsView()
 
 PluginKateXMLToolsCompletionModel::PluginKateXMLToolsCompletionModel(QObject *const parent)
     : CodeCompletionModel(parent)
-    , m_viewToAssignTo(0)
+    , m_viewToAssignTo(nullptr)
     , m_mode(none)
     , m_correctPos(0)
 {
@@ -319,7 +319,7 @@ QModelIndex PluginKateXMLToolsCompletionModel::index(const int row,
     }
     if (parent.internalId() == groupNode) {                   // Is this a group node?
         if (0 <= row && row < m_allowed.size()) {               // Make sure to return only valid indices
-            return createIndex(row, column, (void *)0);    // Just return a leaf-level index
+            return createIndex(row, column, (void *)nullptr);    // Just return a leaf-level index
         }
     }
     // Leaf node has no children... nothing to return
@@ -456,7 +456,7 @@ void PluginKateXMLToolsCompletionModel::getDTD()
                                           "*.xml");
     } else {
         url.setUrl(defaultDir + filename);
-        KMessageBox::information(0, i18n("The current file has been identified "
+        KMessageBox::information(nullptr, i18n("The current file has been identified "
                                          "as a document of type \"%1\". The meta DTD for this document type "
                                          "will now be loaded.", doctype),
                                  i18n("Loading XML Meta DTD"),
@@ -477,9 +477,9 @@ void PluginKateXMLToolsCompletionModel::getDTD()
 
         QGuiApplication::setOverrideCursor(Qt::WaitCursor);
         KIO::Job *job = KIO::get(url);
-        connect(job, SIGNAL(result(KJob *)), this, SLOT(slotFinished(KJob *)));
+        connect(job, &KIO::Job::result, this, &PluginKateXMLToolsCompletionModel::slotFinished);
         connect(job, SIGNAL(data(KIO::Job *, QByteArray)),
-                this, SLOT(slotData(KIO::Job *, QByteArray)));
+                 this, SLOT(slotData(KIO::Job *, QByteArray)));
     }
     qDebug() << "XMLTools::getDTD: Documents: " << m_docDtds.count() << ", DTDs: " << m_dtds.count();
 }
@@ -491,7 +491,7 @@ void PluginKateXMLToolsCompletionModel::slotFinished(KJob *job)
         static_cast<KIO::Job *>(job)->uiDelegate()->showErrorMessage();
     } else if (static_cast<KIO::TransferJob *>(job)->isErrorPage()) {
         // catch failed loading loading via http:
-        KMessageBox::error(0, i18n("The file '%1' could not be opened. "
+        KMessageBox::error(nullptr, i18n("The file '%1' could not be opened. "
                                    "The server returned an error.", m_urlString),
                            i18n("XML Plugin Error"));
     } else {
@@ -502,7 +502,7 @@ void PluginKateXMLToolsCompletionModel::slotFinished(KJob *job)
         assignDTD(dtd, m_viewToAssignTo);
 
         // clean up a bit
-        m_viewToAssignTo = 0;
+        m_viewToAssignTo = nullptr;
         m_dtdString.clear();
     }
     QGuiApplication::restoreOverrideCursor();
@@ -1073,8 +1073,7 @@ InsertElement::InsertElement(const QStringList & completions, QWidget * parent)
     // combo box
     m_cmbElements = new KHistoryComboBox(this);
     static_cast<KHistoryComboBox*>(m_cmbElements)->setHistoryItems(completions, true);
-    connect(m_cmbElements->lineEdit(), SIGNAL(textChanged(QString)),
-            this, SLOT(slotHistoryTextChanged(QString)));
+    connect(m_cmbElements->lineEdit(), &QLineEdit::textChanged, this, &InsertElement::slotHistoryTextChanged);
 
     // button box
     QDialogButtonBox * box = new QDialogButtonBox(this);
@@ -1082,8 +1081,8 @@ InsertElement::InsertElement(const QStringList & completions, QWidget * parent)
     m_okButton = box->button(QDialogButtonBox::Ok);
     m_okButton->setDefault(true);
 
-    connect(box, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(box, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(box, &QDialogButtonBox::accepted, this, &InsertElement::accept);
+    connect(box, &QDialogButtonBox::rejected, this, &InsertElement::reject);
 
     // fill layout
     topLayout->addWidget(label);

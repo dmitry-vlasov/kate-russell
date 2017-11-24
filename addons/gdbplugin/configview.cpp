@@ -105,26 +105,26 @@ ConfigView::ConfigView(QWidget* parent, KTextEditor::MainWindow* mainWin)
 
     m_advancedSettings = new QPushButton(i18n("Advanced Settings"));
 
-    m_checBoxLayout = 0;
+    m_checBoxLayout = nullptr;
 
     // first false then true to make sure a layout is set
     m_useBottomLayout = false;
-    resizeEvent(0);
+    resizeEvent(nullptr);
     m_useBottomLayout = true;
-    resizeEvent(0);
+    resizeEvent(nullptr);
 
     m_advanced = new AdvancedGDBSettings(this);
     m_advanced->hide();
 
-    connect(m_targetCombo,  SIGNAL(editTextChanged(QString)), this, SLOT(slotTargetEdited(QString)));
-    connect(m_targetCombo,  SIGNAL(currentIndexChanged(int)), this, SLOT(slotTargetSelected(int)));
-    connect(m_addTarget,    SIGNAL(clicked()),                this, SLOT(slotAddTarget()));
-    connect(m_copyTarget,   SIGNAL(clicked()),                this, SLOT(slotCopyTarget()));
-    connect(m_deleteTarget, SIGNAL(clicked()),                this, SLOT(slotDeleteTarget()));
-    connect(m_browseExe,    SIGNAL(clicked()),                this, SLOT(slotBrowseExec()));
-    connect(m_browseDir,    SIGNAL(clicked()),                this, SLOT(slotBrowseDir()));
-    connect(m_redirectTerminal, SIGNAL(toggled(bool)),        this, SIGNAL(showIO(bool)));
-    connect(m_advancedSettings, SIGNAL(clicked()),            this, SLOT(slotAdvancedClicked()));
+    connect(m_targetCombo, &QComboBox::editTextChanged, this, &ConfigView::slotTargetEdited);
+    connect(m_targetCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ConfigView::slotTargetSelected);
+    connect(m_addTarget, &QToolButton::clicked, this, &ConfigView::slotAddTarget);
+    connect(m_copyTarget, &QToolButton::clicked, this, &ConfigView::slotCopyTarget);
+    connect(m_deleteTarget, &QToolButton::clicked, this, &ConfigView::slotDeleteTarget);
+    connect(m_browseExe, &QToolButton::clicked, this, &ConfigView::slotBrowseExec);
+    connect(m_browseDir, &QToolButton::clicked, this, &ConfigView::slotBrowseDir);
+    connect(m_redirectTerminal, &QCheckBox::toggled, this, &ConfigView::showIO);
+    connect(m_advancedSettings, &QPushButton::clicked, this, &ConfigView::slotAdvancedClicked);
 }
 
 ConfigView::~ConfigView()
@@ -135,8 +135,8 @@ void ConfigView::registerActions(KActionCollection* actionCollection)
 {
     m_targetSelectAction = actionCollection->add<KSelectAction>(QStringLiteral("targets"));
     m_targetSelectAction->setText(i18n("Targets"));
-    connect(m_targetSelectAction, SIGNAL(triggered(int)),
-            this, SLOT(slotTargetSelected(int)));
+    connect(m_targetSelectAction, static_cast<void (KSelectAction::*)(int)>(&KSelectAction::triggered),
+            this, &ConfigView::slotTargetSelected);
 }
 
 void ConfigView::readConfig(const KConfigGroup& group)
@@ -352,7 +352,7 @@ void ConfigView::resizeEvent(QResizeEvent *)
     if (m_useBottomLayout && size().height() > size().width()) {
         // Set layout for the side
         delete m_checBoxLayout;
-        m_checBoxLayout = 0;
+        m_checBoxLayout = nullptr;
         delete layout();
         QGridLayout* layout = new QGridLayout(this);
 
@@ -464,11 +464,11 @@ void ConfigView::slotBrowseExec()
         // try current document dir
         KTextEditor::View*  view = m_mainWindow->activeView();
 
-        if (view != NULL) {
+        if (view != nullptr) {
             exe = view->document()->url().toLocalFile();
         }
     }
-    m_executable->setText(QFileDialog::getOpenFileName((QWidget *)0, QString(), exe /*, QStringLiteral("application/x-executable")*/));
+    m_executable->setText(QFileDialog::getOpenFileName((QWidget *)nullptr, QString(), exe, QStringLiteral("application/x-executable")));
 }
 
 void ConfigView::slotBrowseDir()
@@ -479,7 +479,7 @@ void ConfigView::slotBrowseDir()
         // try current document dir
         KTextEditor::View*  view = m_mainWindow->activeView();
 
-        if (view != NULL) {
+        if (view != nullptr) {
             dir = view->document()->url().toLocalFile();
         }
     }

@@ -51,8 +51,8 @@ class CloseConfirmDialog : public QDialog, public Ui::CloseConfirmDialog
     Q_OBJECT
 public:
     /// Default constructor
-    explicit CloseConfirmDialog(QList<KTextEditor::Document*>&, KToggleAction*, QWidget* const = 0);
-    ~CloseConfirmDialog();
+    explicit CloseConfirmDialog(QList<KTextEditor::Document*>&, KToggleAction*, QWidget* const = nullptr);
+    ~CloseConfirmDialog() override;
 
 private Q_SLOTS:
     void updateDocsList();
