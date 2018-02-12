@@ -52,5 +52,6 @@ target_link_libraries (katerussellplugin
     KF5::Service
 )
 
-install (TARGETS katerussellplugin DESTINATION ${PLUGIN_INSTALL_DIR}/ktexteditor)
+install(TARGETS katerussellplugin DESTINATION ${PLUGIN_INSTALL_DIR}/ktexteditor )
+install(TARGETS katerussellplugin DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/ktexteditor )
 
