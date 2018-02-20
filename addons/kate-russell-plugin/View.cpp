@@ -55,25 +55,17 @@ namespace russell {
 			i18n ("Russell")
 		)
 	),
-	bottomUi_ (),
-
-	popupMenu_ (),
-	lookupDefinition_ (NULL),
-	openDefinition_ (NULL),
-	latexToUnicode_ (NULL),
-	proveAutomatically_ (NULL),
-	proveInteractive_(NULL),
+	lookupDefinition_ (nullptr),
+	openDefinition_ (nullptr),
+	latexToUnicode_ (nullptr),
+	proveAutomatically_ (nullptr),
+	proveInteractive_(nullptr),
 
 	outline_ (new Outline (mainWindow_, this)),
 	structure_ (new Structure (mainWindow_, this)),
 	typeSystem_ (new TypeSystem (mainWindow_, this)),
 	proof_ (new Proof (mainWindow_, this)),
-
-	client_ (new Client (this)),
-
-	output_ (),
-	outputBuffer_ (),
-	state_ (WAITING)
+	client_ (new Client (this))
 	{
 		if (instance_)
 			KMessageBox::error(0, i18n ("Russell plugin view is already initialized"));
@@ -109,7 +101,7 @@ namespace russell {
 
 	View :: State_
 	View :: getState() const {
-		return state_;
+		return state_.get();
 	}
 	Ui :: Bottom&
 	View :: getBottomUi() {
@@ -124,9 +116,10 @@ namespace russell {
 	{
 		output_.clear();
 		bottomUi_.outputTextEdit->clear();
-		if ((state_ == LOOKING_DEFINITION) || (state_ == OPENING_DEFINITION) ||
-			(state_ == MINING_OUTLINE) || (state_ == MINING_STRUCTURE) || 
-			(state_ == MINING_TYPE_SYSTEM)) {
+		State_ s = state_.get();
+		if ((s == LOOKING_DEFINITION) || (s == OPENING_DEFINITION) ||
+			(s == MINING_OUTLINE) || (s == MINING_STRUCTURE) ||
+			(s == MINING_TYPE_SYSTEM)) {
 			return;
 		}
 		bottomUi_.qtabwidget->setCurrentIndex (1);
@@ -164,14 +157,8 @@ namespace russell {
 		gotoLocation (path, line, column);
 	}
 
-	Client*
-	View :: client() {
-		return client_;
-	}
-	Proof*
-	View :: proof() {
-		return proof_;
-	}
+	Client* View::client() { return client_; }
+	Proof* View::proof() { return proof_; }
 
 	const QString& 
 	View :: getOutput() const {
@@ -181,25 +168,25 @@ namespace russell {
 	View :: mineOutline (const QString& options) 
 	{
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = MINING_OUTLINE;
-		client_->mine (file, options);
+		if (file.size() && state_.start(MINING_OUTLINE)) {
+			client_->mine (file, options);
+		}
 	}
 	void 
 	View :: mineStructure (const QString& options) 
 	{
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = MINING_STRUCTURE;
-		client_->mine (file, options);
+		if (file.size() && state_.start(MINING_STRUCTURE)) {
+			client_->mine (file, options);
+		}
 	}
 	void 
 	View :: mineTypeSystem (const QString& options) 
 	{
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = MINING_TYPE_SYSTEM;
-		client_->mine (file, options);
+		if (file.size() && state_.start(MINING_TYPE_SYSTEM)) {
+			client_->mine (file, options);
+		}
 	}
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
@@ -265,27 +252,29 @@ namespace russell {
 	void
 	View::slotRead(KTextEditor::View* view) {
 		QString file = currentFile();
-		if (!file.size()) return;
-		connect(
-			view->document(),
-			SIGNAL(documentSavedOrUploaded(KTextEditor::Document*, bool)),
-			this,
-			SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
-		);
-		state_ = READING;
-		client_->open(file);
+		if (file.size() && state_.start(READING)) {
+			connect(
+				view->document(),
+				SIGNAL(documentSavedOrUploaded(KTextEditor::Document*, bool)),
+				this,
+				SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
+			);
+			client_->open(file);
+		}
 	}
 	void
 	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
 		QString file = doc->url().toLocalFile();
-		if (!file.size()) return;
-		state_ = READING;
-		client_->open(file);
+		if (file.size() && state_.start(READING)) {
+			client_->open(file);
+		}
 	}
 
 	void
 	View :: slotCommandCompleted(quint32 code, const QString& msg, const QString& data)
 	{
+		State_ state = state_.get();
+		state_.stop();
 		if (!code) {
 			output_ += msg;
 			outputBuffer_ += msg;
@@ -293,8 +282,9 @@ namespace russell {
 			//slotReadOutputStdOut (true);
 			//slotReadOutputStdErr (true);
 
+
 			QApplication :: restoreOverrideCursor();
-			switch (state_) {
+			switch (state) {
 			case READING:
 				outline_->refresh();
 				break;
@@ -329,7 +319,7 @@ namespace russell {
 				);*/;
 			}
 		} else {
-			switch (state_) {
+			switch (state) {
 			case READING:
 				QMessageBox::warning(mainWindow_->activeView(), i18n("Reading failed:"), msg);
 				break;
@@ -342,7 +332,6 @@ namespace russell {
 			//outputBuffer_ += QString :: number (code);
 			//outputBuffer_ += QStringLiteral("\n");
 		}
-		state_ = WAITING;
 	}
 
 	void 
@@ -354,50 +343,52 @@ namespace russell {
 	void 
 	View :: slotProveVerify()
 	{
-		state_ = PROVING;
-		clearOutput();
-		outputBuffer_ += QStringLiteral("----- proving -----\n");
-		client_->prove (false);
+		if (state_.start(PROVING)) {
+			clearOutput();
+			outputBuffer_ += QStringLiteral("----- proving -----\n");
+			client_->prove (false);
+		}
 	}
 	void 
 	View :: slotProve()
 	{
-		state_ = PROVING;
-		client_->prove();
+		if (state_.start(PROVING)) {
+			client_->prove();
+		}
 	}
 	void 
 	View :: slotProveInteractive()
 	{
-		if (Server::russell().isRunning()) {
-			state_ = PROVING;
+		if (Server::russell().isRunning() && state_.start(PROVING)) {
 			client_->execute(QStringLiteral("option --in prop.rus"));
 			client_->execute(QStringLiteral("read"));
 			client_->execute(QStringLiteral("check"));
 			client_->execute(QStringLiteral("exit"));
-			state_ = WAITING;
+			state_.stop();
 		}
 	}
 	void
 	View :: slotTranslate() {
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = TRANSLATING;
-		client_->translate(file);
+		if (file.size() && state_.start(TRANSLATING)) {
+			client_->translate(file);
+		}
 	}
 	void 
 	View :: slotVerify()
 	{
 		QString file = currentFile();
-		qDebug() << file;
-		if (!file.size()) return;
-		state_ = VERIFYING;
-		client_->verify(file);
+		//qDebug() << file;
+		if (file.size() && state_.start(VERIFYING)) {
+			client_->verify(file);
+		}
 	}
 	void 
 	View :: slotLearn()
 	{
-		state_ = VERIFYING;
-		client_->learn();
+		if (state_.start(VERIFYING)) {
+			client_->learn();
+		}
 	}
 	void
 	View :: slotConfirmProof(int proofIndex)
@@ -410,54 +401,55 @@ namespace russell {
 	void
 	View :: proveIdAutomatically()
 	{
-		state_ = PROVING;
-		KTextEditor :: View* activeView = mainWindow()->activeView();
-		if (!activeView) {
-			qDebug() << "no KTextEditor::View" << endl;
-			return;
-		}
-		if (!activeView->cursorPosition().isValid()) {
-			qDebug() << "cursor not valid!" << endl;
-			return;
-		}
-		const int line = activeView->cursorPosition().line();
-		const int column = activeView->cursorPosition().column();
+		if (state_.start(PROVING)) {
+			KTextEditor :: View* activeView = mainWindow()->activeView();
+			if (!activeView) {
+				qDebug() << "no KTextEditor::View" << endl;
+				return;
+			}
+			if (!activeView->cursorPosition().isValid()) {
+				qDebug() << "cursor not valid!" << endl;
+				return;
+			}
+			const int line = activeView->cursorPosition().line();
+			const int column = activeView->cursorPosition().column();
 
-		client_->prove (line, column, true);
+			client_->prove (line, column, true);
+		}
 	}
 	void
 	View :: proveIdInteractively()
 	{
 		if (!Server::russell().isRunning()) {
-			KMessageBox :: sorry (0, i18n ("Server cound not start."));
-			return;
-		}
-
-		state_ = PROVING_INTERACTIVELY;
-		KTextEditor :: View* activeView = mainWindow()->activeView();
-		if (!activeView) {
-			qDebug() << "no KTextEditor::View" << endl;
-			return;
-		}
-		if (!activeView->cursorPosition().isValid()) {
-			qDebug() << "cursor not valid!" << endl;
-			return;
-		}
-		const int line = activeView->cursorPosition().line();
-		const int column = activeView->cursorPosition().column();
-
-		if (!Server::russell().isRunning()) {
 			KMessageBox :: sorry (0, i18n ("Server could not start."));
 			return;
 		}
-		proof_->fell();
-		//client_->setupInFile();
-		//client_->setupOutFile();
-		client_->execute (QStringLiteral("read"));
-		client_->execute (QStringLiteral("check"));
-		//client_->setupPosition (line, column);
-		proof_->plant();
-		proof_->show();
+		if (state_.start(PROVING_INTERACTIVELY)) {
+			KTextEditor :: View* activeView = mainWindow()->activeView();
+			if (!activeView) {
+				qDebug() << "no KTextEditor::View" << endl;
+				return;
+			}
+			if (!activeView->cursorPosition().isValid()) {
+				qDebug() << "cursor not valid!" << endl;
+				return;
+			}
+			const int line = activeView->cursorPosition().line();
+			const int column = activeView->cursorPosition().column();
+
+			if (!Server::russell().isRunning()) {
+				KMessageBox :: sorry (0, i18n ("Server could not start."));
+				return;
+			}
+			proof_->fell();
+			//client_->setupInFile();
+			//client_->setupOutFile();
+			client_->execute (QStringLiteral("read"));
+			client_->execute (QStringLiteral("check"));
+			//client_->setupPosition (line, column);
+			proof_->plant();
+			proof_->show();
+		}
 	}
 
 	// server slots
@@ -521,9 +513,9 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = LOOKING_DEFINITION;
-		client_->lookupDefinition (file, line, column);
+		if (file.size() && state_.start(LOOKING_DEFINITION)) {
+			client_->lookupDefinition (file, line, column);
+		}
 	}
 	void 
 	View :: openDefinition() 
@@ -541,9 +533,9 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (!file.size()) return;
-		state_ = OPENING_DEFINITION;
-		client_->lookupLocation (file, line, column);
+		if (file.size() && state_.start(OPENING_DEFINITION)) {
+			client_->lookupLocation (file, line, column);
+		}
 	}
 	void 
 	View :: latexToUnicode() 
@@ -1019,9 +1011,9 @@ namespace russell {
 
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 
-		connect (&Execute::russell(), SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
+		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
 
-		//connect (mainWindow_->activeView(), SIGNAL (viewChanged()), this, SLOT (refreshOutline()));
+		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
 
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));

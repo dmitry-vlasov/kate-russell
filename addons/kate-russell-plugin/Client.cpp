@@ -543,7 +543,6 @@ namespace russell {
 			view_->getBottomUi().russellListWidget->insertItem (row, QStringLiteral("> "));
 			row = view_->getBottomUi().russellListWidget->count();
 			view_->getBottomUi().russellListWidget->setCurrentRow (row);
-			return;
 		} else if (command == QStringLiteral("fell")) {
 			view_->proof()->fell();
 		} else if (reloadProverCommand (command)) {

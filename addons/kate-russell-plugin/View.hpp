@@ -158,8 +158,25 @@ private:
 
 	QString      output_;
 	QString      outputBuffer_;
-	State_       state_;
 	static View* instance_;
+
+	struct StateKeeper {
+		StateKeeper() : state_(WAITING) { }
+		State_ get() const {
+			return state_;
+		}
+		bool start(State_ s) {
+			if (state_ != WAITING) return false;
+			state_ = s;
+			return true;
+		}
+		void stop() {
+			state_ = WAITING;
+		}
+	private:
+		State_ state_;
+	};
+	StateKeeper state_;
 };
 
 }
