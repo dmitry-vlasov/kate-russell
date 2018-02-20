@@ -41,6 +41,7 @@ void ProjectConfig::initProject() {
 void ProjectConfig::loadMain() {
 	QString command;
 	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
+	command += QStringLiteral("rus parse;");
 	command += QStringLiteral("rus verify");
 	Execute::russell().execute(command);
 }

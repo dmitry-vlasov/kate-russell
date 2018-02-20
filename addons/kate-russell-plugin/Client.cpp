@@ -57,6 +57,7 @@ namespace russell {
 		//if (!Connection::mod().execute (command)) return false;
 		command += QStringLiteral("rus read ");
 		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
+		command += QStringLiteral("rus parse ;");
 		command += QStringLiteral("rus verify ");
 		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
 		if (!Execute::russell().execute (command)) return false;
