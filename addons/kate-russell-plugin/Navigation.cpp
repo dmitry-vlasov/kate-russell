@@ -59,7 +59,6 @@ inline QString de_escape_xml(const QString& s) {
 		View* view,
 		const Sort sort
 	) :
-	//QWidget (window->activeView()),
 	QWidget(window->activeView()),
 	window_ (window),
 	view_ (view),
@@ -364,5 +363,14 @@ inline QString de_escape_xml(const QString& s) {
 		QDomNode childNode = outlineNode.firstChild();
 		QTreeWidgetItem* childSibling = nullptr;
 		build (childNode, childSibling, item);
+	}
+
+	Navigation :: TreeWidget :: TreeWidget(QWidget* parent, Navigation* n) :
+		QTreeWidget(parent), navigation(n) { }
+
+	void
+	Navigation :: TreeWidget :: showEvent(QShowEvent *event) {
+		navigation->refresh();
+		QTreeView::showEvent(event);
 	}
 }

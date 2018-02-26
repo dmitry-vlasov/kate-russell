@@ -35,7 +35,7 @@ namespace russell {
 			QIcon (QStringLiteral("application-x-ms-dos-executable")),
 			i18n ("Structure")
 		);
-		tree_ = new QTreeWidget (toolView_);
+		tree_ = new TreeWidget (toolView_, this);
 		popup_ = new QMenu(tree_);
 
 		setup ("Structure");
@@ -58,7 +58,7 @@ namespace russell {
 	void 
 	Structure :: refresh() 
 	{
-		if (!window_->activeView()) return;
+		//if (!window_->activeView()) return;
 		QString options = getOptions();
 		view_->mineStructure (options);
 	}
