@@ -27,7 +27,7 @@
 
 namespace russell {
 
-void ProjectConfig::initProject() {
+QString ProjectConfig::initProjectCommand() const {
 	QString command;
 	command += QStringLiteral("rus curr proj=") + name_ + QStringLiteral(";\n");
 	command += QStringLiteral("rus opts verbose root=") + rusRoot_ + QStringLiteral(";\n");
@@ -35,15 +35,15 @@ void ProjectConfig::initProject() {
 	command += QStringLiteral("smm opts verbose root=") + smmRoot_ + QStringLiteral(";\n");
 	command += QStringLiteral("mm  curr proj=") + name_ + QStringLiteral(";\n");
 	command += QStringLiteral("mm  opts verbose root=") + mmRoot_ + QStringLiteral(";\n");
-	Execute::russell().execute(command);
+	return command;
 }
 
-void ProjectConfig::loadMain() {
+QString ProjectConfig::loadMainCommand() const {
 	QString command;
 	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
-	command += QStringLiteral("rus parse;");
-	command += QStringLiteral("rus verify");
-	Execute::russell().execute(command);
+	command += QStringLiteral("rus parse;\n");
+	command += QStringLiteral("rus verify;\n");
+	return command;
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
@@ -118,10 +118,24 @@ ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGro
 	connect(configUi_.chooseRusMainButton, SIGNAL(clicked()), this, SLOT(chooseRussellMainSlot()));
 	connect(configUi_.chooseSmmRootButton, SIGNAL(clicked()), this, SLOT(chooseSmmRootSlot()));
 	connect(configUi_.chooseMmRootButton,  SIGNAL(clicked()), this, SLOT(chooseMmRootSlot()));
+	connect(configUi_.autoinitCheckBox,  SIGNAL(stateChanged(int)), this, SLOT(checkAutoinitSlot(int)));
+	connect(configUi_.autoloadCheckBox,  SIGNAL(stateChanged(int)), this, SLOT(checkAutoloadSlot(int)));
 	connect(configUi_.projectsComboBox, SIGNAL(activated(int)), this, SLOT(switchProjectSlot(int)));
 	connect(configUi_.initProjectButton, SIGNAL(clicked()), this, SLOT(initProjectSlot()));
 	connect(configUi_.loadMainButton, SIGNAL(clicked()), this, SLOT(loadMainSlot()));
 	loadConfig();
+	QString initCommand;
+	for (auto& conf : ProjectConfig::projects()) {
+		if (conf.autoinit()) {
+			initCommand += conf.initProjectCommand();
+		}
+	}
+	for (auto& conf : ProjectConfig::projects()) {
+		if (conf.autoload()) {
+			initCommand += conf.loadMainCommand();
+		}
+	}
+	Execute::russell().execute(initCommand);
 }
 
 ProjectConfigTab::~ProjectConfigTab() {
@@ -255,6 +269,16 @@ void ProjectConfigTab::chooseMmRootSlot() {
 	configUi_.mmRootLineEdit->setText(new_root);
 }
 
+void ProjectConfigTab::checkAutoinitSlot(int state) {
+	QString name = configUi_.projectsComboBox->currentText();
+	ProjectConfig::projects()[name].setAutoinit(state == Qt::Checked);
+}
+
+void ProjectConfigTab::checkAutoloadSlot(int state) {
+	QString name = configUi_.projectsComboBox->currentText();
+	ProjectConfig::projects()[name].setAutoload(state == Qt::Checked);
+}
+
 void ProjectConfigTab::switchProjectSlot(int index) {
 	QString name = configUi_.projectsComboBox->itemText(index);
 	configUi_.projectGroupBox->setTitle(QStringLiteral("Project: ") + name);
@@ -266,12 +290,14 @@ void ProjectConfigTab::switchProjectSlot(int index) {
 
 void ProjectConfigTab::initProjectSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
-	ProjectConfig::projects()[name].initProject();
+	QString command = ProjectConfig::projects()[name].initProjectCommand();
+	Execute::russell().execute(command);
 }
 
 void ProjectConfigTab::loadMainSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
-	ProjectConfig::projects()[name].loadMain();
+	QString command = ProjectConfig::projects()[name].loadMainCommand();
+	Execute::russell().execute(command);
 }
 
 	/****************************
@@ -294,6 +320,8 @@ void ProjectConfigTab::loadConfigForProject(int i) {
 	ProjectConfig::projects()[name].setRusMain(configGroup_.readEntry(QStringLiteral("Projects %1 Rus main").arg(i), ""));
 	ProjectConfig::projects()[name].setSmmRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Smm root").arg(i), ""));
 	ProjectConfig::projects()[name].setMmRoot (configGroup_.readEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ""));
+	ProjectConfig::projects()[name].setAutoinit(configGroup_.readEntry(QStringLiteral("Projects %1 autoinit").arg(i), false));
+	ProjectConfig::projects()[name].setAutoload(configGroup_.readEntry(QStringLiteral("Projects %1 autoload").arg(i), false));
 	addProject(name);
 }
 
@@ -315,6 +343,8 @@ void ProjectConfigTab::saveConfigForProject(int i) {
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Rus main").arg(i), ProjectConfig::projects()[name].rusMain());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Smm root").arg(i), ProjectConfig::projects()[name].smmRoot());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ProjectConfig::projects()[name].mmRoot());
+	configGroup_.writeEntry(QStringLiteral("Projects %1 autoinit").arg(i), ProjectConfig::projects()[name].autoinit());
+	configGroup_.writeEntry(QStringLiteral("Projects %1 autoload").arg(i), ProjectConfig::projects()[name].autoload());
 }
 
 void ProjectConfigTab::removeConfigForProject(int i) {
@@ -325,6 +355,8 @@ void ProjectConfigTab::removeConfigForProject(int i) {
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Rus main").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Smm root").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Mm root").arg(i));
+	configGroup_.deleteEntry(QStringLiteral("Projects %1 autoinit").arg(i));
+	configGroup_.deleteEntry(QStringLiteral("Projects %1 autoload").arg(i));
 }
 
 }

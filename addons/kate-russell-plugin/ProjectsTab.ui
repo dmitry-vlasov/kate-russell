@@ -268,7 +268,7 @@
         <item>
          <widget class="QPushButton" name="pushButton">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -287,7 +287,7 @@
         <item>
          <widget class="QCheckBox" name="autoinitCheckBox">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -309,7 +309,7 @@
         <item>
          <widget class="QCheckBox" name="autoloadCheckBox">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -319,6 +319,9 @@
           </property>
           <property name="text">
            <string>autoload</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>

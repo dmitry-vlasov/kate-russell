@@ -31,15 +31,19 @@ public:
 	const QString& rusMain() const { return rusMain_; }
 	const QString& smmRoot() const { return smmRoot_; }
 	const QString&  mmRoot() const { return  mmRoot_; }
+	bool autoinit() const { return autoinit_; }
+	bool autoload() const { return autoinit_; }
 
 	void setName(const QString& name) { name_ = name; }
 	void setSmmRoot(const QString& smmRoot) { smmRoot_ = smmRoot; }
 	void setRusRoot(const QString& rusRoot) { rusRoot_ = rusRoot; }
 	void setMmRoot(const QString& mmRoot) { mmRoot_ = mmRoot; }
 	void setRusMain(const QString& rusMain) { rusMain_ = rusMain; }
+	void setAutoinit(bool ai) { autoinit_ = ai; }
+	void setAutoload(bool al) { autoload_ = al; }
 
-	void initProject();
-	void loadMain();
+	QString initProjectCommand() const;
+	QString loadMainCommand() const;
 
 	QString trimFile(const QString& file) const;
 	QString rusTarget(const QString& file) const;
@@ -61,6 +65,8 @@ private:
 	QString rusMain_;
 	QString smmRoot_;
 	QString mmRoot_;
+	bool autoinit_;
+	bool autoload_;
 };
 
 class ProjectConfigTab : public QWidget {
@@ -76,6 +82,8 @@ private Q_SLOTS:
 	void chooseRussellRootSlot();
 	void chooseSmmRootSlot();
 	void chooseMmRootSlot();
+	void checkAutoinitSlot(int);
+	void checkAutoloadSlot(int);
 	void switchProjectSlot(int);
 	void initProjectSlot();
 	void loadMainSlot();
