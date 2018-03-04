@@ -45,12 +45,12 @@ public Q_SLOTS:
 	void doNothing();
 
 	// Proof tree cultivation
-	void plant();
-	void grow (QTreeWidgetItem*);
-	void fell ();
-	void info ();
-	void show ();
-	void hide ();
+	void startProving();
+	void growTree (QTreeWidgetItem*);
+	void stopProving();
+	void info();
+	void show();
+	void hide();
 	void visibilityChanged (bool visible);
 
 private :

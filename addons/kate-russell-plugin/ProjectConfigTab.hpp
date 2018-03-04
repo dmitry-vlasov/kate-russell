@@ -19,6 +19,7 @@
 
 #include <KConfigGroup>
 
+#include "Kind.hpp"
 #include "ui_ProjectsTab.h"
 
 namespace russell {
@@ -45,6 +46,7 @@ public:
 	QString smmTarget(const QString& file) const;
 	QString mmTarget(const QString& file) const;
 	QString mergedTarget(const QString& file) const;
+	QString target(const QString& file, Lang lang) const;
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;

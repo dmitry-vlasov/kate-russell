@@ -50,6 +50,7 @@ const ProjectConfig* ProjectConfig::find(const QString& file) {
 	switch (file_type(file)) {
 	case Lang::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p; break;
 	case Lang::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p; break;
+	case Lang::MM:  for (auto& p : projects()) if (file.startsWith(p.mmRoot()))  return &p; break;
 	default: break;
 	}
 	return nullptr;
@@ -95,6 +96,18 @@ QString ProjectConfig::mmTarget(const QString& file) const {
 
 QString ProjectConfig::mergedTarget(const QString& file) const {
 	return trim_ext(trimFile(file)) + QStringLiteral("_merged.mm");
+}
+
+QString ProjectConfig::target(const QString& file, Lang lang) const {
+	switch (lang) {
+	case Lang::RUS: return rusTarget(file);
+	case Lang::SMM: return smmTarget(file);
+	case Lang::MM:  return mmTarget(file);
+	default: {
+		KMessageBox :: sorry(0, i18n ("Target file %1 extension is not specified", trim_ext(file)));
+		return QString();
+	}
+	}
 }
 
 ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QStringLiteral("Russell")) {

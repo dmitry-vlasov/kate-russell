@@ -42,5 +42,16 @@ inline Lang file_type(const QString& file) {
 	return Lang::OTHER;
 }
 
+inline QString lang_string(Lang lang) {
+	switch (lang) {
+	case Lang::RUS: return QStringLiteral("rus");
+	case Lang::SMM: return QStringLiteral("smm");
+	case Lang::MM:  return QStringLiteral("mm");
+	default:        return QStringLiteral("");
+	}
+}
+
+enum class ActionScope { PROJ, FILE };
+
 }
 

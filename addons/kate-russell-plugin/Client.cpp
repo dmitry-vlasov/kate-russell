@@ -32,6 +32,25 @@
 
 namespace russell {
 
+	struct FileConf {
+		QString file;
+		const ProjectConfig* conf;
+		operator bool() const { return conf; }
+	};
+
+	static FileConf chooseFileConf(const QString& file, ActionScope scope) {
+		const ProjectConfig* conf = ProjectConfig::find(file);
+		if (!conf) return FileConf {file, nullptr};
+		switch (scope) {
+		case ActionScope::PROJ: {
+			auto projFile = conf->rusRoot() + QStringLiteral("/") + conf->rusMain();
+			return FileConf {projFile, conf};
+		}
+		case ActionScope::FILE: return FileConf{file, conf};
+		default: return FileConf {file, conf};
+		}
+	}
+
 	/****************************
 	 *	Public members
 	 ****************************/
@@ -46,23 +65,23 @@ namespace russell {
 		return Execute::russell().execute (command);
 	}
 	bool
-	Client::open(const QString& file) {
-		const ProjectConfig* conf = ProjectConfig::find(file);
-		if (!conf) return false;
-		QString command;
-		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
-		//command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
-		//command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
-
-		//if (!Connection::mod().execute (command)) return false;
-		command += QStringLiteral("rus read ");
-		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
-		command += QStringLiteral("rus parse ;");
-		command += QStringLiteral("rus verify ");
-		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(";");
-		if (!Execute::russell().execute (command)) return false;
-		//view_->clearOutput();
-		return true;
+	Client::read(const QString& file, ActionScope scope) {
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			if (fileChanged(fc.file)) {
+				QString command;
+				QString lang = lang_string(file_type(fc.file));
+				command += lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
+				command += lang + QStringLiteral(" read ") + QStringLiteral("in=") + fc.conf->trimFile(file) + QStringLiteral(";");
+				command += lang + QStringLiteral(" parse ;");
+				command += lang + QStringLiteral(" verify ") + QStringLiteral("in=") + fc.conf->trimFile(file) + QStringLiteral(";");
+				timestamps[fc.file] = efs::last_write_time(fc.file.toStdString());
+				return Execute::russell().execute (command);
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
 	}
 /*
 	void
@@ -160,26 +179,27 @@ namespace russell {
 		return false;
 	}
 	bool
-	Client :: translate (const QString& file)
+	Client :: translate (const QString& file, ActionScope scope, Lang target)
 	{
-		const ProjectConfig* conf = ProjectConfig::find(file);
-		if (!conf) return false;
-		QString command;
-		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
-		command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
-		command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			QString command;
+			QString src_lang = lang_string(file_type(fc.file));
+			QString tgt_lang = lang_string(target);
+			command += src_lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
+			command += tgt_lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
 
-		//if (!Connection::mod().execute (command)) return false;
-		command += QStringLiteral("rus transl ");
-		command += QStringLiteral("in=") + conf->trimFile(file) + QStringLiteral(" ");
-		command += QStringLiteral("out=") + conf->smmTarget(file) + QStringLiteral(";");
-		command += QStringLiteral("smm transl lang=mm ");
-		command += QStringLiteral("in=") + conf->smmTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out=") + conf->mmTarget(file) + QStringLiteral(";");
+			command += src_lang + QStringLiteral(" transl ");
+			command += QStringLiteral("in=") + fc.conf->trimFile(fc.file) + QStringLiteral(" ");
+			command += QStringLiteral("out=") + fc.conf->target(fc.file, target) + QStringLiteral(";");
+			command += tgt_lang + QStringLiteral(" write deep=true ");
+			command += QStringLiteral("in=") + fc.conf->target(fc.file, target) + QStringLiteral(";");
 
-		if (!Execute::russell().execute (command)) return false;
-		view_->clearOutput();
-		return true;
+			if (!Execute::russell().execute (command)) return false;
+			view_->clearOutput();
+			return true;
+		} else {
+			return false;
+		}
 
 		/*
 		if (!view_->currentIsRus()) {
@@ -217,37 +237,24 @@ namespace russell {
 
 	}
 	bool
-	Client :: verify (const QString& f)
+	Client :: verify (const QString& file, ActionScope scope)
 	{
-		const ProjectConfig* conf = ProjectConfig::find(f);
-		if (!conf) return false;
-		QString file = conf->rusRoot() + QStringLiteral("/") + conf->rusMain();
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			QString lang = lang_string(file_type(fc.file));
 
-		//qDebug() << file;
-		//qDebug() << conf->rusTarget(file);
+			QString command;
+			command += lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
 
-		QString command;
-		command += QStringLiteral("rus curr proj=") + conf->name() + QStringLiteral(";");
-		command += QStringLiteral("smm curr proj=") + conf->name() + QStringLiteral(";");
-		command += QStringLiteral("mm  curr proj=") + conf->name() + QStringLiteral(";");
+			command += lang + QStringLiteral(" verify ");
+			command += QStringLiteral("in=") + fc.conf->rusTarget(fc.file) + QStringLiteral(";");
+			command += QStringLiteral("out=") + fc.conf->smmTarget(fc.file) + QStringLiteral(";");
 
-		//if (!Connection::mod().execute (command)) return false;
-		command += QStringLiteral("rus transl ");
-		command += QStringLiteral("in=") + conf->rusTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out=") + conf->smmTarget(file) + QStringLiteral(";");
-
-		command += QStringLiteral("smm transl lang=mm ");
-		command += QStringLiteral("in=") + conf->smmTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out=") + conf->mmTarget(file) + QStringLiteral(";");
-
-		command += QStringLiteral("mm merge ");
-		command += QStringLiteral("in=") + conf->mmTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out=") + conf->mergedTarget(file) + QStringLiteral(" ");
-		command += QStringLiteral("out-root=") + conf->mmRoot();
-
-		if (!Execute::russell().execute (command)) return false;
-		//view_->clearOutput();
-		return true;
+			if (!Execute::russell().execute (command)) return false;
+			//view_->clearOutput();
+			return true;
+		} else {
+			return false;
+		}
 
 		/*
 		if (!view_->currentIsRus() && !view_->currentIsMetamath()) {
@@ -286,15 +293,71 @@ namespace russell {
     	*/
 	}
 	bool
-	Client::verifyMm(const QString& f) {
-		const ProjectConfig* conf = ProjectConfig::find(f);
-		if (!conf) return false;
-		QString file = conf->rusRoot() + QStringLiteral("/") +conf->rusMain();
-		QString command;
-		command += QStringLiteral("read \"") + conf->mmRoot() + QStringLiteral("/") + conf->mergedTarget(file) + QStringLiteral("\"");
-		command += QStringLiteral(" / verify\n");
-		//qDebug() << command;
-		return Execute::metamath().execute(command);
+	Client :: merge (const QString& file, ActionScope scope)
+	{
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			QString lang = lang_string(file_type(fc.file));
+			QString command;
+			command += QStringLiteral("mm curr proj=") + fc.conf->name() + QStringLiteral(";");
+			command += QStringLiteral("mm merge ");
+			command += QStringLiteral("in=") + fc.conf->mmTarget(fc.file) + QStringLiteral(" ");
+			command += QStringLiteral("out=") + fc.conf->mergedTarget(fc.file) + QStringLiteral(" ");
+			command += QStringLiteral("out-root=") + fc.conf->mmRoot();
+
+			if (!Execute::russell().execute (command)) return false;
+			//view_->clearOutput();
+			return true;
+		} else {
+			return false;
+		}
+
+		/*
+		if (!view_->currentIsRus() && !view_->currentIsMetamath()) {
+			return false;
+		}
+		QString command; // (config_->getVerifier());
+		if (command.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("No verifyer is specified."));
+			return false;
+		}
+		command += QStringLiteral(" ");
+		//command += config_->getVerifyOption();
+
+		QUrl url (view_->currentFileUrl (true));
+		if (url.isEmpty()) {
+			KMessageBox :: sorry (0, i18n ("There's no active window."));
+			return false;
+		}
+		QString globalPath (url.toLocalFile());
+		QString midPath;
+		/*(
+			view_->currentIsMetamath() ?
+			globalPath.mid (config_->getSourceRoot().size() + 1, -1) :
+			globalPath.mid (config_->getTargetRoot().size() + 1, -1)
+		);* /
+		QString targetPath (midPath);
+		targetPath.chop (3);
+		targetPath += QStringLiteral("smm");
+
+		command.replace (QStringLiteral("%f"), targetPath);
+
+		if (clearOutput) {
+			view_->clearOutput();
+		}
+    	return false; //startProcess (config_->getTargetRoot(), command);
+    	*/
+	}
+	bool
+	Client::verifyMm(const QString& file, ActionScope scope) {
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			QString command;
+			command += QStringLiteral("read \"") + fc.conf->mmRoot() + QStringLiteral("/") + fc.conf->mergedTarget(fc.file) + QStringLiteral("\"");
+			command += QStringLiteral(" / verify\n");
+			//qDebug() << command;
+			return Execute::metamath().execute(command);
+		} else {
+			return false;
+		}
 	}
 	bool
 	Client :: learn (const bool clearOutput)
@@ -544,9 +607,9 @@ namespace russell {
 			row = view_->getBottomUi().russellListWidget->count();
 			view_->getBottomUi().russellListWidget->setCurrentRow (row);
 		} else if (command == QStringLiteral("fell")) {
-			view_->proof()->fell();
+			view_->proof()->stopProving();
 		} else if (reloadProverCommand (command)) {
-			view_->proof()->fell();
+			view_->proof()->stopProving();
 			Execute::russell().execute (command);
 		} else {
 			Execute::russell().execute (command);
@@ -588,4 +651,14 @@ namespace russell {
 			SLOT (clearConsole())
 		);*/
 	}
+
+	bool Client::fileChanged(const QString& file) const {
+		auto p = timestamps.find(file);
+		if (p != timestamps.end()) {
+			return p->second != efs::last_write_time(file.toStdString());
+		} else {
+			return true;
+		}
+	}
+
 }

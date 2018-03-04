@@ -102,7 +102,7 @@ namespace russell {
 	}
 
 	void
-	Proof :: plant()
+	Proof :: startProving()
 	{
 		tree_->clear();
 		treeItems_.clear();
@@ -137,7 +137,7 @@ namespace russell {
 		russellView_->client()->execute (options);
 	}
 	void
-	Proof :: grow (QTreeWidgetItem* item)
+	Proof :: growTree (QTreeWidgetItem* item)
 	{
 		if (item == NULL) {
 			return;
@@ -195,7 +195,7 @@ namespace russell {
 		}
 	}
 	void
-	Proof :: fell()
+	Proof :: stopProving()
 	{
 		russellView_->client()->execute (QString(QStringLiteral("fell")));
 		tree_->clear();
@@ -279,7 +279,7 @@ namespace russell {
 			tree_,
 			SIGNAL (itemActivated (QTreeWidgetItem*, int)),
 			this,
-			SLOT (grow (QTreeWidgetItem*))
+			SLOT (growTree (QTreeWidgetItem*))
 		);
 		connect
 		(

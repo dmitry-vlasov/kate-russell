@@ -259,14 +259,14 @@ namespace russell {
 				this,
 				SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
 			);
-			client_->open(file);
+			client_->read(file);
 		}
 	}
 	void
 	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
 		QString file = doc->url().toLocalFile();
 		if (file.size() && state_.start(READING)) {
-			client_->open(file);
+			client_->read(file);
 		}
 	}
 
@@ -441,13 +441,13 @@ namespace russell {
 				KMessageBox :: sorry (0, i18n ("Server could not start."));
 				return;
 			}
-			proof_->fell();
+			proof_->stopProving();
 			//client_->setupInFile();
 			//client_->setupOutFile();
 			client_->execute (QStringLiteral("read"));
 			client_->execute (QStringLiteral("check"));
 			//client_->setupPosition (line, column);
-			proof_->plant();
+			proof_->startProving();
 			proof_->show();
 		}
 	}

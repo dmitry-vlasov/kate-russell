@@ -14,10 +14,17 @@
 
 #pragma once
 
+#include <experimental/filesystem>
+#include <map>
+
 #include <QString>
 #include <QObject>
 
+#include "Kind.hpp"
+
 namespace russell {
+
+namespace efs = std::experimental::filesystem;
 
 class View;
 
@@ -27,7 +34,7 @@ public :
 	Client (View*);
 	
 	bool execute(const QString&);
-	bool open(const QString& file);
+	bool read(const QString& file, ActionScope scope = ActionScope::FILE);
 	void readFile();
 	void checkFile();
 	void writeFile();
@@ -39,9 +46,10 @@ public :
 	void expandNode (const long);
 
 	bool prove (const bool clearOutput = true);
-	bool translate (const QString& file);
-	bool verify    (const QString& file);
-	bool verifyMm  (const QString& file);
+	bool translate (const QString& file, ActionScope scope = ActionScope::FILE, Lang target = Lang::SMM);
+	bool verify    (const QString& file, ActionScope scope = ActionScope::FILE);
+	bool verifyMm  (const QString& file, ActionScope scope = ActionScope::FILE);
+	bool merge     (const QString& file, ActionScope scope = ActionScope::FILE);
 	bool learn     (const bool clearOutput = true);
 	bool lookupDefinition (const QString& file, const int line, const int column);
 	bool lookupLocation   (const QString& file, const int line, const int column);
@@ -62,7 +70,10 @@ public Q_SLOTS:
 
 private :
 	void setupSlotsAndSignals();
+	bool fileChanged(const QString& file) const;
+
 	View* view_;
+	std::map<QString, efs::file_time_type> timestamps;
 };
 
 }
