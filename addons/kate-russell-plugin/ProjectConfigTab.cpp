@@ -135,7 +135,7 @@ ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGro
 			initCommand += conf.loadMainCommand();
 		}
 	}
-	Execute::russell().execute(initCommand);
+	if (initCommand.size()) Execute::russell().execute(initCommand);
 }
 
 ProjectConfigTab::~ProjectConfigTab() {
@@ -286,6 +286,8 @@ void ProjectConfigTab::switchProjectSlot(int index) {
 	configUi_.smmRootLineEdit->setText(ProjectConfig::projects()[name].smmRoot());
 	configUi_.rusRootLineEdit->setText(ProjectConfig::projects()[name].rusRoot());
 	configUi_.rusMainLineEdit->setText(ProjectConfig::projects()[name].rusMain());
+	configUi_.autoinitCheckBox->setCheckState(ProjectConfig::projects()[name].autoinit() ? Qt::Checked : Qt::Unchecked);
+	configUi_.autoloadCheckBox->setCheckState(ProjectConfig::projects()[name].autoload() ? Qt::Checked : Qt::Unchecked);
 }
 
 void ProjectConfigTab::initProjectSlot() {
@@ -320,8 +322,8 @@ void ProjectConfigTab::loadConfigForProject(int i) {
 	ProjectConfig::projects()[name].setRusMain(configGroup_.readEntry(QStringLiteral("Projects %1 Rus main").arg(i), ""));
 	ProjectConfig::projects()[name].setSmmRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Smm root").arg(i), ""));
 	ProjectConfig::projects()[name].setMmRoot (configGroup_.readEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ""));
-	ProjectConfig::projects()[name].setAutoinit(configGroup_.readEntry(QStringLiteral("Projects %1 autoinit").arg(i), false));
-	ProjectConfig::projects()[name].setAutoload(configGroup_.readEntry(QStringLiteral("Projects %1 autoload").arg(i), false));
+	ProjectConfig::projects()[name].setAutoinit(configGroup_.readEntry(QStringLiteral("Projects %1 autoinit").arg(i)) == QStringLiteral("true"));
+	ProjectConfig::projects()[name].setAutoload(configGroup_.readEntry(QStringLiteral("Projects %1 autoload").arg(i)) == QStringLiteral("true"));
 	addProject(name);
 }
 
@@ -343,8 +345,8 @@ void ProjectConfigTab::saveConfigForProject(int i) {
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Rus main").arg(i), ProjectConfig::projects()[name].rusMain());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Smm root").arg(i), ProjectConfig::projects()[name].smmRoot());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ProjectConfig::projects()[name].mmRoot());
-	configGroup_.writeEntry(QStringLiteral("Projects %1 autoinit").arg(i), ProjectConfig::projects()[name].autoinit());
-	configGroup_.writeEntry(QStringLiteral("Projects %1 autoload").arg(i), ProjectConfig::projects()[name].autoload());
+	configGroup_.writeEntry(QStringLiteral("Projects %1 autoinit").arg(i), ProjectConfig::projects()[name].autoinit() ? "true" : "false");
+	configGroup_.writeEntry(QStringLiteral("Projects %1 autoload").arg(i), ProjectConfig::projects()[name].autoload() ? "true" : "false");
 }
 
 void ProjectConfigTab::removeConfigForProject(int i) {
