@@ -22,8 +22,9 @@
 
 #include "ProjectConfigTab.hpp"
 #include "ProjectConfigTab.hpp"
+
+#include "Enums.hpp"
 #include "Execute.hpp"
-#include "Kind.hpp"
 
 namespace russell {
 
@@ -68,41 +69,39 @@ QString ProjectConfig::trimFile(const QString& file) const {
 		return trimFileName(file, rusRoot_);
 	} else if (file.startsWith(smmRoot_)) {
 		return trimFileName(file, smmRoot_);
+	} else if (file.startsWith(mmRoot_)) {
+		return trimFileName(file, mmRoot_);
 	} else {
 		KMessageBox :: sorry(0, i18n ("The main file %1 must be situated in the root directory.", file));
 		return QStringLiteral("");
 	}
 }
 
-static QString trim_ext(const QString& file) {
-	if (file.endsWith(QStringLiteral(".smm"))) return file.mid(0, file.length() - 4);
-	if (file.endsWith(QStringLiteral(".rus"))) return file.mid(0, file.length() - 4);
-	if (file.endsWith(QStringLiteral(".mm")))  return file.mid(0, file.length() - 3);
-	KMessageBox :: sorry(0, i18n ("File %1 extension is not *.rus, *.smm or *.mm", file));
-	return QString();
+QString ProjectConfig::rusTarget(const QString& file, bool full) const {
+	QString target = trim_ext(trimFile(file)) + QStringLiteral(".rus");
+	return full ? rusRoot() + QStringLiteral("/") + target : target;
 }
 
-QString ProjectConfig::rusTarget(const QString& file) const {
-	return trim_ext(trimFile(file)) + QStringLiteral(".rus");
+QString ProjectConfig::smmTarget(const QString& file, bool full) const {
+	QString target = trim_ext(trimFile(file)) + QStringLiteral(".smm");
+	return full ? smmRoot() + QStringLiteral("/") + target : target;
 }
 
-QString ProjectConfig::smmTarget(const QString& file) const {
-	return trim_ext(trimFile(file)) + QStringLiteral(".smm");
+QString ProjectConfig::mmTarget(const QString& file, bool full) const {
+	QString target = trim_ext(trimFile(file)) + QStringLiteral(".mm");
+	return full ? mmRoot() + QStringLiteral("/") + target : target;
 }
 
-QString ProjectConfig::mmTarget(const QString& file) const {
-	return trim_ext(trimFile(file)) + QStringLiteral(".mm");
+QString ProjectConfig::mergedTarget(const QString& file, bool full) const {
+	QString target = trim_ext(trimFile(file)) + QStringLiteral("_merged.mm");
+	return full ? mmRoot() + QStringLiteral("/") + target : target;
 }
 
-QString ProjectConfig::mergedTarget(const QString& file) const {
-	return trim_ext(trimFile(file)) + QStringLiteral("_merged.mm");
-}
-
-QString ProjectConfig::target(const QString& file, Lang lang) const {
+QString ProjectConfig::target(const QString& file, Lang lang, bool full) const {
 	switch (lang) {
-	case Lang::RUS: return rusTarget(file);
-	case Lang::SMM: return smmTarget(file);
-	case Lang::MM:  return mmTarget(file);
+	case Lang::RUS: return rusTarget(file, full);
+	case Lang::SMM: return smmTarget(file, full);
+	case Lang::MM:  return mmTarget(file, full);
 	default: {
 		KMessageBox :: sorry(0, i18n ("Target file %1 extension is not specified", trim_ext(file)));
 		return QString();

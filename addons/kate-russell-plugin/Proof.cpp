@@ -17,10 +17,11 @@
 
 #include "Proof.hpp"
 #include "View.hpp"
-#include "Client.hpp"
 #include "Icon.hpp"
 
 #include "Proof.moc"
+
+#include "commands.hpp"
 #include "Execute.hpp"
 
 namespace russell {
@@ -112,20 +113,20 @@ namespace russell {
 		options += QStringLiteral("--interactive ");
 		options += QStringLiteral("--info-tree-sprout ");
 		options += QStringLiteral("--info-xml-format ");
-		russellView_->client()->execute (options);
+		//russellView_->client()->execute (options);
 
 		// do plant job
-		russellView_->client()->execute (QString(QStringLiteral("plant")));
+		//russellView_->client()->execute (QString(QStringLiteral("plant")));
 
 		// setup info options
 		options = QStringLiteral("setup ");
 		options += QStringLiteral("--info-tree-sprout ");
 		options += QStringLiteral("--info-xml-format ");
 		options += QStringLiteral("--hide-comments yes");
-		russellView_->client()->execute (options);
+		//russellView_->client()->execute (options);
 
 		// request for the result of plant operation
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (QString(QStringLiteral("info")));
 		root_ = NULL;
 		proofs_.clear();
 		const QString output; // =  Connection::get().data(); //russellView_->client()->getData();
@@ -134,7 +135,7 @@ namespace russell {
 		// now set showing comments back to default
 		options.clear();
 		options += QStringLiteral("setup --hide-comments no");
-		russellView_->client()->execute (options);
+		//russellView_->client()->execute (options);
 	}
 	void
 	Proof :: growTree (QTreeWidgetItem* item)
@@ -150,27 +151,27 @@ namespace russell {
 		// setup the expansion index:
 		QString command = QStringLiteral("setup --index ");
 		command += QString :: number (index);
-		russellView_->client()->execute (command);
+		//russellView_->client()->execute (command);
 
 		// do grow job
-		russellView_->client()->execute (QString(QStringLiteral("grow")));
+		//russellView_->client()->execute (QString(QStringLiteral("grow")));
 
 		// setup info options
 		QString options = QStringLiteral("setup ");
 		options += QStringLiteral("--info-tree-sprout ");
 		options += QStringLiteral("--info-xml-format ");
 		options += QStringLiteral("--hide-comments yes");
-		russellView_->client()->execute (options);
+		//russellView_->client()->execute (options);
 
 		// request for the result of grow operation
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (QString(QStringLiteral("info")));
 		const QString output; // = Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
 		options.clear();
 		options += QStringLiteral("setup --hide-comments no");
-		russellView_->client()->execute (options);
+		//russellView_->client()->execute (options);
 
 		if (isProved()) {
 			QString message = QStringLiteral("Proofs found:\n");
@@ -197,7 +198,7 @@ namespace russell {
 	void
 	Proof :: stopProving()
 	{
-		russellView_->client()->execute (QString(QStringLiteral("fell")));
+		//russellView_->client()->execute (QString(QStringLiteral("fell")));
 		tree_->clear();
 		treeItems_.clear();
 		root_ = NULL;
@@ -220,8 +221,8 @@ namespace russell {
 		options += QStringLiteral("--info-xml-format ");
 		options += QStringLiteral("--index ");
 		options += QString :: number (index);
-		russellView_->client()->execute (options);
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (options);
+		//russellView_->client()->execute (QString(QStringLiteral("info")));
 		QString nodeXML;
 		//nodeXML += Connection::get().data(); //russellView_->client()->getData();
 		updateXML (nodeXML);

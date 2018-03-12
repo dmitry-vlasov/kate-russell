@@ -19,7 +19,7 @@
 
 #include <KConfigGroup>
 
-#include "Kind.hpp"
+#include "Enums.hpp"
 #include "ui_ProjectsTab.h"
 
 namespace russell {
@@ -46,11 +46,12 @@ public:
 	QString loadMainCommand() const;
 
 	QString trimFile(const QString& file) const;
-	QString rusTarget(const QString& file) const;
-	QString smmTarget(const QString& file) const;
-	QString mmTarget(const QString& file) const;
-	QString mergedTarget(const QString& file) const;
-	QString target(const QString& file, Lang lang) const;
+
+	QString rusTarget(const QString& file, bool full = false) const;
+	QString smmTarget(const QString& file, bool full = false) const;
+	QString mmTarget(const QString& file, bool full = false) const;
+	QString mergedTarget(const QString& file, bool full = false) const;
+	QString target(const QString& file, Lang lang, bool full = false) const;
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;

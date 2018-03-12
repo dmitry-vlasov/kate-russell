@@ -28,10 +28,11 @@
 #include "Structure.hpp"
 #include "TypeSystem.hpp"
 #include "Proof.hpp"
-#include "Client.hpp"
 #include "Server.hpp"
 #include "LatexToUnicode.hpp"
 #include "View.moc"
+
+#include "commands.hpp"
 #include "Execute.hpp"
 
 namespace russell {
@@ -64,8 +65,7 @@ namespace russell {
 	outline_ (new Outline (mainWindow_, this)),
 	structure_ (new Structure (mainWindow_, this)),
 	typeSystem_ (new TypeSystem (mainWindow_, this)),
-	proof_ (new Proof (mainWindow_, this)),
-	client_ (new Client (this))
+	proof_ (new Proof (mainWindow_, this))
 	{
 		if (instance_)
 			KMessageBox::error(0, i18n ("Russell plugin view is already initialized"));
@@ -96,30 +96,26 @@ namespace russell {
 		delete structure_;
 		delete typeSystem_;
 		delete proof_;
-		delete client_;
 	}
 
-	View :: State_
-	View :: getState() const {
-		return state_.get();
+	State View::getState() const {
+		return state_.get().state;
 	}
-	Ui :: Bottom&
-	View :: getBottomUi() {
+	Ui::Bottom& View::getBottomUi() {
 		return bottomUi_;
 	}
-	QWidget*
-	View :: toolView() const {
+	QWidget* View::toolView() const {
 		return toolView_;
 	}
 	void 
 	View :: clearOutput() 
 	{
-		output_.clear();
-		bottomUi_.outputTextEdit->clear();
-		State_ s = state_.get();
-		if ((s == LOOKING_DEFINITION) || (s == OPENING_DEFINITION) ||
-			(s == MINING_OUTLINE) || (s == MINING_STRUCTURE) ||
-			(s == MINING_TYPE_SYSTEM)) {
+		bottomUi_.russellTextEdit->clear();
+		bottomUi_.metamathTextEdit->clear();
+		State s = state_.get().state;
+		if ((s == State::LOOKING_DEFINITION) || (s == State::OPENING_DEFINITION) ||
+			(s == State::MINING_OUTLINE) || (s == State::MINING_STRUCTURE) ||
+			(s == State::MINING_TYPE_SYSTEM)) {
 			return;
 		}
 		bottomUi_.qtabwidget->setCurrentIndex (1);
@@ -157,35 +153,30 @@ namespace russell {
 		gotoLocation (path, line, column);
 	}
 
-	Client* View::client() { return client_; }
 	Proof* View::proof() { return proof_; }
 
-	const QString& 
-	View :: getOutput() const {
-		return output_;
-	}
 	void 
 	View :: mineOutline (const QString& options) 
 	{
 		QString file = currentFile();
-		if (file.size() && state_.start(MINING_OUTLINE)) {
-			client_->mine (file, options);
+		if (file.size() && state_.start(State::MINING_OUTLINE, file)) {
+			Execute::russell().execute(command::mine(file, State::MINING_OUTLINE, options));
 		}
 	}
 	void 
 	View :: mineStructure (const QString& options) 
 	{
 		QString file = currentFile();
-		if (file.size() && state_.start(MINING_STRUCTURE)) {
-			client_->mine (file, options);
+		if (file.size() && state_.start(State::MINING_STRUCTURE, file)) {
+			Execute::russell().execute(command::mine(file, State::MINING_STRUCTURE, options));
 		}
 	}
 	void 
 	View :: mineTypeSystem (const QString& options) 
 	{
 		QString file = currentFile();
-		if (file.size() && state_.start(MINING_TYPE_SYSTEM)) {
-			client_->mine (file, options);
+		if (file.size() && state_.start(State::MINING_TYPE_SYSTEM, file)) {
+			Execute::russell().execute(command::mine(file, State::MINING_TYPE_SYSTEM, options));
 		}
 	}
 	void 
@@ -252,63 +243,65 @@ namespace russell {
 	void
 	View::slotRead(KTextEditor::View* view) {
 		QString file = currentFile();
-		if (file.size() && state_.start(READING)) {
+		if (file.size() && fileChanged(file) && state_.start(State::READING, file)) {
 			connect(
 				view->document(),
 				SIGNAL(documentSavedOrUploaded(KTextEditor::Document*, bool)),
 				this,
 				SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
 			);
-			client_->read(file);
+			if (Execute::russell().execute(command::read(file, ActionScope::FILE))) {
+				registerFileRead(file);
+			}
 		}
 	}
 	void
 	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
 		QString file = doc->url().toLocalFile();
-		if (file.size() && state_.start(READING)) {
-			client_->read(file);
+		if (file.size() && fileChanged(file) && state_.start(State::READING, file)) {
+			if (Execute::russell().execute(command::read(file, ActionScope::FILE))) {
+				registerFileRead(file);
+			}
 		}
 	}
 
 	void
 	View :: slotCommandCompleted(quint32 code, const QString& msg, const QString& data)
 	{
-		State_ state = state_.get();
+		InternalState internal_state = state_.get();
 		state_.stop();
 		if (!code) {
-			output_ += msg;
-			outputBuffer_ += msg;
-			showBuffer(true);
-			//slotReadOutputStdOut (true);
-			//slotReadOutputStdErr (true);
-
-
 			QApplication :: restoreOverrideCursor();
-			switch (state) {
-			case READING:
+			switch (internal_state.state) {
+			case State::READING:
 				outline_->refresh();
 				break;
-			case LOOKING_DEFINITION :
+			case State::LOOKING_DEFINITION :
 				if (!data.isEmpty())
 					QMessageBox::information(mainWindow_->activeView(), i18n("Definition:"), data);
 				break;
-			case OPENING_DEFINITION :
+			case State::OPENING_DEFINITION :
 				openLocation(data);
 				break;
-			case MINING_OUTLINE :
+			case State::MINING_OUTLINE :
 				outline_->update(data);
 				break;
-			case MINING_STRUCTURE :
+			case State::MINING_STRUCTURE :
 				structure_->update(data);
 				break;
-			case MINING_TYPE_SYSTEM :
+			case State::MINING_TYPE_SYSTEM :
 				typeSystem_->update(data);
 				break;
-			case PROVING :
+			case State::PROVING :
 				reloadSource();
 				break;
-			case VERIFYING :
-				client_->verifyMm(currentFile());
+			case State::VERIFYING :
+				//client_->verifyMm(currentFile());
+				break;
+			case State::TRANSLATING:
+				if (internal_state.file.size() && state_.start(State::VERIFYING, internal_state.file)) {
+					Execute::metamath().execute(command::verifyMm(internal_state.file, ActionScope::FILE));
+				}
 				break;
 			default :
 				/*KPassivePopup :: message
@@ -319,8 +312,8 @@ namespace russell {
 				);*/;
 			}
 		} else {
-			switch (state) {
-			case READING:
+			switch (internal_state.state) {
+			case State::READING:
 				QMessageBox::warning(mainWindow_->activeView(), i18n("Reading failed:"), msg);
 				break;
 			default :
@@ -340,38 +333,46 @@ namespace russell {
 	}
 
 	// main slots
-	void 
+/*	void
 	View :: slotProveVerify()
 	{
-		if (state_.start(PROVING)) {
-			clearOutput();
-			outputBuffer_ += QStringLiteral("----- proving -----\n");
-			client_->prove (false);
+		if (state_.start(State::PROVING)) {
+			//clearOutput();
+			//client_->prove (false);
 		}
 	}
 	void 
 	View :: slotProve()
 	{
-		if (state_.start(PROVING)) {
-			client_->prove();
+		if (state_.start(State::PROVING)) {
+			//client_->prove();
 		}
 	}
 	void 
 	View :: slotProveInteractive()
 	{
-		if (Server::russell().isRunning() && state_.start(PROVING)) {
-			client_->execute(QStringLiteral("option --in prop.rus"));
-			client_->execute(QStringLiteral("read"));
-			client_->execute(QStringLiteral("check"));
-			client_->execute(QStringLiteral("exit"));
-			state_.stop();
+		if (Server::russell().isRunning() && state_.start(State::PROVING)) {
+			//client_->execute(QStringLiteral("option --in prop.rus"));
+			//client_->execute(QStringLiteral("read"));
+			//client_->execute(QStringLiteral("check"));
+			//client_->execute(QStringLiteral("exit"));
+			//state_.stop();
 		}
 	}
+*/
 	void
 	View :: slotTranslate() {
 		QString file = currentFile();
-		if (file.size() && state_.start(TRANSLATING)) {
-			client_->translate(file);
+		if (file.size() && state_.start(State::TRANSLATING, file)) {
+			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
+				QString comm;
+				comm += command::translate(fc.file, ActionScope::FILE, Lang::SMM);
+				comm += command::translate(fc.conf->smmTarget(fc.file, true), ActionScope::FILE, Lang::MM);
+				comm += command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
+				Execute::russell().execute(comm);
+			} else {
+				state_.stop();
+			}
 		}
 	}
 	void 
@@ -379,29 +380,30 @@ namespace russell {
 	{
 		QString file = currentFile();
 		//qDebug() << file;
-		if (file.size() && state_.start(VERIFYING)) {
-			client_->verify(file);
+		if (file.size() && state_.start(State::VERIFYING, file)) {
+			Execute::russell().execute(command::verifyRus(file, ActionScope::FILE));
 		}
 	}
-	void 
+
+	/*void
 	View :: slotLearn()
 	{
 		if (state_.start(VERIFYING)) {
-			client_->learn();
+			//client_->learn();
 		}
 	}
 	void
 	View :: slotConfirmProof(int proofIndex)
 	{
 		//client_->setupIndex (proofIndex);
-		client_->execute(QStringLiteral("confirm"));
-		client_->execute(QStringLiteral("write"));
+		//client_->execute(QStringLiteral("confirm"));
+		//client_->execute(QStringLiteral("write"));
 	}
 
 	void
 	View :: proveIdAutomatically()
 	{
-		if (state_.start(PROVING)) {
+		if (state_.start(State::PROVING)) {
 			KTextEditor :: View* activeView = mainWindow()->activeView();
 			if (!activeView) {
 				qDebug() << "no KTextEditor::View" << endl;
@@ -424,7 +426,7 @@ namespace russell {
 			KMessageBox :: sorry (0, i18n ("Server could not start."));
 			return;
 		}
-		if (state_.start(PROVING_INTERACTIVELY)) {
+		if (state_.start(State::PROVING_INTERACTIVELY)) {
 			KTextEditor :: View* activeView = mainWindow()->activeView();
 			if (!activeView) {
 				qDebug() << "no KTextEditor::View" << endl;
@@ -450,13 +452,13 @@ namespace russell {
 			proof_->startProving();
 			proof_->show();
 		}
-	}
+	}*/
 
 	// server slots
 	void
 	View :: slotManageServer()
 	{
-		QAction* action = NULL;
+		QAction* action = nullptr;
 		if (Server::russell().isRunning()) {
 			Server::russell().stop();
 			action = actionCollection()->action (QStringLiteral("start_server"));
@@ -513,8 +515,8 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (file.size() && state_.start(LOOKING_DEFINITION)) {
-			client_->lookupDefinition (file, line, column);
+		if (file.size() && state_.start(State::LOOKING_DEFINITION, file)) {
+			Execute::russell().execute(command::lookupDefinition(file, line, column));
 		}
 	}
 	void 
@@ -533,8 +535,8 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (file.size() && state_.start(OPENING_DEFINITION)) {
-			client_->lookupLocation (file, line, column);
+		if (file.size() && state_.start(State::OPENING_DEFINITION, file)) {
+			Execute::russell().execute(command::lookupLocation (file, line, column));
 		}
 	}
 	void 
@@ -557,201 +559,50 @@ namespace russell {
 		activeView->document()->replaceText (range, unicodeWord, true);
 	}
 
-	// process slots
-/*
-	void 
-	View :: slotProcessExited (const int exitCode, QProcess :: ExitStatus exitStatus)
-	{	
-		//slotReadOutputStdOut (true);
-		//slotReadOutputStdErr (true);
-		QApplication :: restoreOverrideCursor();
-
-		// did we get any errors?
-		if ((errorParser_->numErrors() == 0) &&
-		    (errorParser_->numWarnings() == 0) &&
-		    (exitCode == 0) && 
-		    (exitStatus == QProcess :: NormalExit)) 
-		{
-			if (chain_) {
-				switch (state_) {
-				case PROVING :
-					state_ = TRANSLATING;
-					reloadSource();
-					bottomUi_.outputTextEdit->appendPlainText (QStringLiteral("\n"));
-					outputBuffer_ += QStringLiteral("----- translating -----\n");
-					client_->translate (false);
-					return;
-				case TRANSLATING :
-					state_ = VERIFYING;
-					bottomUi_.outputTextEdit->appendPlainText (QStringLiteral("\n"));
-					outputBuffer_ += QStringLiteral("----- verifying -----\n");
-					client_->verify (false);
-					return;
-				case VERIFYING:
-					state_ = WAITING;
-					chain_ = false;
-				case WAITING :
-				default :
-					/*KNotification::event(
-						KNotification::Notification,
-						i18n ("Success"),
-						i18n("Proving and verification completed without problems."),
-						toolView_
-					);* /
-					//QWidget* msg = new QWidget();
-					//msg->
-					//mainWindow_->activeView()->layout()->addWidget(msg);
-					/*KPassivePopup :: message
-					(
-						i18n ("Success"),
-						i18n("Proving and verification completed without problems."),
-						toolView_
-					);* /;
-				}
-			} else {
-				switch (state_) {
-				case LOOKING_DEFINITION :
-					if (!output_.isEmpty()) {
-						/*KPassivePopup :: message
-						(
-							i18n ("Definition:"), 
-							output_, 
-							mainWindow()->activeView()
-						);* /
-					}
-					break;
-				case OPENING_DEFINITION :
-					openLocation();
-					break;
-				case MINING_OUTLINE :
-					outline_->update();
-					break;
-				case MINING_STRUCTURE :
-					structure_->update();
-					break;
-				case MINING_TYPE_SYSTEM :
-					typeSystem_->update();
-					break;
-				case PROVING :
-					reloadSource();
-				default :
-					/*KPassivePopup :: message
-					(
-						i18n ("Success"),
-						i18n("Proving and verification completed without problems."),
-						toolView_
-					);* /;
-				}
-			}
-		} else {
-			chain_ = false;
-			state_ = WAITING;
-			if (exitStatus == QProcess :: NormalExit) {
-				outputBuffer_ += QStringLiteral("process ended\n");
-			} else {
-				outputBuffer_ += QStringLiteral("process crushed\n");
-				outputBuffer_ += QStringLiteral("error code: ");
-				outputBuffer_ += QString :: number (exitCode);
-				outputBuffer_ += QStringLiteral("\n");
-			}
-		}
-	}
-	void 
-	View :: slotReadOutputStdOut (const bool forceOutput)
-	{
-		QString newLines = QString :: fromUtf8 (client_->process()->readAllStandardOutput());
-		newLines.remove (QLatin1Char('\r'));
-		output_ += newLines;
-		outputBuffer_ += newLines;
-		showBuffer (forceOutput);
-	}
-	void
-	View :: slotReadOutputStdErr (const bool forceOutput)
-	{
-		QString newLines = QString :: fromUtf8 (client_->process()->readAllStandardError());
-		newLines.remove (QLatin1Char('\r'));
-		errorParser_->proceed (newLines);
-		output_ += newLines;
-		outputBuffer_ += newLines;
-		showBuffer (forceOutput);
-	}
-*/
-
-	static void output(const QString& serverStdOut, QListWidget* listWidget)
-	{
-		QStringList newLines = serverStdOut.split(QLatin1Char ('\n'));
-		QListWidgetItem* item = listWidget->currentItem();
-		if (item) {
-			item->setText(item->text() + newLines.first());
-		} else {
-			listWidget->insertItem(0, newLines.first());
-		}
-		newLines.removeFirst();
-		int row = listWidget->count();
-		listWidget->insertItems (row, newLines);
-		row = listWidget->count();
-		listWidget->setCurrentRow (row - 1);
+	static void appendText(QPlainTextEdit* textEdit, const QString& text) {
+		textEdit->moveCursor (QTextCursor::End);
+		textEdit->insertPlainText (text);
+		textEdit->moveCursor (QTextCursor::End);
 	}
 
 	void
 	View :: slotReadRussellStdOut()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardOutput());
-		output(serverStdOut, bottomUi_.russellListWidget);
+		appendText(bottomUi_.russellTextEdit, serverStdOut);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
-		output(serverStdOut, bottomUi_.russellListWidget);
+		appendText(bottomUi_.russellTextEdit, serverStdOut);
 	}
 	void
 	View :: slotReadMetamathStdOut()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
-		qDebug() << serverStdOut;
-		output(serverStdOut, bottomUi_.metamathListWidget);
+		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 	}
 	void
 	View :: slotReadMetamathStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
-		output(serverStdOut, bottomUi_.metamathListWidget);
+		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 	}
-	void
-	View :: slotShowServerMessages (QString messages)
-	{
-		output(messages, bottomUi_.metamathListWidget);
-		/*QStringList newLines = messages.split(QLatin1Char ('\n'), QString :: SkipEmptyParts);
-		int row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->insertItems (row, newLines);
-		row = bottomUi_.russellListWidget->count();
-		bottomUi_.russellListWidget->setCurrentRow (row - 1);*/
+
+	void View::slotExecuteRussellCommand() {
+		QString command = bottomUi_.russellCommandComboBox->currentText();
+		Execute::russell().execute(command + QStringLiteral("\n"));
+	}
+	void View::slotExecuteMetamathCommand() {
+		QString command = bottomUi_.metamathCommandComboBox->currentText();
+		Execute::metamath().execute(command + QStringLiteral("\n"));
 	}
 
 	/****************************
 	 *	Private members
 	 ****************************/
 
-	void 
-	View :: showBuffer (const bool forceOutput) 
-	{
-		if (!outputBuffer_.contains (QLatin1Char('\n')) && !forceOutput) {
-			return;
-		}
-		int end = 0;
-		while (true) {
-			end = outputBuffer_.indexOf (QLatin1Char('\n'), 0);
-			if (end == -1) {
-				break;
-			}
-			QString line = outputBuffer_.mid (0, end);
-			outputBuffer_.remove (0, (end == -1) ? -1 : end + 1);
-			if (!line.isEmpty()) {
-				bottomUi_.outputTextEdit->appendPlainText (line);
-			}
-		}
-	}
 	void 
 	View :: reloadSource()
 	{
@@ -978,43 +829,21 @@ namespace russell {
 		bottomUi_.qtabwidget->addTab (projectsTab, i18nc ("Tab label", "Projects"));
 		bottomUi_.qtabwidget->setCurrentWidget (projectsTab);
 
-		/*connect
-		(
-			bottomUi_.errTreeWidget,
-			SIGNAL (itemClicked (QTreeWidgetItem*, int)),
-			SLOT (slotItemSelected (QTreeWidgetItem*))
-		);*/
-		/*
-		connect
-		(
-			bottomUi_.russellExecuteButton,
-			SIGNAL (pressed()),
-			client_,
-			SLOT (executeCommand())
-		);*/
-
-		bottomUi_.outputTextEdit->setReadOnly (true);
+		connect(bottomUi_.russellClearButton, SIGNAL(clicked()), bottomUi_.russellTextEdit, SLOT(clear()));
+		connect(bottomUi_.metamathClearButton, SIGNAL(clicked()), bottomUi_.metamathTextEdit, SLOT(clear()));
+		connect(bottomUi_.russellExecuteButton, SIGNAL(clicked()), SLOT(slotExecuteRussellCommand()));
+		connect(bottomUi_.metamathExecuteButton, SIGNAL(clicked()), SLOT(slotExecuteMetamathCommand()));
 	}
 	void
 	View :: initLauncher()
 	{
-		//connect (client_->process(), SIGNAL (finished (int, QProcess::ExitStatus)), this, SLOT (slotProcessExited (const int, QProcess::ExitStatus)));
-		//connect (client_->process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadOutputStdErr()));
-		//connect (client_->process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadOutputStdOut()));
-
 		connect (&Server::russell().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
 		connect (&Server::russell().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
 		connect (&Server::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
 		connect (&Server::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
-
-		connect (client_, SIGNAL (showServerMessages(QString)), this, SLOT (slotShowServerMessages(QString)));
-
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
-
 		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
-
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
-
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 	}

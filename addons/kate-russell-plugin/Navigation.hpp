@@ -22,7 +22,7 @@
 
 #include <KTextEditor/MainWindow>
 
-#include "Kind.hpp"
+#include "Enums.hpp"
 #include "View.hpp"
 
 namespace russell {

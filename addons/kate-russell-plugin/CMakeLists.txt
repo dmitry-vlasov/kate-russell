@@ -17,7 +17,7 @@ set (katerussell_SRC
 	
 	LatexToUnicode.cpp
 	
-	Client.cpp
+	commands.cpp
 	Server.cpp
 	Execute.cpp
 	
