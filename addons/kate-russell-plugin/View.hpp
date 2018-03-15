@@ -70,7 +70,8 @@ private Q_SLOTS:
 	void slotRead(KTextEditor::View*);
 	void slotDocumentSaved(KTextEditor::Document*, bool);
 
-	void slotCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotMmCommandCompleted();
 	void slotRefreshOutline();
 
 	// prove slots
@@ -103,7 +104,11 @@ private Q_SLOTS:
 	void slotExecuteRussellCommand();
 	void slotExecuteMetamathCommand();
 
+Q_SIGNALS:
+    void mmCommandFinished();
+
 private:
+    void openFile(const QString& file);
 	void showBuffer (const bool = false);
 	void reloadSource();
 	QString currentIdentifier() const;

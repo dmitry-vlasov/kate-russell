@@ -30,6 +30,7 @@ namespace command {
 
 	QString verifyRus(const QString& file, ActionScope scope = ActionScope::FILE);
 	QString verifyMm(const QString& file, ActionScope scope = ActionScope::FILE);
+	QString eraseMm(const QString& file, ActionScope scope = ActionScope::FILE);
 
 	QString lookupDefinition(const QString& file, const int line, const int column);
 	QString lookupLocation(const QString& file, const int line, const int column);

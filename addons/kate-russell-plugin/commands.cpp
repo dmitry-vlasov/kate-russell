@@ -102,12 +102,9 @@ namespace russell { namespace command {
 
 	QString verifyMm(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
-			translate(file, scope, Lang::SMM);
-			translate(file, scope, Lang::MM);
-			merge(file, scope);
 			QString command;
 			command += QStringLiteral("read \"") + fc.conf->mergedTarget(fc.file, true) + QStringLiteral("\"");
-			command += QStringLiteral(" / verify\n");
+			command += QStringLiteral(" / verify \n");
 			//qDebug() << command;
 			return command;
 		} else {
@@ -115,6 +112,14 @@ namespace russell { namespace command {
 		}
 	}
 
+	QString eraseMm(const QString& file, ActionScope scope) {
+		if (FileConf fc = chooseFileConf(file, scope)) {
+			//return QStringLiteral("erase \"") + fc.conf->mergedTarget(fc.file, true) + QStringLiteral("\"\n");
+			return QStringLiteral("erase\n");
+		} else {
+			return QString();
+		}
+	}
 
 	QString lookupDefinition(const QString& file, const int line, const int column)
 	{

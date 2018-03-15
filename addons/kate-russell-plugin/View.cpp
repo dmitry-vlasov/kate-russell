@@ -18,6 +18,8 @@
 #include <KStringHandler>
 #include <KMessageBox>
 #include <KActionCollection>
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/View>
@@ -83,9 +85,24 @@ namespace russell {
 		initLauncher();
 
 		mainWindow()->guiFactory()->addClient (this);
+
+		KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
+		int count = config.readEntry(QStringLiteral("Opened files number"), 0);
+		while (count) {
+			QUrl file = config.readEntry(QStringLiteral("Opened file %1 name").arg(--count), QUrl());
+			mainWindow_->openUrl(file);
+		}
 	}
 	View :: ~View() 
 	{
+		KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
+		int count = 0;
+		for (KTextEditor::View* view : mainWindow_->views()) {
+			QUrl file = view->document()->url();
+			config.writeEntry(QStringLiteral("Opened file %1 name").arg(count++), file);
+		}
+		config.writeEntry(QStringLiteral("Opened files number"), count);
+
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
 		#endif
@@ -266,7 +283,7 @@ namespace russell {
 	}
 
 	void
-	View :: slotCommandCompleted(quint32 code, const QString& msg, const QString& data)
+	View :: slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data)
 	{
 		InternalState internal_state = state_.get();
 		state_.stop();
@@ -295,11 +312,11 @@ namespace russell {
 			case State::PROVING :
 				reloadSource();
 				break;
-			case State::VERIFYING :
+			case State::VERIFYING_RUS :
 				//client_->verifyMm(currentFile());
 				break;
 			case State::TRANSLATING:
-				if (internal_state.file.size() && state_.start(State::VERIFYING, internal_state.file)) {
+				if (internal_state.file.size() && state_.start(State::VERIFYING_MM, internal_state.file)) {
 					Execute::metamath().execute(command::verifyMm(internal_state.file, ActionScope::FILE));
 				}
 				break;
@@ -325,6 +342,23 @@ namespace russell {
 			//outputBuffer_ += QString :: number (code);
 			//outputBuffer_ += QStringLiteral("\n");
 		}
+	}
+	void
+	View :: slotMmCommandCompleted()
+	{
+		InternalState internal_state = state_.get();
+		state_.stop();
+		QApplication :: restoreOverrideCursor();
+		switch (internal_state.state) {
+		case State::VERIFYING_MM:
+			if (internal_state.file.size() && state_.start(State::ERASING_MM, internal_state.file)) {
+				Execute::metamath().execute(command::eraseMm(internal_state.file, ActionScope::FILE));
+			}
+			break;
+		default:
+			break;
+		}
+
 	}
 
 	void 
@@ -380,7 +414,7 @@ namespace russell {
 	{
 		QString file = currentFile();
 		//qDebug() << file;
-		if (file.size() && state_.start(State::VERIFYING, file)) {
+		if (file.size() && state_.start(State::VERIFYING_RUS, file)) {
 			Execute::russell().execute(command::verifyRus(file, ActionScope::FILE));
 		}
 	}
@@ -570,24 +604,31 @@ namespace russell {
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardOutput());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
+		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
+		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void
 	View :: slotReadMetamathStdOut()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
+		bottomUi_.qtabwidget->setCurrentIndex(0);
+		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QStringLiteral("MM> ")) {
+			emit mmCommandFinished();
+		}
 	}
 	void
 	View :: slotReadMetamathStdErr()
 	{
 		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
+		bottomUi_.qtabwidget->setCurrentIndex(0);
 	}
 
 	void View::slotExecuteRussellCommand() {
@@ -842,7 +883,8 @@ namespace russell {
 		connect (&Server::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
 		connect (&Server::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
-		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotCommandCompleted(quint32, QString, QString)));
+		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(quint32, QString, QString)));
+		connect (this, SIGNAL (mmCommandFinished()), this, SLOT(slotMmCommandCompleted()));
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
