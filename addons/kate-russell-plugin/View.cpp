@@ -52,9 +52,9 @@ namespace russell {
 		mainWindow_->createToolView
 		(
 			plugin_,
-			QStringLiteral("kate_private_plugin_katerussellplugin_prover"),
+			QLatin1String("kate_private_plugin_katerussellplugin_prover"),
 			KTextEditor::MainWindow :: Bottom,
-			QIcon::fromTheme(QStringLiteral("application-x-ms-dos-executable")),
+			QIcon::fromTheme(QLatin1String("application-x-ms-dos-executable")),
 			i18n ("Russell")
 		)
 	),
@@ -86,8 +86,8 @@ namespace russell {
 
 		mainWindow()->guiFactory()->addClient (this);
 
-		KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
-		int count = config.readEntry(QStringLiteral("Opened files number"), 0);
+		KConfigGroup config(KSharedConfig::openConfig(), QLatin1String("Russell"));
+		int count = config.readEntry(QLatin1String("Opened files number"), 0);
 		while (count) {
 			QUrl file = config.readEntry(QStringLiteral("Opened file %1 name").arg(--count), QUrl());
 			mainWindow_->openUrl(file);
@@ -95,13 +95,13 @@ namespace russell {
 	}
 	View :: ~View() 
 	{
-		KConfigGroup config(KSharedConfig::openConfig(), QStringLiteral("Russell"));
+		KConfigGroup config(KSharedConfig::openConfig(), QLatin1String("Russell"));
 		int count = 0;
 		for (KTextEditor::View* view : mainWindow_->views()) {
 			QUrl file = view->document()->url();
 			config.writeEntry(QStringLiteral("Opened file %1 name").arg(count++), file);
 		}
-		config.writeEntry(QStringLiteral("Opened files number"), count);
+		config.writeEntry(QLatin1String("Opened files number"), count);
 
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
@@ -146,13 +146,13 @@ namespace russell {
 		int line = 1;
 		int column = 1;
 
-		int endlIndex = location.indexOf (QStringLiteral("\n"));
+		int endlIndex = location.indexOf (QLatin1String("\n"));
 		// chopping prefix "path: " (6 chars)
 		path = location.mid (0, endlIndex);
 		path.remove (0, 6);
 		location.remove (0, endlIndex + 1);
 		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
+			endlIndex = location.indexOf (QLatin1String("\n"));
 			// chopping prefix "line: " (6 chars)
 			QString lineString = location.mid (0, endlIndex);
 			lineString.remove (0, 6);
@@ -160,7 +160,7 @@ namespace russell {
 			line = lineString.toInt();
 		}
 		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QStringLiteral("\n"));
+			endlIndex = location.indexOf (QLatin1String("\n"));
 			// chopping prefix "col: " (5 chars)
 			QString columnString = location.mid (0, endlIndex);
 			columnString.remove (0, 5);
@@ -199,7 +199,7 @@ namespace russell {
 	void 
 	View :: gotoLocation (const QString& path, const int line, const int column)
 	{
-		QUrl url(QStringLiteral("file://") + path);
+		QUrl url(QLatin1String("file://") + path);
 		if (KTextEditor::View* view = mainWindow_->openUrl (url)) {
 			mainWindow_->activateView(view->document());
 			mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line, column));
@@ -247,10 +247,6 @@ namespace russell {
 	bool
 	View :: currentIsMm() const {
 		return currentFileType() == Lang::MM;
-	}
-	bool
-	View :: currentIsSmm() const {
-		return currentFileType() == Lang::SMM;
 	}
 
 	/**********************************
@@ -400,8 +396,8 @@ namespace russell {
 		if (file.size() && state_.start(State::TRANSLATING, file)) {
 			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 				QString comm;
-				comm += command::translate(fc.file, ActionScope::FILE, Lang::SMM);
-				comm += command::translate(fc.conf->smmTarget(fc.file, true), ActionScope::FILE, Lang::MM);
+				comm += command::translate(fc.file, ActionScope::FILE, Lang::MM);
+				//comm += command::translate(fc.conf->smmTarget(fc.file, true), ActionScope::FILE, Lang::MM);
 				comm += command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
 				Execute::russell().execute(comm);
 			} else {
@@ -495,14 +491,14 @@ namespace russell {
 		QAction* action = nullptr;
 		if (Server::russell().isRunning()) {
 			Server::russell().stop();
-			action = actionCollection()->action (QStringLiteral("start_server"));
+			action = actionCollection()->action (QLatin1String("start_server"));
 			action->setText (i18n ("Start mdl server"));
-			action->setIcon (QIcon (QStringLiteral("go-next")));
+			action->setIcon (QIcon (QLatin1String("go-next")));
 		} else {
 			Server::russell().start();
-			action = actionCollection()->action (QStringLiteral("start_server"));
+			action = actionCollection()->action (QLatin1String("start_server"));
 			action->setText (i18n ("Stop mdl server"));
-			action->setIcon (QIcon (QStringLiteral("application-exit")));
+			action->setIcon (QIcon (QLatin1String("application-exit")));
 		}
 	}
 
@@ -619,7 +615,7 @@ namespace russell {
 		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(0);
-		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QStringLiteral("MM> ")) {
+		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QLatin1String("MM> ")) {
 			emit mmCommandFinished();
 		}
 	}
@@ -633,11 +629,11 @@ namespace russell {
 
 	void View::slotExecuteRussellCommand() {
 		QString command = bottomUi_.russellCommandComboBox->currentText();
-		Execute::russell().execute(command + QStringLiteral("\n"));
+		Execute::russell().execute(command + QLatin1String("\n"));
 	}
 	void View::slotExecuteMetamathCommand() {
 		QString command = bottomUi_.metamathCommandComboBox->currentText();
-		Execute::metamath().execute(command + QStringLiteral("\n"));
+		Execute::metamath().execute(command + QLatin1String("\n"));
 	}
 
 	/****************************
@@ -847,7 +843,7 @@ namespace russell {
 		a->setIcon (QIcon (provePixmap));*/
 		//a->setIcon (QIcon ("media-playback-start"));
 		action->setIcon (QIcon(QLatin1String("arrow-right-double")));
-		action->setIcon (QIcon(QStringLiteral(":/katerussell/icons/hi22-actions-russell-axiom.png")));
+		action->setIcon (QIcon(QLatin1String(":/katerussell/icons/hi22-actions-russell-axiom.png")));
 		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveInteractive()));
 
 		action = actionCollection()->addAction (QLatin1String("start_server"));

@@ -30,27 +30,24 @@ namespace russell {
 
 QString ProjectConfig::initProjectCommand() const {
 	QString command;
-	command += QStringLiteral("rus curr proj=") + name_ + QStringLiteral(";\n");
-	command += QStringLiteral("rus opts verbose root=") + rusRoot_ + QStringLiteral(";\n");
-	command += QStringLiteral("smm curr proj=") + name_ + QStringLiteral(";\n");
-	command += QStringLiteral("smm opts verbose root=") + smmRoot_ + QStringLiteral(";\n");
-	command += QStringLiteral("mm  curr proj=") + name_ + QStringLiteral(";\n");
-	command += QStringLiteral("mm  opts verbose root=") + mmRoot_ + QStringLiteral(";\n");
+	command += QLatin1String("rus curr proj=") + name_ + QLatin1String(";\n");
+	command += QLatin1String("rus opts verbose root=") + rusRoot_ + QLatin1String(";\n");
+	command += QLatin1String("mm  curr proj=") + name_ + QLatin1String(";\n");
+	command += QLatin1String("mm  opts verbose root=") + mmRoot_ + QLatin1String(";\n");
 	return command;
 }
 
 QString ProjectConfig::loadMainCommand() const {
 	QString command;
-	command += QStringLiteral("rus read in=") + rusMain_ + QStringLiteral(";\n");
-	command += QStringLiteral("rus parse;\n");
-	command += QStringLiteral("rus verify;\n");
+	command += QLatin1String("rus read in=") + rusMain_ + QLatin1String(";\n");
+	command += QLatin1String("rus parse;\n");
+	command += QLatin1String("rus verify;\n");
 	return command;
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
 	switch (file_type(file)) {
 	case Lang::RUS: for (auto& p : projects()) if (file.startsWith(p.rusRoot())) return &p; break;
-	case Lang::SMM: for (auto& p : projects()) if (file.startsWith(p.smmRoot())) return &p; break;
 	case Lang::MM:  for (auto& p : projects()) if (file.startsWith(p.mmRoot()))  return &p; break;
 	default: break;
 	}
@@ -67,8 +64,6 @@ static QString trimFileName(const QString& file, const QString& prefix) {
 QString ProjectConfig::trimFile(const QString& file) const {
 	if (file.startsWith(rusRoot_)) {
 		return trimFileName(file, rusRoot_);
-	} else if (file.startsWith(smmRoot_)) {
-		return trimFileName(file, smmRoot_);
 	} else if (file.startsWith(mmRoot_)) {
 		return trimFileName(file, mmRoot_);
 	} else {
@@ -78,29 +73,23 @@ QString ProjectConfig::trimFile(const QString& file) const {
 }
 
 QString ProjectConfig::rusTarget(const QString& file, bool full) const {
-	QString target = trim_ext(trimFile(file)) + QStringLiteral(".rus");
-	return full ? rusRoot() + QStringLiteral("/") + target : target;
-}
-
-QString ProjectConfig::smmTarget(const QString& file, bool full) const {
-	QString target = trim_ext(trimFile(file)) + QStringLiteral(".smm");
-	return full ? smmRoot() + QStringLiteral("/") + target : target;
+	QString target = trim_ext(trimFile(file)) + QLatin1String(".rus");
+	return full ? rusRoot() + QLatin1String("/") + target : target;
 }
 
 QString ProjectConfig::mmTarget(const QString& file, bool full) const {
-	QString target = trim_ext(trimFile(file)) + QStringLiteral(".mm");
-	return full ? mmRoot() + QStringLiteral("/") + target : target;
+	QString target = trim_ext(trimFile(file)) + QLatin1String(".mm");
+	return full ? mmRoot() + QLatin1String("/") + target : target;
 }
 
 QString ProjectConfig::mergedTarget(const QString& file, bool full) const {
-	QString target = trim_ext(trimFile(file)) + QStringLiteral("_merged.mm");
-	return full ? mmRoot() + QStringLiteral("/") + target : target;
+	QString target = trim_ext(trimFile(file)) + QLatin1String("_merged.mm");
+	return full ? mmRoot() + QLatin1String("/") + target : target;
 }
 
 QString ProjectConfig::target(const QString& file, Lang lang, bool full) const {
 	switch (lang) {
 	case Lang::RUS: return rusTarget(file, full);
-	case Lang::SMM: return smmTarget(file, full);
 	case Lang::MM:  return mmTarget(file, full);
 	default: {
 		KMessageBox :: sorry(0, i18n ("Target file %1 extension is not specified", trim_ext(file)));
@@ -109,13 +98,12 @@ QString ProjectConfig::target(const QString& file, Lang lang, bool full) const {
 	}
 }
 
-ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QStringLiteral("Russell")) {
+ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGroup_(KSharedConfig::openConfig(), QLatin1String("Russell")) {
 	configUi_.setupUi(this);
 	connect(configUi_.addProjectButton, SIGNAL(clicked()), this, SLOT(addProjectSlot()));
 	connect(configUi_.delProjectButton, SIGNAL(clicked()), this, SLOT(delProjectSlot()));
 	connect(configUi_.chooseRusRootButton, SIGNAL(clicked()), this, SLOT(chooseRussellRootSlot()));
 	connect(configUi_.chooseRusMainButton, SIGNAL(clicked()), this, SLOT(chooseRussellMainSlot()));
-	connect(configUi_.chooseSmmRootButton, SIGNAL(clicked()), this, SLOT(chooseSmmRootSlot()));
 	connect(configUi_.chooseMmRootButton,  SIGNAL(clicked()), this, SLOT(chooseMmRootSlot()));
 	connect(configUi_.autoinitCheckBox,  SIGNAL(stateChanged(int)), this, SLOT(checkAutoinitSlot(int)));
 	connect(configUi_.autoloadCheckBox,  SIGNAL(stateChanged(int)), this, SLOT(checkAutoloadSlot(int)));
@@ -157,16 +145,14 @@ void ProjectConfigTab::addProject(const QString& name) {
 	configUi_.delProjectButton->setEnabled   (true);
 	configUi_.chooseMmRootButton->setEnabled (true);
 	configUi_.chooseRusRootButton->setEnabled(true);
-	configUi_.chooseSmmRootButton->setEnabled(true);
 	configUi_.chooseRusMainButton->setEnabled(true);
 	configUi_.mmRootLineEdit->setEnabled (true);
-	configUi_.smmRootLineEdit->setEnabled(true);
 	configUi_.rusRootLineEdit->setEnabled(true);
 	configUi_.rusMainLineEdit->setEnabled(true);
 	configUi_.loadMainButton->setEnabled (true);
 	configUi_.initProjectButton->setEnabled(true);
 
-	configGroup_.writeEntry(QStringLiteral("ProjectsCount"), configUi_.projectsComboBox->count());
+	configGroup_.writeEntry(QLatin1String("ProjectsCount"), configUi_.projectsComboBox->count());
 	switchProjectSlot(index);
 }
 
@@ -189,8 +175,8 @@ void ProjectConfigTab::addProjectSlot() {
 		KMessageBox :: sorry(0, i18n ("Empty project name is now allowed."));
 		return;
 	}
-	if (name.contains(QStringLiteral(" ")) || name.contains(QStringLiteral("\t")) ||
-		name.contains(QStringLiteral("\n")) || name.contains(QStringLiteral("\r"))) {
+	if (name.contains(QLatin1String(" ")) || name.contains(QLatin1String("\t")) ||
+		name.contains(QLatin1String("\n")) || name.contains(QLatin1String("\r"))) {
 		KMessageBox :: sorry(0, i18n ("Project name shouldn't contain space symbols."));
 		return;
 	}
@@ -211,10 +197,8 @@ void ProjectConfigTab::delProjectSlot() {
 	if (!configUi_.projectsComboBox->count()) {
 		configUi_.delProjectButton->setEnabled(false);
 		configUi_.chooseRusRootButton->setEnabled(false);
-		configUi_.chooseSmmRootButton->setEnabled(false);
 		configUi_.chooseRusMainButton->setEnabled(false);
 		configUi_.mmRootLineEdit->setEnabled(false);
-		configUi_.smmRootLineEdit->setEnabled(false);
 		configUi_.rusRootLineEdit->setEnabled(false);
 		configUi_.rusMainLineEdit->setEnabled(false);
 		configUi_.loadMainButton->setEnabled(false);
@@ -222,7 +206,6 @@ void ProjectConfigTab::delProjectSlot() {
 	} else {
 		QString name = configUi_.projectsComboBox->currentText();
 		configUi_.mmRootLineEdit->setText (ProjectConfig::projects()[name].mmRoot());
-		configUi_.smmRootLineEdit->setText(ProjectConfig::projects()[name].smmRoot());
 		configUi_.rusRootLineEdit->setText(ProjectConfig::projects()[name].rusRoot());
 		configUi_.rusMainLineEdit->setText(ProjectConfig::projects()[name].rusMain());
 	}
@@ -252,14 +235,6 @@ void ProjectConfigTab::chooseRussellRootSlot() {
 	configUi_.rusRootLineEdit->setText(new_root);
 }
 
-void ProjectConfigTab::chooseSmmRootSlot() {
-	QString name = configUi_.projectsComboBox->currentText();
-	QString current_root = configUi_.smmRootLineEdit->text();
-	QString new_root = QFileDialog :: getExistingDirectory (this, i18n("Smm root directory"), current_root);
-	ProjectConfig::projects()[name].setSmmRoot(new_root);
-	configUi_.smmRootLineEdit->setText(new_root);
-}
-
 void ProjectConfigTab::chooseMmRootSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
 	QString current_root = configUi_.mmRootLineEdit->text();
@@ -280,9 +255,8 @@ void ProjectConfigTab::checkAutoloadSlot(int state) {
 
 void ProjectConfigTab::switchProjectSlot(int index) {
 	QString name = configUi_.projectsComboBox->itemText(index);
-	configUi_.projectGroupBox->setTitle(QStringLiteral("Project: ") + name);
+	configUi_.projectGroupBox->setTitle(QLatin1String("Project: ") + name);
 	configUi_.mmRootLineEdit->setText (ProjectConfig::projects()[name].mmRoot());
-	configUi_.smmRootLineEdit->setText(ProjectConfig::projects()[name].smmRoot());
 	configUi_.rusRootLineEdit->setText(ProjectConfig::projects()[name].rusRoot());
 	configUi_.rusMainLineEdit->setText(ProjectConfig::projects()[name].rusMain());
 	configUi_.autoinitCheckBox->setCheckState(ProjectConfig::projects()[name].autoinit() ? Qt::Checked : Qt::Unchecked);
@@ -306,11 +280,11 @@ void ProjectConfigTab::loadMainSlot() {
 	 ****************************/
 
 void ProjectConfigTab::loadConfig() {
-    int count = configGroup_.readEntry(QStringLiteral("ProjectsCount"), 0);
+    int count = configGroup_.readEntry(QLatin1String("ProjectsCount"), 0);
     for (int i = 0; i < count; ++i) {
     	loadConfigForProject(i);
     }
-    int index = configGroup_.readEntry(QStringLiteral("ProjectIndex"), -1);
+    int index = configGroup_.readEntry(QLatin1String("ProjectIndex"), -1);
     configUi_.projectsComboBox->setCurrentIndex(index);
     switchProjectSlot(index);
 }
@@ -319,7 +293,6 @@ void ProjectConfigTab::loadConfigForProject(int i) {
 	QString name = configGroup_.readEntry(QStringLiteral("Projects %1 name").arg(i), "");
 	ProjectConfig::projects()[name].setRusRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Rus root").arg(i), ""));
 	ProjectConfig::projects()[name].setRusMain(configGroup_.readEntry(QStringLiteral("Projects %1 Rus main").arg(i), ""));
-	ProjectConfig::projects()[name].setSmmRoot(configGroup_.readEntry(QStringLiteral("Projects %1 Smm root").arg(i), ""));
 	ProjectConfig::projects()[name].setMmRoot (configGroup_.readEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ""));
 	ProjectConfig::projects()[name].setAutoinit(configGroup_.readEntry(QStringLiteral("Projects %1 autoinit").arg(i)) == QStringLiteral("true"));
 	ProjectConfig::projects()[name].setAutoload(configGroup_.readEntry(QStringLiteral("Projects %1 autoload").arg(i)) == QStringLiteral("true"));
@@ -329,9 +302,9 @@ void ProjectConfigTab::loadConfigForProject(int i) {
 
 void ProjectConfigTab::saveConfig() {
 	int count = configUi_.projectsComboBox->count();
-	configGroup_.writeEntry(QStringLiteral("ProjectsCount"), count);
+	configGroup_.writeEntry(QLatin1String("ProjectsCount"), count);
 	int index = configUi_.projectsComboBox->currentIndex();
-	configGroup_.writeEntry(QStringLiteral("ProjectIndex"), index);
+	configGroup_.writeEntry(QLatin1String("ProjectIndex"), index);
 	for (int i = 0; i < count; ++i) {
 		saveConfigForProject(i);
     }
@@ -342,7 +315,6 @@ void ProjectConfigTab::saveConfigForProject(int i) {
 	configGroup_.writeEntry(QStringLiteral("Projects %1 name").arg(i), name);
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Rus root").arg(i), ProjectConfig::projects()[name].rusRoot());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Rus main").arg(i), ProjectConfig::projects()[name].rusMain());
-	configGroup_.writeEntry(QStringLiteral("Projects %1 Smm root").arg(i), ProjectConfig::projects()[name].smmRoot());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 Mm  root").arg(i), ProjectConfig::projects()[name].mmRoot());
 	configGroup_.writeEntry(QStringLiteral("Projects %1 autoinit").arg(i), ProjectConfig::projects()[name].autoinit() ? "true" : "false");
 	configGroup_.writeEntry(QStringLiteral("Projects %1 autoload").arg(i), ProjectConfig::projects()[name].autoload() ? "true" : "false");
@@ -354,7 +326,6 @@ void ProjectConfigTab::removeConfigForProject(int i) {
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 name").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Rus root").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Rus main").arg(i));
-	configGroup_.deleteEntry(QStringLiteral("Projects %1 Smm root").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 Mm root").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 autoinit").arg(i));
 	configGroup_.deleteEntry(QStringLiteral("Projects %1 autoload").arg(i));

@@ -179,7 +179,7 @@ namespace russell {
 		QTextStream (stdout) << "------------------\n";
 #endif
 		//showServerMessages (messages_);
-		if (command_ == QStringLiteral("exit")) {
+		if (command_ == QLatin1String("exit")) {
 			socket_.disconnectFromHost();
 		}
 		isBusy_ = false;

@@ -30,9 +30,9 @@ namespace russell {
 		toolView_ = window_->createToolView 
 		(
 			proveView->plugin(),
-			QStringLiteral("kate_private_plugin_kateproveplugin_type_system"),
+			QLatin1String("kate_private_plugin_kateproveplugin_type_system"),
 			KTextEditor::MainWindow :: Left,
-			QIcon (QStringLiteral("application-x-ms-dos-executable")),
+			QIcon (QLatin1String("application-x-ms-dos-executable")),
 			i18n ("Type system")
 		);
 		tree_ = new TreeWidget (toolView_, this);

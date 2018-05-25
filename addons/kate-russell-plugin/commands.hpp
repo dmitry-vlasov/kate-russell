@@ -25,7 +25,7 @@ namespace russell {
 namespace command {
 
 	QString read(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString translate(const QString& file, ActionScope scope = ActionScope::FILE, Lang target = Lang::SMM);
+	QString translate(const QString& file, ActionScope scope = ActionScope::FILE, Lang target = Lang::MM);
 	QString merge(const QString& file, ActionScope scope = ActionScope::FILE);
 
 	QString verifyRus(const QString& file, ActionScope scope = ActionScope::FILE);

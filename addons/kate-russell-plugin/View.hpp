@@ -64,7 +64,6 @@ public:
 	Lang currentFileType() const;
 	bool currentIsRus() const;
 	bool currentIsMm() const;
-	bool currentIsSmm() const;
 
 private Q_SLOTS:
 	void slotRead(KTextEditor::View*);
