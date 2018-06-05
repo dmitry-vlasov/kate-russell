@@ -55,12 +55,18 @@ void FolderFilesList::generateList(const QString &folder,
 {
     m_cancelSearch = false;
     m_folder       = folder;
+    if (!m_folder.endsWith(QLatin1Char('/'))) {
+        m_folder += QLatin1Char('/');
+    }
     m_recursive    = recursive;
     m_hidden       = hidden;
     m_symlinks     = symlinks;
     m_binary       = binary;
-    m_types        = types.split(QLatin1Char(','), QString::SkipEmptyParts);
 
+    m_types.clear();
+    foreach (QString type, types.split(QLatin1Char(','), QString::SkipEmptyParts)) {
+        m_types << type.trimmed();
+    }
     if (m_types.isEmpty()) {
         m_types << QStringLiteral("*");
     }
@@ -68,7 +74,7 @@ void FolderFilesList::generateList(const QString &folder,
     QStringList tmpExcludes = excludes.split(QLatin1Char(','));
     m_excludeList.clear();
     for (int i=0; i<tmpExcludes.size(); i++) {
-        QRegExp rx(tmpExcludes[i]);
+        QRegExp rx(tmpExcludes[i].trimmed());
         rx.setPatternSyntax(QRegExp::Wildcard);
         m_excludeList << rx;
     }
@@ -122,7 +128,12 @@ void FolderFilesList::checkNextItem(const QFileInfo &item)
         for (int i = 0; i<currentItems.size(); ++i) {
             skip = false;
             for (int j=0; j<m_excludeList.size(); j++) {
-                if (m_excludeList[j].exactMatch(currentItems[i].fileName())) {
+
+                QString matchString = currentItems[i].filePath();
+                if (currentItems[i].filePath().startsWith(m_folder)) {
+                    matchString = currentItems[i].filePath().mid(m_folder.size());
+                }
+                if (m_excludeList[j].exactMatch(matchString)) {
                     skip = true;
                     break;
                 }

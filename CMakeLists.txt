@@ -8,7 +8,7 @@ set(KF5_DEP_VERSION "5.13.0") # we need KMultiTabBar::appendButton(const QIcon &
 
 # KDE Application Version, managed by release script
 set (KDE_APPLICATIONS_VERSION_MAJOR "18")
-set (KDE_APPLICATIONS_VERSION_MINOR "03")
+set (KDE_APPLICATIONS_VERSION_MINOR "07")
 set (KDE_APPLICATIONS_VERSION_MICRO "70")
 set (KDE_APPLICATIONS_VERSION "${KDE_APPLICATIONS_VERSION_MAJOR}.${KDE_APPLICATIONS_VERSION_MINOR}.${KDE_APPLICATIONS_VERSION_MICRO}")
 
@@ -32,7 +32,7 @@ include (CheckFunctionExists)
 include(KDEInstallDirs)
 include(KDECMakeSettings)
 
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Widgets Script Sql)
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Widgets Sql)
 
 if(BUILD_TESTING)
   find_package(Qt5Test ${QT_MIN_VERSION} CONFIG REQUIRED)

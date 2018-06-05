@@ -106,7 +106,7 @@ KatePluginSymbolViewerView::KatePluginSymbolViewerView(KTextEditor::Plugin *plug
   func_on = true;
 
   m_updateTimer.setSingleShot(true);
-  connect(&m_updateTimer, &QTimer::timerId, this, &KatePluginSymbolViewerView::slotRefreshSymbol);
+  connect(&m_updateTimer, &QTimer::timeout, this, &KatePluginSymbolViewerView::slotRefreshSymbol);
 
   m_currItemTimer.setSingleShot(true);
   connect(&m_currItemTimer, &QTimer::timeout, this, &KatePluginSymbolViewerView::updateCurrTreeItem);
@@ -225,10 +225,10 @@ void KatePluginSymbolViewerView::slotDocChanged()
  KTextEditor::View *view = m_mainWindow->activeView();
  //qDebug()<<"Document changed !!!!" << view;
  if (view) {
-   connect(view, &KTextEditor::View::cursorPositionChanged, this, &KatePluginSymbolViewerView::cursorPositionChanged);
+   connect(view, &KTextEditor::View::cursorPositionChanged, this, &KatePluginSymbolViewerView::cursorPositionChanged, Qt::UniqueConnection);
 
    if (view->document()) {
-     connect(view->document(), &KTextEditor::Document::textChanged, this, &KatePluginSymbolViewerView::slotDocEdited);
+     connect(view->document(), &KTextEditor::Document::textChanged, this, &KatePluginSymbolViewerView::slotDocEdited, Qt::UniqueConnection);
    }
  }
 }

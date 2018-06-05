@@ -52,6 +52,10 @@ The available application plugins are:
 Look up definitions/declarations with CTags</para>
 </listitem>
 <listitem>
+<para><link linkend="kate-application-plugin-preview">Document preview</link> -
+Preview the document in the target format.</para>
+</listitem>
+<listitem>
 <para><link linkend="kate-application-plugin-documentswitcher">Document switcher</link> -
 Quick document switching with <keycombo action="simul">&Alt;&Tab;</keycombo> behavior</para>
 </listitem>
@@ -294,12 +298,10 @@ the last command.</para>
 Clicking on the error or warning takes you to the appropriate file and places
 the cursor on the corresponding line number.</para>
 
-<!--FIXME: These shortcuts now seem to be used by the Project plugin as well.
-            https://bugs.kde.org/show_bug.cgi?id=328170 -->
 <para>To navigate to the previous error, press
-<keycombo action="simul">&Ctrl;&Alt;<keysym>Left</keysym></keycombo>.
+<keycombo action="simul">&Alt;&Shift;&Left;</keycombo>.
 To navigate to the next error, press
-<keycombo action="simul">&Ctrl;&Alt;<keysym>Right</keysym></keycombo>.</para>
+<keycombo action="simul">&Alt;&Shift;&Right;</keycombo>.</para>
 
 </sect3>
 </sect2>
@@ -604,6 +606,93 @@ place the cursor at the start of the definition.</para>
 </sect2>
 
 </sect1>
+<!--https://frinring.wordpress.com/2017/11/07/ktexteditorpreviewplugin-0-2-1-last-stand-alone/-->
+<!-- https://frinring.wordpress.com/2017/08/21/look-what-you-have-donewwdo/-->
+<sect1 id="kate-application-plugin-preview">
+<title>Document Preview Plugin</title>
+
+<sect2 id="preview-introduction">
+<title>Introduction</title>
+<para>
+The plugin enables a live preview of the currently edited text document in the
+final format in the sidebar. So when editing &eg; a Markdown text or an SVG image,
+the result is instantly visible next to the source text.
+</para>
+
+<para>For the display the plugin uses that KParts plugin which is currently selected
+as the preferred one for the &MIME; type of the document.
+If there is no KParts plugin for that type, no preview is possible.
+</para>
+
+<para>To change the preferred plugin open the <guilabel>File Associations</guilabel>
+module in the &systemsettings; and edit the <guilabel>Services Preference Order</guilabel>
+on the <guilabel>Embedding</guilabel> tab.
+</para>
+
+<table>
+<title>Some available KParts plugins</title>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry>&MIME; type</entry><entry>KParts plugin</entry>
+</row>
+<row>
+<entry>Markdown text</entry><entry>KMarkdownWebViewPart or OkularPart</entry>
+</row>
+<row>
+<entry>SVG image</entry><entry>SVGPart</entry>
+</row>
+<row>
+<entry>&Qt; UI files</entry><entry>KUIViewerPart</entry>
+</row>
+<row>
+<entry>Dot graph files</entry><entry>KGraphviewerPart</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</sect2>
+
+<sect2 id="preview-menu">
+<title>Menu Structure</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-preview">
+<term><menuchoice>
+<guimenu>View</guimenu><guisubmenu>Tool Views</guisubmenu>
+<guimenuitem>Show Preview</guimenuitem>
+</menuchoice></term>
+<listitem>
+<para>Toggle the display of &kate;'s Document preview in a sidebar.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</sect2>
+
+<sect2 id="preview-interface">
+<title>Interface</title>
+<para>The buttons at the top of the preview window provide these actions:
+</para>
+<itemizedlist>
+<listitem>
+<para>Lock the preview to a given document. Selecting this option ensures
+that if switching the focus to the view of another document in the same &kate;
+window, the preview will not follow to that document, but keep previewing
+this document.</para>
+</listitem>
+<listitem>
+<para>Enable or disable updates of the preview of the current document content</para>
+</listitem>
+<listitem>
+<para>Manually update the preview of the current document content</para>
+</listitem>
+<listitem>
+<para>A dropdown menu with actions from the KParts plugin</para>
+</listitem>
+</itemizedlist>
+</sect2>
+
+</sect1>
 
 <sect1 id="kate-application-plugin-documentswitcher">
 
@@ -622,6 +711,13 @@ place the cursor at the start of the definition.</para>
 <guimenu>View</guimenu>
 <guisubmenu>Last Used Views</guisubmenu>
 </menuchoice></term>
+<term><menuchoice>
+<shortcut>
+<keycombo action="simul">&Ctrl;&Shift;&Tab;</keycombo>
+</shortcut>
+<guimenu>View</guimenu>
+<guisubmenu>Last Used Views (Reverse)</guisubmenu>
+</menuchoice></term>
 <listitem>
 
 <para><action>Opens</action> a list with the last viewed documents:</para>
@@ -633,14 +729,19 @@ place the cursor at the start of the definition.</para>
 </mediaobject>
 </screenshot>
 
+<para>Keep the &Ctrl; key pressed and use the &Tab; key to cycle forward through the list.
+Additionally press the &Shift; key to reverse the direction.
+</para>
+
 <para>Keep the shortcut <keycombo action="simul">&Ctrl;&Tab;</keycombo> pressed and
-can use the <keysym>Up</keysym>, <keysym>Down</keysym>, <keycap>Home</keycap> or
-<keycap>End</keycap> keys to navigate in the list. Pressing a char key consecutively
+can use the &Up;, &Down;, &Home; or
+&End; keys to navigate in the list. Pressing a char key consecutively
 will cycle through all items with the first matching in the list.
 If you release the shortcut keys the view will switch to the selected document in the list.
 </para>
 </listitem>
 </varlistentry>
+
 </variablelist>
 
 </sect2>
@@ -912,7 +1013,7 @@ editing area.</para>
 <varlistentry id="view-document-previous">
 <term><menuchoice>
 <shortcut>
-<keycombo action="simul">&Alt;<keysym>Up</keysym></keycombo>
+<keycombo action="simul">&Alt;&Up;</keycombo>
 </shortcut>
 <guimenu>View</guimenu>
 <guimenuitem>Previous Document</guimenuitem>
@@ -925,7 +1026,7 @@ editing area.</para>
 <varlistentry id="view-document-next">
 <term><menuchoice>
 <shortcut>
-<keycombo action="simul">&Alt;<keysym>Down</keysym></keycombo>
+<keycombo action="simul">&Alt;&Down;</keycombo>
 </shortcut>
 <guimenu>View</guimenu>
 <guimenuitem>Next Document</guimenuitem>
@@ -1691,13 +1792,10 @@ currently open projects.  It is displayed by the Project plugin.</para>
 
 <variablelist>
 
-<!--FIXME: these shortcuts conflict with the preexisting Build plugin
-            https://bugs.kde.org/show_bug.cgi?id=328170 -->
-
 <varlistentry id="projects-back">
 <term><menuchoice>
 <shortcut>
-<keycombo action="simul">&Ctrl;&Alt;<keysym>Left</keysym></keycombo>
+<keycombo action="simul">&Ctrl;&Alt;&Left;</keycombo>
 </shortcut>
 <guimenu>Projects</guimenu>
 <guimenuitem>Back</guimenuitem>
@@ -1710,7 +1808,7 @@ currently open projects.  It is displayed by the Project plugin.</para>
 <varlistentry id="projects-forward">
 <term><menuchoice>
 <shortcut>
-<keycombo action="simul">&Ctrl;&Alt;<keysym>Right</keysym></keycombo>
+<keycombo action="simul">&Ctrl;&Alt;&Right;</keycombo>
 </shortcut>
 <guimenu>Projects</guimenu>
 <guimenuitem>Forward</guimenuitem>
@@ -2084,6 +2182,9 @@ a particular match by double-clicking on its listing instead of the file name.
 
 <varlistentry id="edit-searchinfiles">
 <term><menuchoice>
+<shortcut>
+<keycombo action="simul">&Ctrl;&Alt;<keycap>F</keycap></keycombo>
+</shortcut>
 <guimenu>Edit</guimenu>
 <guimenuitem>Search in Files</guimenuitem>
 </menuchoice></term>
@@ -3014,7 +3115,7 @@ into &kate; and following the instructions.</para>
 <varlistentry>
 <term><menuchoice>
 <shortcut>
-<keycombo action="simul">&Ctrl;<keycap>Return</keycap></keycombo>
+<keycombo action="simul">&Ctrl;&Enter;</keycombo>
 </shortcut>
 <guimenu>&XML;</guimenu>
 <guimenuitem>Insert Element...</guimenuitem>

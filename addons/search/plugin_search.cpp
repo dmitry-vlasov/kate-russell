@@ -299,14 +299,14 @@ m_mainWindow (mainWin)
 
     connect(m_ui.searchCombo, &QComboBox::editTextChanged, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
     connect(m_ui.matchCase, &QToolButton::toggled, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
-    connect(m_ui.matchCase, &QToolButton::toggled, [=]{
+    connect(m_ui.matchCase, &QToolButton::toggled, this, [=]{
         Results *res = qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
         if (res) {
             res->matchCase = m_ui.matchCase->isChecked();
         }
     });
     connect(m_ui.useRegExp, &QToolButton::toggled, &m_changeTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
-    connect(m_ui.useRegExp, &QToolButton::toggled, [=]{
+    connect(m_ui.useRegExp, &QToolButton::toggled, this, [=]{
         Results *res = qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
         if (res) {
             res->useRegExp = m_ui.useRegExp->isChecked();
@@ -336,7 +336,7 @@ m_mainWindow (mainWin)
     connect(m_ui.stopButton, &QPushButton::clicked, &m_folderFilesList, &FolderFilesList::cancelSearch);
     connect(m_ui.stopButton, &QPushButton::clicked, &m_replacer, &ReplaceMatches::cancelReplace);
 
-    connect(m_ui.newTabButton, &QToolButton::clicked, this, &KatePluginSearchView::goToNextMatch);
+    connect(m_ui.nextButton, &QToolButton::clicked, this, &KatePluginSearchView::goToNextMatch);
 
     connect(m_ui.replaceButton, &QPushButton::clicked, this, &KatePluginSearchView::replaceSingleMatch);
     connect(m_ui.replaceCheckedBtn, &QPushButton::clicked, this, &KatePluginSearchView::replaceChecked);
@@ -369,7 +369,7 @@ m_mainWindow (mainWin)
 
     // Hook into line edit context menus
     m_ui.searchCombo->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(m_ui.searchButton, &QPushButton::customContextMenuRequested, this, &KatePluginSearchView::searchContextMenu);
+    connect(m_ui.searchCombo, &QComboBox::customContextMenuRequested, this, &KatePluginSearchView::searchContextMenu);
     m_ui.searchCombo->completer()->setCompletionMode(QCompleter::PopupCompletion);
     m_ui.searchCombo->completer()->setCaseSensitivity(Qt::CaseSensitive);
     m_ui.searchCombo->setInsertPolicy(QComboBox::NoInsert);
@@ -526,7 +526,7 @@ QStringList KatePluginSearchView::filterFiles(const QStringList& files) const
     QStringList tmpTypes = types.split(QLatin1Char(','));
     QVector<QRegExp> typeList;
     for (int i=0; i<tmpTypes.size(); i++) {
-        QRegExp rx(tmpTypes[i]);
+        QRegExp rx(tmpTypes[i].trimmed());
         rx.setPatternSyntax(QRegExp::Wildcard);
         typeList << rx;
     }
@@ -534,7 +534,7 @@ QStringList KatePluginSearchView::filterFiles(const QStringList& files) const
     QStringList tmpExcludes = excludes.split(QLatin1Char(','));
     QVector<QRegExp> excludeList;
     for (int i=0; i<tmpExcludes.size(); i++) {
-        QRegExp rx(tmpExcludes[i]);
+        QRegExp rx(tmpExcludes[i].trimmed());
         rx.setPatternSyntax(QRegExp::Wildcard);
         excludeList << rx;
     }
@@ -931,7 +931,7 @@ void KatePluginSearchView::startSearch()
     m_curResults->tree->clear();
     m_curResults->tree->setCurrentItem(nullptr);
     m_curResults->matches = 0;
-
+    disconnect(m_curResults->tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), nullptr, nullptr);
 
     m_ui.resultTabWidget->setTabText(m_ui.resultTabWidget->currentIndex(),
                                      m_ui.searchCombo->currentText());
@@ -1163,49 +1163,11 @@ void KatePluginSearchView::searchDone()
     }
 
     // expand the "header item " to display all files and all results if configured
-    QTreeWidgetItem *root = m_curResults->tree->topLevelItem(0);
     expandResults();
 
-    if (root) {
-        switch (m_ui.searchPlaceCombo->currentIndex())
-        {
-            case CurrentFile:
-                root->setData(0, Qt::DisplayRole, i18np("<b><i>One match found in current file</i></b>",
-                                                        "<b><i>%1 matches found in current file</i></b>",
-                                                        m_curResults->matches));
-                break;
-            case OpenFiles:
-                root->setData(0, Qt::DisplayRole, i18np("<b><i>One match found in open files</i></b>",
-                                                        "<b><i>%1 matches found in open files</i></b>",
-                                                        m_curResults->matches));
-                break;
-            case Folder:
-                root->setData(0, Qt::DisplayRole, i18np("<b><i>One match found in folder %2</i></b>",
-                                                        "<b><i>%1 matches found in folder %2</i></b>",
-                                                        m_curResults->matches,
-                                                        m_resultBaseDir));
-                break;
-            case Project:
-                {
-                    QString projectName;
-                    if (m_projectPluginView) {
-                        projectName = m_projectPluginView->property("projectName").toString();
-                    }
-                    root->setData(0, Qt::DisplayRole, i18np("<b><i>One match found in project %2 (%3)</i></b>",
-                                                            "<b><i>%1 matches found in project %2 (%3)</i></b>",
-                                                            m_curResults->matches,
-                                                            projectName,
-                                                            m_resultBaseDir));
-                    break;
-                }
-            case AllProjects: // "in Open Projects"
-                root->setData(0, Qt::DisplayRole, i18np("<b><i>One match found in all open projects (common parent: %2)</i></b>",
-                                                        "<b><i>%1 matches found in all open projects (common parent: %2)</i></b>",
-                                                        m_curResults->matches,
-                                                        m_resultBaseDir));
-                break;
-        }
-    }
+    updateResultsRootItem();
+
+    connect(m_curResults->tree, &QTreeWidget::itemChanged, this, &KatePluginSearchView::updateResultsRootItem);
 
     indicateMatch(m_curResults->matches > 0);
     m_curResults = nullptr;
@@ -1550,6 +1512,69 @@ void KatePluginSearchView::expandResults()
             for (int i=0; i<root->childCount(); i++) {
                 m_curResults->tree->collapseItem(root->child(i));
             }
+        }
+    }
+}
+
+void KatePluginSearchView::updateResultsRootItem()
+{
+    m_curResults = qobject_cast<Results *>(m_ui.resultTabWidget->currentWidget());
+    if (!m_curResults) {
+        return;
+    }
+
+    QTreeWidgetItem *root = m_curResults->tree->topLevelItem(0);
+
+    if (root) {
+        int checkedItemCount = 0;
+        if (m_curResults->matches > 1) {
+            for (QTreeWidgetItemIterator it(m_curResults->tree, QTreeWidgetItemIterator::Checked|QTreeWidgetItemIterator::NoChildren);
+                 *it; ++it)
+             {
+                 checkedItemCount++;
+             }
+        }
+
+        switch (m_ui.searchPlaceCombo->currentIndex())
+        {
+            case CurrentFile:
+                root->setData(0, Qt::DisplayRole, i18np("<b><i>%1 match found in current file</i></b>",
+                                                        "<b><i>%1 matches (%2 checked) found in current file</i></b>",
+                                                        m_curResults->matches, checkedItemCount));
+                break;
+            case OpenFiles:
+                root->setData(0, Qt::DisplayRole, i18np("<b><i>%1 match found in open files</i></b>",
+                                                        "<b><i>%1 matches (%2 checked) found in open files</i></b>",
+                                                        m_curResults->matches, checkedItemCount));
+                break;
+            case Folder:
+                root->setData(0, Qt::DisplayRole, i18np("<b><i>%1 match found in folder %2</i></b>",
+                                                        "<b><i>%1 matches (%3 checked) found in folder %2</i></b>",
+                                                        m_curResults->matches,
+                                                        m_resultBaseDir,
+                                                        checkedItemCount));
+                break;
+            case Project:
+                {
+                    QString projectName;
+                    if (m_projectPluginView) {
+                        projectName = m_projectPluginView->property("projectName").toString();
+                    }
+                    root->setData(0, Qt::DisplayRole, i18np("<b><i>%1 match found in project %2 (%3)</i></b>",
+                                                            "<b><i>%1 matches (%4 checked) found in project %2 (%3)</i></b>",
+                                                            m_curResults->matches,
+                                                            projectName,
+                                                            m_resultBaseDir,
+                                                            checkedItemCount));
+                    break;
+                }
+            case AllProjects: // "in Open Projects"
+                root->setData(0, Qt::DisplayRole, i18np("<b><i>%1 match found in all open projects (common parent: %2)</i></b>",
+                                                        "<b><i>%1 matches (%3 checked) found in all open projects (common parent: %2)</i></b>",
+                                                        m_curResults->matches,
+                                                        m_resultBaseDir,
+                                                        checkedItemCount));
+                break;
         }
     }
 }

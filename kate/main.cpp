@@ -44,6 +44,7 @@
 #include <QDBusReply>
 #include <QApplication>
 #include <QDir>
+#include <QSessionManager>
 
 #include "../urlinfo.h"
 
@@ -60,13 +61,15 @@
 int main(int argc, char **argv)
 {
 #ifndef Q_OS_WIN
-    /**
-     * Check whether we are running as root
-     **/
+    // Prohibit using sudo or kdesu (but allow using the root user directly)
     if (getuid() == 0) {
-        std::cout << "Executing Kate as root is not possible. To edit files as root use:" << std::endl;
-        std::cout << "SUDO_EDITOR=kate sudoedit <file>" << std::endl;
-        return 0;
+        if (!qEnvironmentVariableIsEmpty("SUDO_USER")) {
+            std::cout << "Executing Kate with sudo is not possible due to unfixable security vulnerabilities." << std::endl;
+            return EXIT_FAILURE;
+        } else if (!qEnvironmentVariableIsEmpty("KDESU_USER")) {
+            std::cout << "Executing Kate with kdesu is not possible due to unfixable security vulnerabilities." << std::endl;
+            return EXIT_FAILURE;
+        }
     }
 #endif
     /**
@@ -487,6 +490,17 @@ int main(int argc, char **argv)
 
             // make the world happy, we are started, kind of...
             KStartupInfo::appStarted();
+
+            // We don't want the session manager to restart us on next login
+            // if we block
+            if (needToBlock) {
+                QObject::connect(qApp, &QGuiApplication::saveStateRequest, qApp,
+                                 [](QSessionManager &session) {
+                                     session.setRestartHint(QSessionManager::RestartNever);
+                                 },
+                                 Qt::DirectConnection
+                         );
+            }
 
             // this will wait until exiting is emitted by the used instance, if wanted...
             return needToBlock ? app.exec() : 0;
