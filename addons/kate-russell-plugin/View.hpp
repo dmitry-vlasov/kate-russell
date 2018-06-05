@@ -23,8 +23,8 @@
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/SessionConfigInterface>
 
+#include "Enums.hpp"
 #include "ui_BottomTab.h"
-#include "Kind.hpp"
 
 namespace russell {
 
@@ -32,45 +32,27 @@ class Outline;
 class Structure;
 class TypeSystem;
 class Proof;
-class Client;
 class Server;
 
 class View : public QObject, public KXMLGUIClient {
 Q_OBJECT
 public:
-	enum State_ {
-		WAITING,
-		READING,
-		PROVING,
-		PROVING_INTERACTIVELY,
-		TRANSLATING,
-		VERIFYING,
-		LEARNING,
-		LOOKING_DEFINITION,
-		OPENING_DEFINITION,
-		MINING_OUTLINE,
-		MINING_STRUCTURE,
-		MINING_TYPE_SYSTEM
-	};
-
 	View (KTextEditor::MainWindow*, KTextEditor::Plugin*);
 	virtual ~ View();
 
 	static View* get() { return instance_; }
 
-	State_ getState() const;
+	State getState() const;
 	Ui :: Bottom& getBottomUi();
 	QWidget* toolView() const;
 	void clearOutput();
 	void openLocation(const QString&);
 
-	Client* client();
 	Server* server();
 	Proof* proof();
 	KTextEditor::Plugin* plugin() { return plugin_; }
 	KTextEditor::MainWindow* mainWindow() const { return mainWindow_; }
 
-	void setOutput(const QString& output) { output_ = output; }
 	const QString& getOutput() const;
 	void mineOutline (const QString&);
 	void mineStructure (const QString&);
@@ -82,26 +64,25 @@ public:
 	Lang currentFileType() const;
 	bool currentIsRus() const;
 	bool currentIsMm() const;
-	bool currentIsSmm() const;
 
 private Q_SLOTS:
 	void slotRead(KTextEditor::View*);
 	void slotDocumentSaved(KTextEditor::Document*, bool);
 
-	void slotCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotMmCommandCompleted();
 	void slotRefreshOutline();
 
 	// prove slots
-	void slotProveVerify();
-	void slotProve();
-	void slotProveInteractive();
-	void slotTranslate();
+	//void slotProveVerify();
+	//void slotProve();
+	//void slotProveInteractive();
 	void slotVerify();
-	void slotLearn();
-	void slotConfirmProof(int);
+	void slotTranslate();
+	//void slotConfirmProof(int);
 
-	void proveIdAutomatically();
-	void proveIdInteractively();
+	//void proveIdAutomatically();
+	//void proveIdInteractively();
 
 	// server slots
 	void slotManageServer();
@@ -112,21 +93,21 @@ private Q_SLOTS:
 	void openDefinition();
 	void latexToUnicode();
 
-	// launcher output slots
-//	void slotProcessExited (const int, QProcess :: ExitStatus);
-//	void slotReadOutputStdErr (const bool = false);
-//	void slotReadOutputStdOut (const bool = false);
-
 	// server output slots
 	void slotReadRussellStdErr();
 	void slotReadRussellStdOut();
 	void slotReadMetamathStdErr();
 	void slotReadMetamathStdOut();
 
-	// client output slots
-	void slotShowServerMessages(QString);
+	// execute custom command
+	void slotExecuteRussellCommand();
+	void slotExecuteMetamathCommand();
+
+Q_SIGNALS:
+    void mmCommandFinished();
 
 private:
+    void openFile(const QString& file);
 	void showBuffer (const bool = false);
 	void reloadSource();
 	QString currentIdentifier() const;
@@ -154,12 +135,33 @@ private:
 	Structure*  structure_;
 	TypeSystem* typeSystem_;
 	Proof*      proof_;
-	Client*     client_;
 
-	QString      output_;
-	QString      outputBuffer_;
-	State_       state_;
 	static View* instance_;
+
+	struct InternalState {
+		InternalState() : state(State::WAITING) { }
+		InternalState(State s, const QString& f) : state(s), file(f) { }
+		State state;
+		QString file;
+	};
+
+	struct StateKeeper {
+		InternalState get() const {
+			return internal_state_;
+		}
+		bool start(State s, const QString& f) {
+			if (internal_state_.state != State::WAITING) return false;
+			internal_state_ = InternalState(s, f);
+			return true;
+		}
+		void stop() {
+			internal_state_ = InternalState();
+		}
+	private:
+		InternalState internal_state_;
+	};
+	StateKeeper state_;
 };
 
 }
+

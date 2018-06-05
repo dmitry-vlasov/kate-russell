@@ -13,7 +13,8 @@
 #pragma once
 
 #include <QIcon>
-#include "Kind.hpp"
+
+#include "Enums.hpp"
 
 namespace russell {
 

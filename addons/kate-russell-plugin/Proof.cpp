@@ -17,10 +17,11 @@
 
 #include "Proof.hpp"
 #include "View.hpp"
-#include "Client.hpp"
 #include "Icon.hpp"
 
 #include "Proof.moc"
+
+#include "commands.hpp"
 #include "Execute.hpp"
 
 namespace russell {
@@ -43,9 +44,9 @@ namespace russell {
 		mainWindow_->createToolView
 		(
 			russellView->plugin(),
-			QStringLiteral("kate_private_plugin_kateproveplugin_proof"),
+			QLatin1String("kate_private_plugin_kateproveplugin_proof"),
 			KTextEditor::MainWindow :: Left,
-			QIcon (QStringLiteral("application-x-ms-dos-executable")),
+			QIcon (QLatin1String("application-x-ms-dos-executable")),
 			i18n ("Proof")
 		)
 	),
@@ -102,30 +103,30 @@ namespace russell {
 	}
 
 	void
-	Proof :: plant()
+	Proof :: startProving()
 	{
 		tree_->clear();
 		treeItems_.clear();
 
 		// setup plant options
-		QString options = QStringLiteral("setup ");
-		options += QStringLiteral("--interactive ");
-		options += QStringLiteral("--info-tree-sprout ");
-		options += QStringLiteral("--info-xml-format ");
-		russellView_->client()->execute (options);
+		QString options = QLatin1String("setup ");
+		options += QLatin1String("--interactive ");
+		options += QLatin1String("--info-tree-sprout ");
+		options += QLatin1String("--info-xml-format ");
+		//russellView_->client()->execute (options);
 
 		// do plant job
-		russellView_->client()->execute (QString(QStringLiteral("plant")));
+		//russellView_->client()->execute (QString(QLatin1String("plant")));
 
 		// setup info options
-		options = QStringLiteral("setup ");
-		options += QStringLiteral("--info-tree-sprout ");
-		options += QStringLiteral("--info-xml-format ");
-		options += QStringLiteral("--hide-comments yes");
-		russellView_->client()->execute (options);
+		options = QLatin1String("setup ");
+		options += QLatin1String("--info-tree-sprout ");
+		options += QLatin1String("--info-xml-format ");
+		options += QLatin1String("--hide-comments yes");
+		//russellView_->client()->execute (options);
 
 		// request for the result of plant operation
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (QString(QLatin1String("info")));
 		root_ = NULL;
 		proofs_.clear();
 		const QString output; // =  Connection::get().data(); //russellView_->client()->getData();
@@ -133,11 +134,11 @@ namespace russell {
 
 		// now set showing comments back to default
 		options.clear();
-		options += QStringLiteral("setup --hide-comments no");
-		russellView_->client()->execute (options);
+		options += QLatin1String("setup --hide-comments no");
+		//russellView_->client()->execute (options);
 	}
 	void
-	Proof :: grow (QTreeWidgetItem* item)
+	Proof :: growTree (QTreeWidgetItem* item)
 	{
 		if (item == NULL) {
 			return;
@@ -148,39 +149,39 @@ namespace russell {
 			return;
 		}
 		// setup the expansion index:
-		QString command = QStringLiteral("setup --index ");
+		QString command = QLatin1String("setup --index ");
 		command += QString :: number (index);
-		russellView_->client()->execute (command);
+		//russellView_->client()->execute (command);
 
 		// do grow job
-		russellView_->client()->execute (QString(QStringLiteral("grow")));
+		//russellView_->client()->execute (QString(QLatin1String("grow")));
 
 		// setup info options
-		QString options = QStringLiteral("setup ");
-		options += QStringLiteral("--info-tree-sprout ");
-		options += QStringLiteral("--info-xml-format ");
-		options += QStringLiteral("--hide-comments yes");
-		russellView_->client()->execute (options);
+		QString options = QLatin1String("setup ");
+		options += QLatin1String("--info-tree-sprout ");
+		options += QLatin1String("--info-xml-format ");
+		options += QLatin1String("--hide-comments yes");
+		//russellView_->client()->execute (options);
 
 		// request for the result of grow operation
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (QString(QLatin1String("info")));
 		const QString output; // = Connection::get().data(); //russellView_->client()->getData();
 		updateXML (output);
 
 		// now set showing comments back to default
 		options.clear();
-		options += QStringLiteral("setup --hide-comments no");
-		russellView_->client()->execute (options);
+		options += QLatin1String("setup --hide-comments no");
+		//russellView_->client()->execute (options);
 
 		if (isProved()) {
-			QString message = QStringLiteral("Proofs found:\n");
-			message += proofs_.join(QStringLiteral("\n"));
-			message += QStringLiteral("admit or continue?");
+			QString message = QLatin1String("Proofs found:\n");
+			message += proofs_.join(QLatin1String("\n"));
+			message += QLatin1String("admit or continue?");
 			const int decision = KMessageBox :: questionYesNo
 			(
 				tree_,
 				message,
-				QStringLiteral("proofs"),
+				QLatin1String("proofs"),
 				KStandardGuiItem :: yes(),
 				KStandardGuiItem :: cont()
 			);
@@ -195,9 +196,9 @@ namespace russell {
 		}
 	}
 	void
-	Proof :: fell()
+	Proof :: stopProving()
 	{
-		russellView_->client()->execute (QString(QStringLiteral("fell")));
+		//russellView_->client()->execute (QString(QLatin1String("fell")));
 		tree_->clear();
 		treeItems_.clear();
 		root_ = NULL;
@@ -215,13 +216,13 @@ namespace russell {
 		if (index == -1) {
 			return;
 		}
-		QString options = QStringLiteral("setup ");
-		options += QStringLiteral("--info-tree-node ");
-		options += QStringLiteral("--info-xml-format ");
-		options += QStringLiteral("--index ");
+		QString options = QLatin1String("setup ");
+		options += QLatin1String("--info-tree-node ");
+		options += QLatin1String("--info-xml-format ");
+		options += QLatin1String("--index ");
 		options += QString :: number (index);
-		russellView_->client()->execute (options);
-		russellView_->client()->execute (QString(QStringLiteral("info")));
+		//russellView_->client()->execute (options);
+		//russellView_->client()->execute (QString(QLatin1String("info")));
 		QString nodeXML;
 		//nodeXML += Connection::get().data(); //russellView_->client()->getData();
 		updateXML (nodeXML);
@@ -245,7 +246,7 @@ namespace russell {
 	void
 	Proof :: setupSlotsAndSignals()
 	{
-		QAction* showAct = new QAction (QIcon(QStringLiteral("open.png")), tr("&show..."), popup_);
+		QAction* showAct = new QAction (QIcon(QLatin1String("open.png")), tr("&show..."), popup_);
 		//showAct->setShortcuts(QKeySequence::Open);
 		showAct->setStatusTip (tr("Show complete info"));
 		connect(showAct, SIGNAL (triggered()), this, SLOT (info()));
@@ -257,7 +258,7 @@ namespace russell {
 		popup_->insertItem (i18n ("FUCK"), this, SLOT (doNothing()));
 		popup_->insertItem (i18n ("expand"), this, SLOT (expandTree()));
 */
-		QAction* expand = popup_->addAction(QStringLiteral("expand"));
+		QAction* expand = popup_->addAction(QLatin1String("expand"));
 
 		connect
 		(
@@ -279,7 +280,7 @@ namespace russell {
 			tree_,
 			SIGNAL (itemActivated (QTreeWidgetItem*, int)),
 			this,
-			SLOT (grow (QTreeWidgetItem*))
+			SLOT (growTree (QTreeWidgetItem*))
 		);
 		connect
 		(
@@ -317,23 +318,23 @@ namespace russell {
 	void
 	Proof :: updateXML (const QString& XMLSource)
 	{
-		QDomDocument document (QStringLiteral("tree"));
+		QDomDocument document (QLatin1String("tree"));
 		QString errorMsg;
 		int errorLine = 0;
 		int errorColumn = 0;
 		if (!document.setContent (XMLSource, &errorMsg, &errorLine, &errorColumn)) {
-			errorMsg += QStringLiteral(" on line ");
+			errorMsg += QLatin1String(" on line ");
 			errorMsg += QString :: number (errorLine);
-			errorMsg += QStringLiteral(" on column ");
+			errorMsg += QLatin1String(" on column ");
 			errorMsg += QString :: number (errorColumn);
 			KMessageBox :: sorry (0, errorMsg);
 			return;
 		}
 		QDomElement root = document.documentElement();
 		QDomNode node = root.firstChild();
-		if (root.tagName() == QStringLiteral("sprout")) {
+		if (root.tagName() == QLatin1String("sprout")) {
 			buildTree (node);
-		} else if (root.tagName() == QStringLiteral("node")) {
+		} else if (root.tagName() == QLatin1String("node")) {
 			buildNode (node);
 		}
 	}
@@ -344,10 +345,10 @@ namespace russell {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("up")) {
+				if (outlineElement.tagName() == QLatin1String("up")) {
 					QDomNode upNode = outlineNode.firstChild();
 					buildTreeUp (upNode);
-				} else if (outlineElement.tagName() == QStringLiteral("root")) {
+				} else if (outlineElement.tagName() == QLatin1String("root")) {
 					QDomNode downNode = outlineNode.firstChild();
 					buildRoot (downNode);
 				}
@@ -361,15 +362,15 @@ namespace russell {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("root")) {
+				if (outlineElement.tagName() == QLatin1String("root")) {
 					buildTreeUpRoot (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("hyp")) {
+				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
 					buildTreeHyp (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("prop")) {
+				} else if (outlineElement.tagName() == QLatin1String("prop")) {
 					buildTreeProp (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("ref")) {
+				} else if (outlineElement.tagName() == QLatin1String("ref")) {
 					buildTreeRef (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("top")) {
+				} else if (outlineElement.tagName() == QLatin1String("top")) {
 					buildTreeTop (outlineNode);
 				}
 			}
@@ -381,15 +382,15 @@ namespace russell {
 	{
 		root_ = new QTreeWidgetItem (tree_);
 		QDomElement outlineElement = outlineNode.toElement();
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const QString types = outlineElement.attribute (QStringLiteral("types"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const QString types = outlineElement.attribute (QLatin1String("types"));
 		treeItems_[index] = root_;
 
 		QDomNode childNode = outlineNode.firstChild();
 		QString expression;
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -397,16 +398,16 @@ namespace russell {
 		root_->setIcon (0, Icon :: root());
 		root_->setText (0, expression);
 		root_->setText (1, QString :: number (index));
-		root_->setText (2, QStringLiteral("root"));
-		QString toolTip = QStringLiteral("index: ");
+		root_->setText (2, QLatin1String("root"));
+		QString toolTip = QLatin1String("index: ");
 		toolTip += QString :: number (index);
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("types: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("types: ");
 		toolTip += types;
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("expression: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("expression: ");
 		toolTip += expression;
-		toolTip += QStringLiteral("\n");
+		toolTip += QLatin1String("\n");
 		root_->setToolTip (0, toolTip);
 		//item->setText (2, outlineElement.attribute ("line", ""));
 		//item->setText (3, outlineElement.attribute ("column", ""));
@@ -416,19 +417,19 @@ namespace russell {
 	Proof :: buildTreeHyp (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString types = outlineElement.attribute (QStringLiteral("types"));
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
+		const QString types = outlineElement.attribute (QLatin1String("types"));
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
 		std :: vector<int> downIndexes;
 
 		QDomNode childNode = outlineNode.firstChild();
 		QString expression;
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("down")) {
-				const int downIndex = childElement.attribute(QStringLiteral("index")).toInt();
+			if (childElement.tagName() == QLatin1String("down")) {
+				const int downIndex = childElement.attribute(QLatin1String("index")).toInt();
 				downIndexes.push_back(downIndex);
-			} else if (childElement.tagName() == QStringLiteral("expression")) {
+			} else if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -442,20 +443,20 @@ namespace russell {
 			item->setIcon (0, Icon :: hyp());
 			item->setText (0, expression);
 			item->setText (1, QString :: number (index));
-			item->setText (2, QStringLiteral("hyp"));
+			item->setText (2, QLatin1String("hyp"));
 			QString toolTip;
 			if (hint) {
-				toolTip += QStringLiteral("<<< HINT >>>\n");
+				toolTip += QLatin1String("<<< HINT >>>\n");
 			}
-			toolTip += QStringLiteral("index: ");
+			toolTip += QLatin1String("index: ");
 			toolTip += QString :: number (index);
-			toolTip += QStringLiteral("\n");
-			toolTip += QStringLiteral("types: ");
+			toolTip += QLatin1String("\n");
+			toolTip += QLatin1String("types: ");
 			toolTip += types;
-			toolTip += QStringLiteral("\n");
-			toolTip += QStringLiteral("expression: ");
+			toolTip += QLatin1String("\n");
+			toolTip += QLatin1String("expression: ");
 			toolTip += expression;
-			toolTip += QStringLiteral("\n");
+			toolTip += QLatin1String("\n");
 			item->setToolTip (0, toolTip);
 			break;
 		}
@@ -464,9 +465,9 @@ namespace russell {
 	Proof :: buildTreeProp (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString name = outlineElement.attribute (QStringLiteral("name"));
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
+		const QString name = outlineElement.attribute (QLatin1String("name"));
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
 
 		QDomNode childNode = outlineNode.firstChild();
 		QDomElement childElement = childNode.toElement();
@@ -474,10 +475,10 @@ namespace russell {
 		QString assertion;
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("assertion")) {
+			if (childElement.tagName() == QLatin1String("assertion")) {
 				assertion = childElement.text();
-			} else if (childElement.tagName() == QStringLiteral("down")) {
-				downIndex = childElement.attribute(QStringLiteral("index")).toInt();
+			} else if (childElement.tagName() == QLatin1String("down")) {
+				downIndex = childElement.attribute(QLatin1String("index")).toInt();
 			}
 			childNode = childNode.nextSibling();
 		}
@@ -488,16 +489,16 @@ namespace russell {
 		item->setIcon (0, Icon :: prop());
 		item->setText (0, name);
 		item->setText (1, QString :: number (index));
-		item->setText (2, QStringLiteral("prop"));
+		item->setText (2, QLatin1String("prop"));
 		item->setText (3, assertion);
 		QString toolTip;
 		if (hint) {
-			toolTip += QStringLiteral("<<< HINT >>>\n");
+			toolTip += QLatin1String("<<< HINT >>>\n");
 		}
-		toolTip += QStringLiteral("index: ");
+		toolTip += QLatin1String("index: ");
 		toolTip += QString :: number (index);
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("assertion: \n");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("assertion: \n");
 		toolTip += assertion;
 		item->setToolTip (0, toolTip);
 	}
@@ -505,8 +506,8 @@ namespace russell {
 	Proof :: buildTreeRef (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
 
 		QDomNode childNode = outlineNode.firstChild();
 		QDomElement childElement = childNode.toElement();
@@ -514,10 +515,10 @@ namespace russell {
 		QString expression;
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
-			} else if (childElement.tagName() == QStringLiteral("down")) {
-				downIndex  = childElement.attribute(QStringLiteral("index")).toInt();
+			} else if (childElement.tagName() == QLatin1String("down")) {
+				downIndex  = childElement.attribute(QLatin1String("index")).toInt();
 			}
 			childNode = childNode.nextSibling();
 		}
@@ -529,16 +530,16 @@ namespace russell {
 		item->setIcon (0, Icon :: ref());
 		item->setText (0, expression);
 		item->setText (1, QString :: number (index));
-		item->setText (2, QStringLiteral("ref"));
+		item->setText (2, QLatin1String("ref"));
 
 		QString toolTip;
 		if (hint) {
-			toolTip += QStringLiteral("<<< HINT >>>\n");
+			toolTip += QLatin1String("<<< HINT >>>\n");
 		}
-		toolTip += QStringLiteral("index: ");
+		toolTip += QLatin1String("index: ");
 		toolTip += QString :: number (index);
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("expression: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("expression: ");
 		toolTip += expression;
 		item->setToolTip (0, toolTip);
 	}
@@ -546,17 +547,17 @@ namespace russell {
 	Proof :: buildTreeTop (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString reference = outlineElement.attribute (QStringLiteral("reference"));
-		const QString types = outlineElement.attribute (QStringLiteral("types"));
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const int downIndex = outlineElement.attribute(QStringLiteral("down")).toInt();
+		const QString reference = outlineElement.attribute (QLatin1String("reference"));
+		const QString types = outlineElement.attribute (QLatin1String("types"));
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const int downIndex = outlineElement.attribute(QLatin1String("down")).toInt();
 
 		QString expression;
 		QDomNode childNode = outlineNode.firstChild();
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -568,21 +569,21 @@ namespace russell {
 		item->setIcon (0, Icon :: top());
 		item->setText (0, reference);
 		item->setText (1, QString :: number (index));
-		item->setText (2, QStringLiteral("top"));
+		item->setText (2, QLatin1String("top"));
 		QString toolTip;
 		if (hint) {
-			toolTip += QStringLiteral("<<< HINT >>>\n");
+			toolTip += QLatin1String("<<< HINT >>>\n");
 		}
-		toolTip += QStringLiteral("index: ");
+		toolTip += QLatin1String("index: ");
 		toolTip += QString :: number (index);
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("types: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("types: ");
 		toolTip += types;
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("reference: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("reference: ");
 		toolTip += reference;
-		toolTip += QStringLiteral("\n");
-		toolTip += QStringLiteral("expression: ");
+		toolTip += QLatin1String("\n");
+		toolTip += QLatin1String("expression: ");
 		toolTip += expression;
 		item->setToolTip (0, toolTip);
 	}
@@ -592,7 +593,7 @@ namespace russell {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("proof" )) {
+				if (outlineElement.tagName() == QLatin1String("proof" )) {
 					buildRootProof (outlineNode);
 				}
 			}
@@ -606,7 +607,7 @@ namespace russell {
 		QDomElement outlineElement = outlineNode.toElement();
 		QString proof = outlineElement.text();
 		proofs_ << proof;
-		root_->setToolTip (0, proofs_.join (QStringLiteral("\n")));
+		root_->setToolTip (0, proofs_.join (QLatin1String("\n")));
 	}
 
 	void
@@ -615,15 +616,15 @@ namespace russell {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("prop")) {
+				if (outlineElement.tagName() == QLatin1String("prop")) {
 					buildNodeProp (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("hyp")) {
+				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
 					buildNodeHyp (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("ref")) {
+				} else if (outlineElement.tagName() == QLatin1String("ref")) {
 					buildNodeRef (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("root")) {
+				} else if (outlineElement.tagName() == QLatin1String("root")) {
 					buildNodeRoot (outlineNode);
-				} else if (outlineElement.tagName() == QStringLiteral("top")) {
+				} else if (outlineElement.tagName() == QLatin1String("top")) {
 					buildNodeTop (outlineNode);
 				}
 			}
@@ -638,15 +639,15 @@ namespace russell {
 	Proof :: buildNodeHyp (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString types = outlineElement.attribute (QStringLiteral("types"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
+		const QString types = outlineElement.attribute (QLatin1String("types"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
 
 		QString expression;
 		QDomNode childNode = outlineNode.firstChild();
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -655,19 +656,19 @@ namespace russell {
 		QDialog* infoBox = new QDialog (this);
 		QGridLayout* layout = new QGridLayout (infoBox);
 
-		QLabel*    indexLabel = new QLabel (QString(QStringLiteral("index:")));
+		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
 		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
 		indexText->setReadOnly (true);
 		layout->addWidget (indexLabel, 0, 0, 1, 1);
 		layout->addWidget (indexText,  0, 1, 1, 1);
 
-		QLabel*    infoLabel = new QLabel (QString(QStringLiteral("hypothesis:")));
+		QLabel*    infoLabel = new QLabel (QString(QLatin1String("hypothesis:")));
 		QLineEdit* infoText  = new QLineEdit (expression);
 		infoText->setReadOnly (true);
 		layout->addWidget (infoLabel, 1, 0, 1, 1);
 		layout->addWidget (infoText,  1, 1, 1, 1);
 
-		QLabel*    typesLabel = new QLabel (QString(QStringLiteral("types:")));
+		QLabel*    typesLabel = new QLabel (QString(QLatin1String("types:")));
 		QLineEdit* typesText  = new QLineEdit (types);
 		typesText->setReadOnly (true);
 		layout->addWidget (typesLabel, 2, 0, 1, 1);
@@ -681,15 +682,15 @@ namespace russell {
 	Proof :: buildNodeProp (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString name = outlineElement.attribute (QStringLiteral("name"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
+		const QString name = outlineElement.attribute (QLatin1String("name"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
 
 		QString assertion;
 		QDomNode childNode = outlineNode.firstChild();
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("assertion")) {
+			if (childElement.tagName() == QLatin1String("assertion")) {
 				assertion = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -698,13 +699,13 @@ namespace russell {
 		QDialog* infoBox = new QDialog (this);
 		QGridLayout* layout = new QGridLayout (infoBox);
 
-		QLabel*    indexLabel = new QLabel (QString(QStringLiteral("index:")));
+		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
 		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
 		indexText->setReadOnly (true);
 		layout->addWidget (indexLabel, 0, 0, 1, 1);
 		layout->addWidget (indexText,  0, 1, 1, 1);
 
-		QLabel*    infoLabel = new QLabel (QString(QStringLiteral("proposition:")));
+		QLabel*    infoLabel = new QLabel (QString(QLatin1String("proposition:")));
 		QLineEdit* infoText  = new QLineEdit (name);
 		infoText->setReadOnly (true);
 		layout->addWidget (infoLabel, 1, 0, 1, 1);
@@ -719,14 +720,14 @@ namespace russell {
 	Proof :: buildNodeRef (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
 
 		QString expression;
 		QDomNode childNode = outlineNode.firstChild();
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -735,13 +736,13 @@ namespace russell {
 		QDialog* infoBox = new QDialog (this);
 		QGridLayout* layout = new QGridLayout (infoBox);
 
-		QLabel*    indexLabel = new QLabel (QString(QStringLiteral("index:")));
+		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
 		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
 		indexText->setReadOnly (true);
 		layout->addWidget (indexLabel, 0, 0, 1, 1);
 		layout->addWidget (indexText,  0, 1, 1, 1);
 
-		QLabel*    infoLabel = new QLabel (QString(QStringLiteral("reference to:")));
+		QLabel*    infoLabel = new QLabel (QString(QLatin1String("reference to:")));
 		QLineEdit* infoText  = new QLineEdit (expression);
 		infoText->setReadOnly (true);
 		layout->addWidget (infoLabel, 1, 0, 1, 1);
@@ -755,16 +756,16 @@ namespace russell {
 	Proof :: buildNodeTop (QDomNode& outlineNode)
 	{
 		QDomElement outlineElement = outlineNode.toElement();
-		const QString types = outlineElement.attribute (QStringLiteral("types"));
-		const int index = outlineElement.attribute (QStringLiteral("index")).toInt();
-		const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-		const QString reference = outlineElement.attribute (QStringLiteral("reference"));
+		const QString types = outlineElement.attribute (QLatin1String("types"));
+		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
+		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+		const QString reference = outlineElement.attribute (QLatin1String("reference"));
 
 		QString expression;
 		QDomNode childNode = outlineNode.firstChild();
 		while (!childNode.isNull()) {
 			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QStringLiteral("expression")) {
+			if (childElement.tagName() == QLatin1String("expression")) {
 				expression = childElement.text();
 			}
 			childNode = childNode.nextSibling();
@@ -773,25 +774,25 @@ namespace russell {
 		QDialog* infoBox = new QDialog (this);
 		QGridLayout* layout = new QGridLayout (infoBox);
 
-		QLabel*    indexLabel = new QLabel (QString(QStringLiteral("index:")));
+		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
 		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
 		indexText->setReadOnly (true);
 		layout->addWidget (indexLabel, 0, 0, 1, 1);
 		layout->addWidget (indexText,  0, 1, 1, 1);
 
-		QLabel*    typesLabel = new QLabel (QString(QStringLiteral("types:")));
+		QLabel*    typesLabel = new QLabel (QString(QLatin1String("types:")));
 		QLineEdit* typesText  = new QLineEdit (types);
 		typesText->setReadOnly (true);
 		layout->addWidget (typesLabel, 1, 0, 1, 1);
 		layout->addWidget (typesText,  1, 1, 1, 1);
 
-		QLabel*    refInfoLabel = new QLabel (QString(QStringLiteral("reference to:")));
+		QLabel*    refInfoLabel = new QLabel (QString(QLatin1String("reference to:")));
 		QLineEdit* refInfoText  = new QLineEdit (reference);
 		refInfoText->setReadOnly (true);
 		layout->addWidget (refInfoLabel, 2, 0, 1, 1);
 		layout->addWidget (refInfoText,  2, 1, 1, 1);
 
-		QLabel*    expInfoLabel = new QLabel (QString(QStringLiteral("expression:")));
+		QLabel*    expInfoLabel = new QLabel (QString(QLatin1String("expression:")));
 		QLineEdit* expInfoText  = new QLineEdit (expression);
 		expInfoText->setReadOnly (true);
 		layout->addWidget (expInfoLabel, 3, 0, 1, 1);
@@ -809,18 +810,18 @@ namespace russell {
 		while (!countingNode.isNull()) {
 			QDomElement outlineElement = countingNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("evidence")) {
+				if (outlineElement.tagName() == QLatin1String("evidence")) {
 					++ rowCount;
 				}
 			}
 			countingNode = countingNode.nextSibling();
 		}
 		QTableWidget* evidenceList = new QTableWidget (rowCount, 4);
-		evidenceList->setHorizontalHeaderItem (0, new QTableWidgetItem (QString(QStringLiteral("hint"))));
-		evidenceList->setHorizontalHeaderItem (1, new QTableWidgetItem (QString(QStringLiteral("proof"))));
-		evidenceList->setHorizontalHeaderItem (2, new QTableWidgetItem (QString(QStringLiteral("expression"))));
-		evidenceList->setHorizontalHeaderItem (3, new QTableWidgetItem (QString(QStringLiteral("types"))));
-		evidenceList->setHorizontalHeaderItem (4, new QTableWidgetItem (QString(QStringLiteral("substitution"))));
+		evidenceList->setHorizontalHeaderItem (0, new QTableWidgetItem (QString(QLatin1String("hint"))));
+		evidenceList->setHorizontalHeaderItem (1, new QTableWidgetItem (QString(QLatin1String("proof"))));
+		evidenceList->setHorizontalHeaderItem (2, new QTableWidgetItem (QString(QLatin1String("expression"))));
+		evidenceList->setHorizontalHeaderItem (3, new QTableWidgetItem (QString(QLatin1String("types"))));
+		evidenceList->setHorizontalHeaderItem (4, new QTableWidgetItem (QString(QLatin1String("substitution"))));
 		//evidenceList->setSizePolicy(QSizePolicy (QSizePolicy :: Maximum, QSizePolicy :: Maximum));
 		QDomNode evidenceNode = outlineNode.firstChild();
 		int row = 0;
@@ -831,26 +832,26 @@ namespace russell {
 		while (!evidenceNode.isNull()) {
 			QDomElement outlineElement = evidenceNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("evidence")) {
-					const bool hint = (outlineElement.attribute (QStringLiteral("hint")) == QStringLiteral("+"));
-					const QString proof = outlineElement.attribute (QStringLiteral("proof"));
-					const QString types = outlineElement.attribute (QStringLiteral("types"));
+				if (outlineElement.tagName() == QLatin1String("evidence")) {
+					const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
+					const QString proof = outlineElement.attribute (QLatin1String("proof"));
+					const QString types = outlineElement.attribute (QLatin1String("types"));
 
 					QString expression;
 					QString substitution;
 					QDomNode childNode = outlineElement.firstChild();
 					while (!childNode.isNull()) {
 						QDomElement childElement = childNode.toElement();
-						if (childElement.tagName() == QStringLiteral("expression")) {
+						if (childElement.tagName() == QLatin1String("expression")) {
 							expression = childElement.text();
 						}
-						if (childElement.tagName() == QStringLiteral("substitution")) {
+						if (childElement.tagName() == QLatin1String("substitution")) {
 							substitution = childElement.text();
 						}
 						childNode = childNode.nextSibling();
 					}
 
-					QTableWidgetItem* hintItem = new QTableWidgetItem (hint ? QString(QStringLiteral("<<HINT>>")) : QStringLiteral(""));
+					QTableWidgetItem* hintItem = new QTableWidgetItem (hint ? QString(QLatin1String("<<HINT>>")) : QLatin1String(""));
 					QTableWidgetItem* proofItem = new QTableWidgetItem (proof);
 					QTableWidgetItem* expressionItem = new QTableWidgetItem (expression);
 					QTableWidgetItem* typesItem = new QTableWidgetItem (types);

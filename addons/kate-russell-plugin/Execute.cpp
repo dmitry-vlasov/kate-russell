@@ -36,10 +36,8 @@ namespace russell {
 	Metamath::execute (const QString& command) {
 		QByteArray data = command.toLatin1();
 		qint64 size = Server::metamath().process().write(data);
-		bool ret = size == data.size();
-		QListWidgetItem* item = View::get()->getBottomUi().metamathListWidget->currentItem();
-		item->setText(item->text() + command);
-		return ret;
+		View::get()->getBottomUi().metamathTextEdit->appendPlainText(command);
+		return size == data.size();
 	}
 
 	Russell :: Russell():
@@ -48,6 +46,31 @@ namespace russell {
 	isBusy_(false) {
 		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
+
+
+	bool
+	Russell :: connection()
+	{
+		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
+			//std :: cout << "already connected to server" << std :: endl;
+			return true;
+		}
+		socket_.disconnectFromHost();
+		QString host = russell::RussellConfig::russellHost();
+		int port = russell::RussellConfig::russlelPort();
+		socket_.connectToHost (host, port);
+		bool isConnected = socket_.waitForConnected(100);
+		if (!isConnected) {
+			//std :: cout << "not connected to server:" << std :: endl;
+			QTextStream (stdout) << "\t" << socket_.errorString() << "\n";
+			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
+		}
+		return isConnected;
+	}
+
+	/****************************
+	 *	Public slots
+	 ****************************/
 
 	bool
 	Russell :: execute (const QString& command)
@@ -74,26 +97,6 @@ namespace russell {
 		QTextStream (stdout) << "\n\n\n";
 #endif
 		return !code_;
-	}
-
-	bool
-	Russell :: connection()
-	{
-		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
-			//std :: cout << "already connected to server" << std :: endl;
-			return true;
-		}
-		socket_.disconnectFromHost();
-		QString host = russell::RussellConfig::russellHost();
-		int port = russell::RussellConfig::russlelPort();
-		socket_.connectToHost (host, port);
-		bool isConnected = socket_.waitForConnected(100);
-		if (!isConnected) {
-			//std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << socket_.errorString() << "\n";
-			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
-		}
-		return isConnected;
 	}
 
 	/****************************
@@ -176,7 +179,7 @@ namespace russell {
 		QTextStream (stdout) << "------------------\n";
 #endif
 		//showServerMessages (messages_);
-		if (command_ == QStringLiteral("exit")) {
+		if (command_ == QLatin1String("exit")) {
 			socket_.disconnectFromHost();
 		}
 		isBusy_ = false;

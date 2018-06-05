@@ -24,13 +24,15 @@ class Russell : public QObject {
 Q_OBJECT
 public :
 	Russell();
-	bool execute (const QString&);
 	bool success() const { return !code_; }
 	bool connection();
 	bool isBusy() const { return isBusy_; }
 
 Q_SIGNALS:
-    void dataReceived(quint32, QString, QString);
+	void dataReceived(quint32, QString, QString);
+
+public Q_SLOTS:
+	bool execute (const QString&);
 
 private Q_SLOTS:
 	void readyRead();

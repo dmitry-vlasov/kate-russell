@@ -26,19 +26,19 @@ inline QString de_escape_xml(const QString& s) {
 	for (int i = 0; i < s.length(); ++ i) {
 		if (s[i] == QLatin1Char('&')) {
 			++i;
-			if (s.mid(i, 4) == QStringLiteral("quot")) {
+			if (s.mid(i, 4) == QLatin1String("quot")) {
 				i += 4;
 				str += QLatin1Char('\"');
-			} else if (s.mid(i, 4) == QStringLiteral("apos")) {
+			} else if (s.mid(i, 4) == QLatin1String("apos")) {
 				i += 4;
 				str += QLatin1Char('\'');
-			} else if (s.mid(i, 3) == QStringLiteral("amp")) {
+			} else if (s.mid(i, 3) == QLatin1String("amp")) {
 				i += 3;
 				str += QLatin1Char('&');
-			} else if (s.mid(i, 2) == QStringLiteral("lt")) {
+			} else if (s.mid(i, 2) == QLatin1String("lt")) {
 				i += 2;
 				str += QLatin1Char('<');
-			} else if (s.mid(i, 2) == QStringLiteral("gt")) {
+			} else if (s.mid(i, 2) == QLatin1String("gt")) {
 				i += 2;
 				str += QLatin1Char('>');
 			} else {
@@ -59,7 +59,6 @@ inline QString de_escape_xml(const QString& s) {
 		View* view,
 		const Sort sort
 	) :
-	//QWidget (window->activeView()),
 	QWidget(window->activeView()),
 	window_ (window),
 	view_ (view),
@@ -93,7 +92,7 @@ inline QString de_escape_xml(const QString& s) {
 		QDomDocument document(i18n(header));
 		QString error;
 		if (!document.setContent (output, &error)) {
-			QMessageBox::information(this, QStringLiteral("Couldn't parse xml"), error);
+			QMessageBox::information(this, QLatin1String("Couldn't parse xml"), error);
 			return;
 		}
 		const QDomElement root = document.documentElement();
@@ -149,7 +148,7 @@ inline QString de_escape_xml(const QString& s) {
 	Navigation :: gotoDefinition (QTreeWidgetItem* item)
 	{
 		const QString& locate = item->text (4);
-		if (locate == QStringLiteral("no")) {
+		if (locate == QLatin1String("no")) {
 			return;
 		}
 		QString path = item->text (1);
@@ -231,43 +230,43 @@ inline QString de_escape_xml(const QString& s) {
 	QString 
 	Navigation :: getOptions() const
 	{
-		if (sort_ == TYPE_SYSTEM) return QStringLiteral("type");
+		if (sort_ == TYPE_SYSTEM) return QLatin1String("type");
 		QString options;
 		if (showAxioms_ && showAxioms_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("axiom");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("axiom");
 		}
 		if (showConstants_ && showConstants_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("const");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("const");
 		}
 		if (showDefinitions_ && showDefinitions_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("def");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("def");
 		}
 		if (showImports_ && showImports_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("import");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("import");
 		}
 		if (showProblems_ && showProblems_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("problem");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("problem");
 		}
 		if (showRules_ && showRules_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("rule");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("rule");
 		}
 		if (showTheorems_ && showTheorems_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("theorem");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("theorem");
 		}
 		if (showTheories_ && showTheories_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("theory");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("theory");
 		}
 		if (showTypes_ && showTypes_->isChecked()) {
-			if (options.size()) options += QStringLiteral(",");
-			options += QStringLiteral("type");
+			if (options.size()) options += QLatin1String(",");
+			options += QLatin1String("type");
 		}
 		return options;
 	}
@@ -277,31 +276,31 @@ inline QString de_escape_xml(const QString& s) {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QStringLiteral("import")) {
+				if (outlineElement.tagName() == QLatin1String("import")) {
 					buildItem (outlineNode, sibling, IMPORT, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("theory")) {
+				} else if (outlineElement.tagName() == QLatin1String("theory")) {
 					buildTree (outlineNode, sibling, THEORY, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("contents")) {
+				} else if (outlineElement.tagName() == QLatin1String("contents")) {
 					buildTree (outlineNode, sibling, CONTENTS, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("constant")) {
+				} else if (outlineElement.tagName() == QLatin1String("constant")) {
 					buildItem (outlineNode, sibling, CONSTANT, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("type")) {
+				} else if (outlineElement.tagName() == QLatin1String("type")) {
 					if (expandTypes_) {
 						buildTree (outlineNode, sibling, TYPE, parent, true);
 					} else {
 						buildItem (outlineNode, sibling, TYPE, parent);
 					}
-				} else if (outlineElement.tagName() == QStringLiteral("rule")) {
+				} else if (outlineElement.tagName() == QLatin1String("rule")) {
 					buildItem (outlineNode, sibling, RULE, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("axiom")) {
+				} else if (outlineElement.tagName() == QLatin1String("axiom")) {
 					buildItem (outlineNode, sibling, AXIOM, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("definition")) {
+				} else if (outlineElement.tagName() == QLatin1String("definition")) {
 					buildItem (outlineNode, sibling, DEFINITION, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("theorem")) {
+				} else if (outlineElement.tagName() == QLatin1String("theorem")) {
 					buildItem (outlineNode, sibling, THEOREM, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("problem")) {
+				} else if (outlineElement.tagName() == QLatin1String("problem")) {
 					buildItem (outlineNode, sibling, PROBLEM, parent);
-				} else if (outlineElement.tagName() == QStringLiteral("proof")) {
+				} else if (outlineElement.tagName() == QLatin1String("proof")) {
 					buildItem (outlineNode, sibling, PROOF, parent);
 				}
 			}
@@ -325,14 +324,14 @@ inline QString de_escape_xml(const QString& s) {
 		item->setIcon (0, Icon :: get (kind));
 		QDomElement outlineElement = outlineNode.toElement();
 		if (kind != CONSTANT) {
-			item->setText (0, de_escape_xml(outlineElement.attribute (QStringLiteral("name"), QStringLiteral(""))));
+			item->setText (0, de_escape_xml(outlineElement.attribute (QLatin1String("name"), QLatin1String(""))));
 		} else {
 			item->setText (0, de_escape_xml(outlineElement.text().trimmed()));
 		}
-		item->setText (1, de_escape_xml(outlineElement.attribute (QStringLiteral("path"), QStringLiteral(""))));
-		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
-		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
-		item->setText (4, QStringLiteral("yes"));
+		item->setText (1, de_escape_xml(outlineElement.attribute (QLatin1String("path"), QLatin1String(""))));
+		item->setText (2, outlineElement.attribute (QLatin1String("line"), QLatin1String("")));
+		item->setText (3, outlineElement.attribute (QLatin1String("col"), QLatin1String("")));
+		item->setText (4, QLatin1String("yes"));
 	}
 	void 
 	Navigation :: buildTree
@@ -352,17 +351,26 @@ inline QString de_escape_xml(const QString& s) {
 		item->setIcon (0, Icon :: get (kind));
 		tree_->expandItem (item);
 		QDomElement outlineElement = outlineNode.toElement();
-		item->setText (0, de_escape_xml(outlineElement.attribute (QStringLiteral("name"), QStringLiteral(""))));
-		item->setText (1, de_escape_xml(outlineElement.attribute (QStringLiteral("path"), QStringLiteral(""))));
-		item->setText (2, outlineElement.attribute (QStringLiteral("line"), QStringLiteral("")));
-		item->setText (3, outlineElement.attribute (QStringLiteral("col"), QStringLiteral("")));
+		item->setText (0, de_escape_xml(outlineElement.attribute (QLatin1String("name"), QLatin1String(""))));
+		item->setText (1, de_escape_xml(outlineElement.attribute (QLatin1String("path"), QLatin1String(""))));
+		item->setText (2, outlineElement.attribute (QLatin1String("line"), QLatin1String("")));
+		item->setText (3, outlineElement.attribute (QLatin1String("col"), QLatin1String("")));
 		if (gotoDefinition) {
-			item->setText (4, QStringLiteral("yes"));
+			item->setText (4, QLatin1String("yes"));
 		} else {
-			item->setText (4, QStringLiteral("no"));
+			item->setText (4, QLatin1String("no"));
 		}
 		QDomNode childNode = outlineNode.firstChild();
 		QTreeWidgetItem* childSibling = nullptr;
 		build (childNode, childSibling, item);
+	}
+
+	Navigation :: TreeWidget :: TreeWidget(QWidget* parent, Navigation* n) :
+		QTreeWidget(parent), navigation(n) { }
+
+	void
+	Navigation :: TreeWidget :: showEvent(QShowEvent *event) {
+		navigation->refresh();
+		QTreeView::showEvent(event);
 	}
 }

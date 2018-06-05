@@ -19,6 +19,7 @@
 
 #include <KConfigGroup>
 
+#include "Enums.hpp"
 #include "ui_ProjectsTab.h"
 
 namespace russell {
@@ -28,23 +29,26 @@ public:
 	const QString& name() const { return name_; }
 	const QString& rusRoot() const { return rusRoot_; }
 	const QString& rusMain() const { return rusMain_; }
-	const QString& smmRoot() const { return smmRoot_; }
 	const QString&  mmRoot() const { return  mmRoot_; }
+	bool autoinit() const { return autoinit_; }
+	bool autoload() const { return autoinit_; }
 
 	void setName(const QString& name) { name_ = name; }
-	void setSmmRoot(const QString& smmRoot) { smmRoot_ = smmRoot; }
 	void setRusRoot(const QString& rusRoot) { rusRoot_ = rusRoot; }
 	void setMmRoot(const QString& mmRoot) { mmRoot_ = mmRoot; }
 	void setRusMain(const QString& rusMain) { rusMain_ = rusMain; }
+	void setAutoinit(bool ai) { autoinit_ = ai; }
+	void setAutoload(bool al) { autoload_ = al; }
 
-	void initProject();
-	void loadMain();
+	QString initProjectCommand() const;
+	QString loadMainCommand() const;
 
 	QString trimFile(const QString& file) const;
-	QString rusTarget(const QString& file) const;
-	QString smmTarget(const QString& file) const;
-	QString mmTarget(const QString& file) const;
-	QString mergedTarget(const QString& file) const;
+
+	QString rusTarget(const QString& file, bool full = false) const;
+	QString mmTarget(const QString& file, bool full = false) const;
+	QString mergedTarget(const QString& file, bool full = false) const;
+	QString target(const QString& file, Lang lang, bool full = false) const;
 
 	static QMap<QString, ProjectConfig>& projects() {
 		static QMap<QString, ProjectConfig> projects_;
@@ -57,8 +61,9 @@ private:
 	QString name_;
 	QString rusRoot_;
 	QString rusMain_;
-	QString smmRoot_;
 	QString mmRoot_;
+	bool autoinit_;
+	bool autoload_;
 };
 
 class ProjectConfigTab : public QWidget {
@@ -71,9 +76,10 @@ private Q_SLOTS:
 	void addProjectSlot();
 	void delProjectSlot();
 	void chooseRussellMainSlot();
-	void chooseRussellRootSlot();
-	void chooseSmmRootSlot();
+	void chooseRussellRootSlot();;
 	void chooseMmRootSlot();
+	void checkAutoinitSlot(int);
+	void checkAutoloadSlot(int);
 	void switchProjectSlot(int);
 	void initProjectSlot();
 	void loadMainSlot();

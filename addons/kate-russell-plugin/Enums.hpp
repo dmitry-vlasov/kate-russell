@@ -33,14 +33,53 @@ enum Kind {
 	TYPE
 };
 
-enum class Lang { RUS, SMM, MM, OTHER };
+enum class State {
+	WAITING,
+	READING,
+	PROVING,
+	PROVING_INTERACTIVELY,
+	TRANSLATING,
+	VERIFYING_RUS,
+	VERIFYING_MM,
+	ERASING_MM,
+	LEARNING,
+	LOOKING_DEFINITION,
+	OPENING_DEFINITION,
+	MINING_OUTLINE,
+	MINING_STRUCTURE,
+	MINING_TYPE_SYSTEM
+};
+
+enum class Lang { RUS, MM, OTHER };
 
 inline Lang file_type(const QString& file) {
 	if (file.endsWith(QStringLiteral(".rus"))) return Lang::RUS;
-	if (file.endsWith(QStringLiteral(".smm"))) return Lang::SMM;
 	if (file.endsWith(QStringLiteral(".mm")))  return Lang::MM;
 	return Lang::OTHER;
 }
+
+inline QString trim_ext(const QString& file) {
+	switch (file_type(file)) {
+	case Lang::RUS: return file.mid(0, file.length() - 4);
+	case Lang::MM:  return file.mid(0, file.length() - 3);
+	default:        return file;
+	}
+}
+
+inline QString lang_string(Lang lang) {
+	switch (lang) {
+	case Lang::RUS: return QStringLiteral("rus");
+	case Lang::MM:  return QStringLiteral("mm");
+	default:        return QStringLiteral("");
+	}
+}
+
+inline QString change_file_lang(const QString& file, Lang lang) {
+	return trim_ext(file) + QStringLiteral(".") + lang_string(lang);
+}
+
+enum class ActionScope { PROJ, FILE };
+enum class ProvingMode { AUTO, INTERACTIVE };
 
 }
 

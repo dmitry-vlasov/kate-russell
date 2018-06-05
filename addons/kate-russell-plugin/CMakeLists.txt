@@ -17,7 +17,7 @@ set (katerussell_SRC
 	
 	LatexToUnicode.cpp
 	
-	Client.cpp
+	commands.cpp
 	Server.cpp
 	Execute.cpp
 	
@@ -50,7 +50,9 @@ target_link_libraries (katerussellplugin
     KF5::IconThemes
     KF5::I18n
     KF5::Service
+    stdc++fs
 )
 
-install (TARGETS katerussellplugin DESTINATION ${PLUGIN_INSTALL_DIR}/ktexteditor)
+install(TARGETS katerussellplugin DESTINATION ${PLUGIN_INSTALL_DIR}/ktexteditor )
+install(TARGETS katerussellplugin DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/ktexteditor )
 

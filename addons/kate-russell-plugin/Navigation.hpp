@@ -22,7 +22,7 @@
 
 #include <KTextEditor/MainWindow>
 
-#include "Kind.hpp"
+#include "Enums.hpp"
 #include "View.hpp"
 
 namespace russell {
@@ -64,27 +64,33 @@ protected :
 		QTreeWidgetItem*,
 		const bool gotoDefinition = false
 	);
+
+	struct TreeWidget : public QTreeWidget {
+		TreeWidget(QWidget*, Navigation*);
+		void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+		Navigation* navigation;
+	};
 		
 	KTextEditor::MainWindow* window_;
-	View*        view_;
-	const Sort   sort_;
-	QWidget*     toolView_;
-	QTreeWidget* tree_;
+	View*       view_;
+	const Sort  sort_;
+	QWidget*    toolView_;
+	TreeWidget* tree_;
 
-	QMenu*       popup_;
-	QAction*     refresh_;
-	QAction*     showAll_;
-	QAction*     showAxioms_;
-	QAction*     showConstants_;
-	QAction*     showDefinitions_;
-	QAction*     showImports_;
-	QAction*     showProblems_;
-	QAction*     showRules_;
-	QAction*     showTheorems_;
-	QAction*     showTheories_;
-	QAction*     showTypes_;
-	QAction*     treeMode_;
-	QAction*     sortingMode_;
+	QMenu*      popup_;
+	QAction*    refresh_;
+	QAction*    showAll_;
+	QAction*    showAxioms_;
+	QAction*    showConstants_;
+	QAction*    showDefinitions_;
+	QAction*    showImports_;
+	QAction*    showProblems_;
+	QAction*    showRules_;
+	QAction*    showTheorems_;
+	QAction*    showTheories_;
+	QAction*    showTypes_;
+	QAction*    treeMode_;
+	QAction*    sortingMode_;
 
 	bool expandTypes_;
 };
