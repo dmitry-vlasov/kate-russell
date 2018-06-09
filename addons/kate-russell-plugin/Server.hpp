@@ -23,6 +23,7 @@ class Process {
 public :
 	enum Kind { RUSSELL, METAMATH };
 	Process(const QString& i, Kind k) : invocation_(i), kind_(k) { }
+	~Process() { stop(); }
 	bool start();
 	bool stop();
 	QProcess& process() { return process_; }

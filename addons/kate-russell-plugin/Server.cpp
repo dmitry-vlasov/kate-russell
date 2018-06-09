@@ -28,8 +28,7 @@ namespace russell {
 	 *	Public members
 	 ****************************/
 
-	bool
-	Process::isRunning() const {
+	bool Process::isRunning() const {
 		switch (kind_) {
 		case RUSSELL:  return Execute::russell().connection();
 		case METAMATH: return process_.state() == QProcess::Running;
@@ -37,64 +36,19 @@ namespace russell {
 		}
 	}
 
-	bool
-	Process :: start()
-	{
+	bool Process::start() {
 		if (isRunning()) return true;
 		stop();
-
 		qDebug() << invocation_;
 		QStringList com = invocation_.split(QLatin1Char(' '));
 		process_.setProgram(com.first());
 		com.removeFirst();
 		process_.setArguments(com);
 		process_.start();
-
-		/*
-		if (!process_.waitForStarted(300)) {
-			KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", invocation_, process_.exitStatus()));
-			process_.terminate();
-			return false;
-		}
-		*/
-
-		//qDebug() << process_;
-		//qDebug() << process_.state();
-		//qDebug() << process_.program();
-
-		return true;
-/*
-		QString invocation  (config_->getSourceRoot());
-		QString command (config_->getProver());
-		if (command.isEmpty()) {
-			KMessageBox :: sorry (0, i18n ("No prover is specified."));
-			return false;
-		}
-		command += QStringLiteral(" --server ");
-		command += QStringLiteral(" --port ");
-		command += config_->getServerPort();
-
-		// set working directory
-		QUrl url (directory);
-		//process_->setWorkingDirectory (url.toLocalFile (KUrl :: AddTrailingSlash));
-		process_->setWorkingDirectory (url.toLocalFile());
-		process_->setShellCommand (command);
-		process_->setOutputChannelMode (KProcess :: SeparateChannels);
-
-		KMessageBox::error (0, i18n ("about to run \"%1\"", command));
-
-		process_->start();
-		if(!process_->waitForStarted (500)) {
-			KMessageBox::error (0, i18n ("Failed to run \"%1\". exitStatus = %2", command, process_->exitStatus()));
-			return false;
-		}
-		isRun_ = true;
-		return true;
-*/
+		return isRunning();
 	}
-	bool
-	Process :: stop()
-	{
+
+	bool Process::stop() {
 		if (process_.state() != QProcess :: NotRunning) {
 			process_.terminate();
 			if (!process_.waitForFinished(100)) {
@@ -106,38 +60,4 @@ namespace russell {
 		}
 		return false;
 	}
-
-	/****************************
-	 *	Private members
-	 ****************************/
-/*
-	bool
-	Process :: lookForRunning()
-	{
-		//QString directory (config_->getSourceRoot());
-		QString command (QStringLiteral("lsof -i :"));
-		command += config_->getServerPort();
-		KProcess process;
-		process.setShellCommand (command);
-		process.setOutputChannelMode (KProcess :: SeparateChannels);
-
-		//KMessageBox::error (0, i18n ("about to run \"%1\"", command));
-
-		process.start();
-		if (!process.waitForStarted (500)) {
-			KMessageBox::error (0, i18n ("Failed to run \"%1\". exitStatus = %2", command, process_->exitStatus()));
-			return false;
-		}
-		if (!process.waitForFinished()) {
-			KMessageBox::error (0, i18n ("Failed to run \"%1\". exitStatus = %2", command, process_->exitStatus()));
-			return false;
-		}
-		QByteArray out = process.readAllStandardOutput();
-		if (out.lastIndexOf ("mdl") > -1) {
-			isRun_ = true;
-			return true;
-		}
-		return false;
-	}
-*/
 }
