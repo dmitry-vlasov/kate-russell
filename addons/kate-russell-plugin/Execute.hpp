@@ -60,9 +60,18 @@ private:
 	bool isBusy_;
 };
 
+struct RussellConsole {
+	RussellConsole() : isBusy_(true) { }
+	bool execute(const QString& command);
+	bool isBusy() const { return isBusy_; }
+private:
+	bool isBusy_;
+};
+
 class Execute {
 public :
 	static Russell& russell() { return mod().russell_; }
+	static RussellConsole& russellConsole() { return mod().russellConsole_; }
 	static Metamath& metamath() { return mod().metamath_; }
 
 private :
@@ -70,6 +79,7 @@ private :
 	Execute() { }
 	Russell  russell_;
 	Metamath metamath_;
+	RussellConsole russellConsole_;
 };
 
 

@@ -40,6 +40,14 @@ namespace russell {
 		return size == data.size();
 	}
 
+	bool
+	RussellConsole::execute (const QString& command) {
+		QByteArray data = command.toLatin1();
+		qint64 size = Server::russell().process().write(data);
+		View::get()->getBottomUi().russellTextEdit->appendPlainText(command);
+		return size == data.size();
+	}
+
 	Russell :: Russell():
 	code_(0),
 	size_(0),
