@@ -30,8 +30,9 @@ namespace russell {
 
 	bool Process::isRunning() const {
 		switch (kind_) {
-		case RUSSELL:  return Execute::russellClient().connection();
-		case METAMATH: return process_.state() == QProcess::Running;
+		case RUSSELL_CLIENT:  return Execute::russellClient().connection();
+		case RUSSELL_CONSOLE: return process_.state() == QProcess::Running;
+		case METAMATH:        return process_.state() == QProcess::Running;
 		default: return false;
 		}
 	}
@@ -40,10 +41,12 @@ namespace russell {
 		if (isRunning()) return true;
 		stop();
 		qDebug() << invocation_;
-		QStringList com = invocation_.split(QLatin1Char(' '));
-		process_.setProgram(com.first());
-		com.removeFirst();
-		process_.setArguments(com);
+		process_.setProgram(invocation_);
+		switch (kind_) {
+			case RUSSELL_CLIENT:  process_.setArguments(QStringList() << QLatin1String("-d")); break;
+			case RUSSELL_CONSOLE: process_.setArguments(QStringList() << QLatin1String("-c")); break;
+			case METAMATH: break;
+		}
 		process_.start();
 		return isRunning();
 	}

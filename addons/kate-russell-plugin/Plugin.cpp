@@ -41,6 +41,9 @@ namespace russell {
 		if (RussellConfig::russellAutostart() && !Execute::russellClient().connection()) {
 			Launcher::russellClient().start();
 		}
+		if (RussellConfig::russellConsoleAutostart()) {
+			Launcher::russellConsole().start();
+		}
 		if (RussellConfig::metamathAutostart()) {
 			Launcher::metamath().start();
 		}

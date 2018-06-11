@@ -21,7 +21,7 @@ namespace russell {
 
 class Process {
 public :
-	enum Kind { RUSSELL, METAMATH };
+	enum Kind { RUSSELL_CLIENT, RUSSELL_CONSOLE, METAMATH };
 	Process(const QString& i, Kind k) : invocation_(i), kind_(k) { }
 	~Process() { stop(); }
 	bool start();
@@ -38,14 +38,17 @@ private :
 struct Launcher {
 public :
 	static Process& russellClient() { return mod().russellClient_; }
+	static Process& russellConsole() { return mod().russellConsole_; }
 	static Process& metamath() { return mod().metamath_; }
 
 private :
 	static Launcher& mod() { static Launcher server; return server; }
 	Launcher() :
-		russellClient_(RussellConfig::russellInvocation(), Process::RUSSELL),
+		russellClient_(RussellConfig::russellInvocation(), Process::RUSSELL_CLIENT),
+		russellConsole_(RussellConfig::russellConsoleInvocation(), Process::RUSSELL_CONSOLE),
 		metamath_(RussellConfig::metamathInvocation(), Process::METAMATH) { }
 	Process russellClient_;
+	Process russellConsole_;
 	Process metamath_;
 };
 

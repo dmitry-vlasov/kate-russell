@@ -9,15 +9,7 @@
 #include <KConfigGroup>
 #include <KSharedConfig>
 
-#include <kactioncollection.h>
-#include <kstringhandler.h>
-#include <kmessagebox.h>
-#include <ktexteditor/editor.h>
-//#include <klocalizedstring.h>
-
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
-#include <kaboutdata.h>
+#include <KMessageBox>
 
 #include "Execute.hpp"
 #include "Launcher.hpp"
@@ -28,9 +20,11 @@ const QString& default_russell_host() { static QString host = QLatin1String("loc
 int            default_russell_port() { return 808011; }
 const QString& default_russell_invocation() { static QString invoc = QLatin1String("mdl"); return invoc; }
 bool           default_russell_autostart() { return false; }
+const QString& default_russell_console_invocation() { static QString s = QLatin1String("mdl"); return s; }
+bool           default_russell_console_autostart() { return false; }
 const QString& default_metamath_invocation() { static QString invoc = QLatin1String("metamath"); return invoc; }
 bool           default_metamath_autostart() { return false; }
-inline QString to_string(bool v) { return v ? QStringLiteral("true") : QLatin1String("false"); }
+inline QString to_string(bool v) { return v ? QLatin1String("true") : QLatin1String("false"); }
 inline bool    to_bool(const QString& s) { return s == QLatin1String("true"); }
 
 RussellConfig::RussellConfig() : config(KSharedConfig::openConfig(), QLatin1String("Russell")) {
@@ -43,7 +37,7 @@ QString RussellConfig::russellHost() {
 }
 
 int RussellConfig::russlelPort() {
-	if (instance().config.hasKey(QStringLiteral("RussellPort"))) {
+	if (instance().config.hasKey(QLatin1String("RussellPort"))) {
 		QString port_str = instance().config.readEntry(QLatin1String("RussellPort"));
 		bool ok = true;
 		int port = port_str.toInt(&ok);
@@ -80,6 +74,18 @@ bool RussellConfig::metamathAutostart() {
 		default_russell_autostart();
 }
 
+QString RussellConfig::russellConsoleInvocation() {
+	return instance().config.hasKey(QLatin1String("RussellConsoleInvocation")) ?
+		instance().config.readEntry(QLatin1String("RussellConsoleInvocation")) :
+		default_russell_console_invocation();
+}
+
+bool RussellConfig::russellConsoleAutostart() {
+	return instance().config.hasKey(QLatin1String("RussellConsoleAutostart")) ?
+		to_bool(instance().config.readEntry(QLatin1String("RussellConsoleAutostart"))) :
+		default_russell_console_autostart();
+}
+
 RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin_(plug)
 {
 	 configUi_.setupUi(this);
@@ -113,6 +119,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 		SLOT(finishedRussellSlot(int, QProcess::ExitStatus))
 	);
 
+	connect(configUi_.metamathLookupButton, SIGNAL(clicked()), this, SLOT(lookupMetamathSlot()));
 	connect(configUi_.metamathStartButton, SIGNAL(clicked()), this, SLOT(startMetamathSlot()));
 	connect(configUi_.metamathStopButton, SIGNAL(clicked()), this, SLOT(stopMetamathSlot()));
 	connect(configUi_.metamathKillButton, SIGNAL(clicked()), this, SLOT(killMetamathSlot()));
@@ -124,9 +131,18 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 		SLOT(finishedMetamathSlot(int, QProcess::ExitStatus))
 	);
 
-/*    connect(&process, SIGNAL(finished(int,QProcess::ExitStatus)),
-            this,    SLOT(updateDone(int,QProcess::ExitStatus)));
-*/
+	connect(configUi_.russellConsoleLookupButton, SIGNAL(clicked()), this, SLOT(lookupRussellConsoleSlot()));
+	connect(configUi_.russellConsoleStartButton, SIGNAL(clicked()), this, SLOT(startRussellConsoleSlot()));
+	connect(configUi_.russellConsoleStopButton, SIGNAL(clicked()), this, SLOT(stopRussellConsoleSlot()));
+	connect(configUi_.russellConsoleKillButton, SIGNAL(clicked()), this, SLOT(killRussellConsoleSlot()));
+	connect(&Launcher::russellConsole().process(), SIGNAL(started()), this, SLOT(startedRussellConsoleSlot()));
+	connect(
+		&Launcher::russellConsole().process(),
+		SIGNAL(finished(int, QProcess::ExitStatus)),
+		this,
+		SLOT(finishedRussellConsoleSlot(int, QProcess::ExitStatus))
+	);
+
     reset();
 
     bool run = Launcher::russellClient().isRunning();
@@ -151,7 +167,7 @@ QString RussellConfigPage::fullName() const {
 }
 
 QIcon RussellConfigPage::icon() const {
-    return QIcon::fromTheme(QStringLiteral("text-x-csrc"));
+    return QIcon::fromTheme(QLatin1String("text-x-csrc"));
 }
 
 void RussellConfigPage::apply() {
@@ -162,12 +178,6 @@ void RussellConfigPage::apply() {
     config.writeEntry("RussellAutostart", configUi_.russellAutostartCheckBox->isChecked() ? "true" : "false");
     config.writeEntry("MetamathInvocation", configUi_.metamathInvocationEdit->text());
     config.writeEntry("MetamathAutostart", configUi_.metamathAutostartCheckBox->isChecked() ? "true" : "false");
-    /*
-    QString nr;
-    for (int i=0; i<configUi.targetList->count(); i++) {
-        nr = QStringLiteral("%1").arg(i,3);
-        config.writeEntry(QStringLiteral("GlobalTarget_")+nr, configUi.targetList->item(i)->text());
-    }*/
     config.sync();
 }
 
@@ -179,19 +189,6 @@ void RussellConfigPage::reset() {
     configUi_.russellAutostartCheckBox->setChecked(to_bool(config.readEntry(QLatin1String("RussellAutostart"), to_string(default_russell_autostart()))));
     configUi_.metamathInvocationEdit->setText(config.readEntry(QLatin1String("MetamathInvocation"), default_metamath_invocation()));
     configUi_.metamathAutostartCheckBox->setChecked(to_bool(config.readEntry(QLatin1String("MetamathAutostart"), to_string(default_metamath_autostart()))));
-
-/*
-    int numEntries = config.readEntry(QStringLiteral("GlobalNumTargets"), 0);
-    QString nr;
-    QString target;
-    for (int i=0; i<numEntries; i++) {
-        nr = QStringLiteral("%1").arg(i,3);
-        target = config.readEntry(QStringLiteral("GlobalTarget_")+nr, QString());
-        if (!listContains(target)) {
-            new QListWidgetItem(target, configUi.targetList);
-        }
-    }
-*/
     config.sync();
     checkRussellSlot();
 }
@@ -206,54 +203,17 @@ void RussellConfigPage::defaults() {
 	checkRussellSlot();
 }
 
+// Russell daemon config
+
 void RussellConfigPage::resetRussellConfigSlot() {
 	configUi_.russellHostEdit->setText(default_russell_host());
 	configUi_.russellPortEdit->setText(QString::number(default_russell_port()));
 	configUi_.russellInvocationEdit->setText(default_russell_invocation());
 	configUi_.russellAutostartCheckBox->setChecked(default_russell_autostart());
 	checkRussellSlot();
-/*
-    QFileDialog dialog;
-    dialog.setFileMode(QFileDialog::Directory);
-    //dialog.setMode(KFile::Directory | KFile::Files | KFile::ExistingOnly | KFile::LocalOnly);
-
-    QString dir;
-    if (configUi.targetList->currentItem()) {
-        dir = configUi.targetList->currentItem()->text();
-    }
-    else if (configUi.targetList->item(0)) {
-        dir = configUi.targetList->item(0)->text();
-    }
-    dialog.setDirectory(dir);
-
-    // i18n("CTags Database Location"));
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
-
-    QStringList urls = dialog.selectedFiles();
-
-    for (int i=0; i<urls.size(); i++) {
-        if (!listContains(urls[i])) {
-            new QListWidgetItem(urls[i], configUi.targetList);
-        }
-    }
-*/
 }
 
 void RussellConfigPage::startRussellSlot() {
-    //delete configUi.targetList->currentItem ();
-
-	//QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
-/*
-	QString command = configUi_.russellinvocationEdit->text();
-    process.start(command);
-
-    if(!process.waitForStarted(100)) {
-        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, process.exitStatus()));
-        return;
-    }
-*/
 	if (!Launcher::russellClient().isRunning()) {
 		Launcher::russellClient().start();
 		//QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -266,14 +226,6 @@ void RussellConfigPage::startRussellSlot() {
 void RussellConfigPage::stopRussellSlot() {
 	if (Launcher::russellClient().isRunning()) {
 		Execute::russellClient().execute(QLatin1String("exit"));
-		/*for (int i=0; i<configUi.targetList->count(); i++) {
-			if (configUi.targetList->item(i)->text() == target) {
-				return true;
-			}
-		}
-		return false;
-		*/
-		//process.terminate();
 		checkRussellSlot();
 	}
 }
@@ -290,43 +242,6 @@ bool RussellConfigPage::checkRussellSlot() {
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);
 	return ret;
-/*
-    if (process.state() != QProcess::NotRunning) {
-        return;
-    }
-
-    QString targets;
-    QString target;
-
-    for (int i=0; i<configUi.targetList->count(); i++) {
-        target = configUi.targetList->item(i)->text();
-        if (target.endsWith(QLatin1Char('/')) || target.endsWith(QLatin1Char('\\'))) {
-            target = target.left(target.size() - 1);
-        }
-        targets += target + QLatin1Char(' ');
-    }
-
-
-    QString file = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QLatin1String("/katectags");
-    QDir().mkpath(file);
-    file += QLatin1String("/common_db");
-
-    if (targets.isEmpty()) {
-        QFile::remove(file);
-        return;
-    }
-
-    QString command = QStringLiteral("%1 -f %2 %3").arg(configUi.cmdEdit->text()).arg(file).arg(targets) ;
-    process.start(command);
-
-    if(!process.waitForStarted(500)) {
-        KMessageBox::error(0, i18n("Failed to run \"%1\". exitStatus = %2", command, process.exitStatus()));
-        return;
-    }
-    configUi.updateDB->setDisabled(true);
-
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
- */
 }
 
 void RussellConfigPage::startedRussellSlot() {
@@ -348,6 +263,17 @@ void RussellConfigPage::finishedRussellSlot(int exitCode, QProcess::ExitStatus e
 }
 
 
+
+
+
+
+// Metamath console config
+
+void RussellConfigPage::lookupMetamathSlot() {
+	QString metamath = QFileDialog::getOpenFileName(this, i18n("Metamath executable"), QString());
+	configUi_.metamathInvocationEdit->setText(metamath);
+}
+
 void RussellConfigPage::startMetamathSlot() {
 	if (!Launcher::metamath().isRunning()) {
 		Launcher::metamath().start();
@@ -359,7 +285,7 @@ void RussellConfigPage::startMetamathSlot() {
 
 void RussellConfigPage::stopMetamathSlot() {
 	if (Launcher::metamath().isRunning()) {
-		Execute::metamath().execute(QStringLiteral("exit\n"));
+		Execute::metamath().execute(QLatin1String("exit\n"));
 	}
 }
 
@@ -368,7 +294,6 @@ void RussellConfigPage::killMetamathSlot() {
 		Launcher::metamath().stop();
 	}
 }
-
 
 void RussellConfigPage::startedMetamathSlot() {
 	configUi_.metamathAliveEdit->setText(i18n("running"));
@@ -390,6 +315,50 @@ void RussellConfigPage::finishedMetamathSlot(int exitCode, QProcess::ExitStatus 
 
 
 
+// Russell console config
+
+void RussellConfigPage::lookupRussellConsoleSlot() {
+	QString metamath = QFileDialog::getOpenFileName(this, i18n("Russell executable"), QString());
+	configUi_.russellConsoleInvocationEdit->setText(metamath);
+}
+
+void RussellConfigPage::startRussellConsoleSlot() {
+	if (!Launcher::russellConsole().isRunning()) {
+		Launcher::russellConsole().start();
+	}
+}
+
+void RussellConfigPage::stopRussellConsoleSlot() {
+	if (Launcher::russellConsole().isRunning()) {
+		Execute::russellConsole().execute(QLatin1String("exit\n"));
+	}
+}
+
+void RussellConfigPage::killRussellConsoleSlot() {
+	if (Launcher::russellConsole().isRunning()) {
+		Launcher::russellConsole().stop();
+	}
+}
+
+void RussellConfigPage::startedRussellConsoleSlot() {
+	configUi_.russellConsoleAliveEdit->setText(i18n("running"));
+	configUi_.russellConsoleStopButton->setEnabled(true);
+	configUi_.russellConsoleKillButton->setEnabled(true);
+	configUi_.russellConsoleStartButton->setEnabled(false);
+}
+
+void RussellConfigPage::finishedRussellConsoleSlot(int exitCode, QProcess::ExitStatus exitStatus) {
+	QString text = i18n("stopped");
+	if (exitCode || exitStatus != QProcess::NormalExit) {
+		text += i18n(" error code: ") + QString::number(exitCode);
+	}
+	configUi_.russellConsoleAliveEdit->setText(text);
+	configUi_.russellConsoleStopButton->setEnabled(false);
+	configUi_.russellConsoleKillButton->setEnabled(false);
+	configUi_.russellConsoleStartButton->setEnabled(true);
+}
+
+
 void RussellConfigPage::checkPortSlot(QString port_str) {
 	bool ok = true;
 	port_str.toInt(&ok);
@@ -397,17 +366,5 @@ void RussellConfigPage::checkPortSlot(QString port_str) {
 		KMessageBox::error(0, i18n("Port \"%1\" is not a decimal number", port_str));
 	}
 }
-/*
-void RussellConfigPage::updateDone(int exitCode, QProcess::ExitStatus status) {
-    if (status == QProcess::CrashExit) {
-        KMessageBox::error(this, i18n("The CTags executable crashed."));
-    }
-    else if (exitCode != 0) {
-        KMessageBox::error(this, i18n("The CTags command exited with code %1", exitCode));
-    }
-    
-   // configUi.updateDB->setDisabled(false);
-    QApplication::restoreOverrideCursor();
-}
-*/
+
 }

@@ -34,6 +34,8 @@ public:
     static int     russlelPort();
     static QString russellInvocation();
     static bool    russellAutostart();
+    static QString russellConsoleInvocation();
+    static bool    russellConsoleAutostart();
     static QString metamathInvocation();
     static bool    metamathAutostart();
 private:
@@ -68,6 +70,14 @@ private Q_SLOTS:
     void startedRussellSlot();
     void finishedRussellSlot(int exitCode, QProcess::ExitStatus exitStatus);
 
+    void lookupRussellConsoleSlot();
+    void startRussellConsoleSlot();
+    void stopRussellConsoleSlot();
+    void killRussellConsoleSlot();
+    void startedRussellConsoleSlot();
+    void finishedRussellConsoleSlot(int exitCode, QProcess::ExitStatus exitStatus);
+
+    void lookupMetamathSlot();
     void startMetamathSlot();
     void stopMetamathSlot();
     void killMetamathSlot();
