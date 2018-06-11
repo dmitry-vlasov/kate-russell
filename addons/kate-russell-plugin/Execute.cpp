@@ -20,8 +20,9 @@
 #include <KMessageBox>
 
 #include "RussellConfigPage.hpp"
-#include "Server.hpp"
 #include "Execute.hpp"
+
+#include "Launcher.hpp"
 #include "View.hpp"
 
 #define OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT true
@@ -35,7 +36,7 @@ namespace russell {
 	bool
 	Metamath::execute (const QString& command) {
 		QByteArray data = command.toLatin1();
-		qint64 size = Server::metamath().process().write(data);
+		qint64 size = Launcher::metamath().process().write(data);
 		View::get()->getBottomUi().metamathTextEdit->appendPlainText(command);
 		return size == data.size();
 	}
@@ -43,7 +44,7 @@ namespace russell {
 	bool
 	RussellConsole::execute (const QString& command) {
 		QByteArray data = command.toLatin1();
-		qint64 size = Server::russell().process().write(data);
+		qint64 size = Launcher::russellClient().process().write(data);
 		View::get()->getBottomUi().russellTextEdit->appendPlainText(command);
 		return size == data.size();
 	}

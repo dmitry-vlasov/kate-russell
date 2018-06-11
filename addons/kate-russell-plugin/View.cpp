@@ -30,12 +30,12 @@
 #include "Structure.hpp"
 #include "TypeSystem.hpp"
 #include "Proof.hpp"
-#include "Server.hpp"
 #include "LatexToUnicode.hpp"
 #include "View.moc"
 
 #include "commands.hpp"
 #include "Execute.hpp"
+#include "Launcher.hpp"
 
 namespace russell {
 
@@ -106,7 +106,7 @@ namespace russell {
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: ~View()" << std :: endl;
 		#endif
-		Server::russell().stop();
+		Launcher::russellClient().stop();
 		mainWindow()->guiFactory()->removeClient (this);
 		delete toolView_;
 		delete outline_;
@@ -489,13 +489,13 @@ namespace russell {
 	View :: slotManageServer()
 	{
 		QAction* action = nullptr;
-		if (Server::russell().isRunning()) {
-			Server::russell().stop();
+		if (Launcher::russellClient().isRunning()) {
+			Launcher::russellClient().stop();
 			action = actionCollection()->action (QLatin1String("start_server"));
 			action->setText (i18n ("Start mdl server"));
 			action->setIcon (QIcon (QLatin1String("go-next")));
 		} else {
-			Server::russell().start();
+			Launcher::russellClient().start();
 			action = actionCollection()->action (QLatin1String("start_server"));
 			action->setText (i18n ("Stop mdl server"));
 			action->setIcon (QIcon (QLatin1String("application-exit")));
@@ -598,21 +598,21 @@ namespace russell {
 	void
 	View :: slotReadRussellStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardOutput());
+		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardOutput());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
+		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardError());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void
 	View :: slotReadMetamathStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::metamath().process().readAllStandardOutput());
+		QString serverStdOut = QString :: fromUtf8 (Launcher::metamath().process().readAllStandardOutput());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(0);
 		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QLatin1String("MM> ")) {
@@ -622,7 +622,7 @@ namespace russell {
 	void
 	View :: slotReadMetamathStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Server::russell().process().readAllStandardError());
+		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardError());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(0);
 	}
@@ -874,10 +874,10 @@ namespace russell {
 	void
 	View :: initLauncher()
 	{
-		connect (&Server::russell().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
-		connect (&Server::russell().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
-		connect (&Server::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
-		connect (&Server::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
+		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
+		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
+		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
+		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
 		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 		connect (&Execute::russellClient(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(quint32, QString, QString)));
 		connect (this, SIGNAL (mmCommandFinished()), this, SLOT(slotMmCommandCompleted()));

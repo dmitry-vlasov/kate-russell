@@ -35,17 +35,17 @@ private :
 	QProcess process_;
 };
 
-struct Server {
+struct Launcher {
 public :
-	static Process& russell() { return mod().russell_; }
+	static Process& russellClient() { return mod().russellClient_; }
 	static Process& metamath() { return mod().metamath_; }
 
 private :
-	static Server& mod() { static Server server; return server; }
-	Server() :
-		russell_(RussellConfig::russellInvocation(), Process::RUSSELL),
+	static Launcher& mod() { static Launcher server; return server; }
+	Launcher() :
+		russellClient_(RussellConfig::russellInvocation(), Process::RUSSELL),
 		metamath_(RussellConfig::metamathInvocation(), Process::METAMATH) { }
-	Process russell_;
+	Process russellClient_;
 	Process metamath_;
 };
 

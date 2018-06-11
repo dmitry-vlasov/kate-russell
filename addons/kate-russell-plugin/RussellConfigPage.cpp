@@ -20,13 +20,13 @@
 #include <kaboutdata.h>
 
 #include "Execute.hpp"
-#include "Server.hpp"
+#include "Launcher.hpp"
 
 namespace russell {
 
 const QString& default_russell_host() { static QString host = QLatin1String("localhost"); return host; }
 int            default_russell_port() { return 808011; }
-const QString& default_russell_invocation() { static QString invoc = QLatin1String("mdl -d"); return invoc; }
+const QString& default_russell_invocation() { static QString invoc = QLatin1String("mdl"); return invoc; }
 bool           default_russell_autostart() { return false; }
 const QString& default_metamath_invocation() { static QString invoc = QLatin1String("metamath"); return invoc; }
 bool           default_metamath_autostart() { return false; }
@@ -105,9 +105,9 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.russellKillButton, SIGNAL(clicked()), this, SLOT(killRussellSlot()));
 	connect(configUi_.russellCheckButton, SIGNAL(clicked()), this, SLOT(checkRussellSlot()));
 	connect(configUi_.russellPortEdit, SIGNAL(textEdited(QString)), this, SLOT(checkPortSlot(QString)));
-	connect(&Server::russell().process(), SIGNAL(started()), this, SLOT(startedRussellSlot()));
+	connect(&Launcher::russellClient().process(), SIGNAL(started()), this, SLOT(startedRussellSlot()));
 	connect(
-		&Server::russell().process(),
+		&Launcher::russellClient().process(),
 		SIGNAL(finished(int, QProcess::ExitStatus)),
 		this,
 		SLOT(finishedRussellSlot(int, QProcess::ExitStatus))
@@ -116,9 +116,9 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.metamathStartButton, SIGNAL(clicked()), this, SLOT(startMetamathSlot()));
 	connect(configUi_.metamathStopButton, SIGNAL(clicked()), this, SLOT(stopMetamathSlot()));
 	connect(configUi_.metamathKillButton, SIGNAL(clicked()), this, SLOT(killMetamathSlot()));
-	connect(&Server::metamath().process(), SIGNAL(started()), this, SLOT(startedMetamathSlot()));
+	connect(&Launcher::metamath().process(), SIGNAL(started()), this, SLOT(startedMetamathSlot()));
 	connect(
-		&Server::metamath().process(),
+		&Launcher::metamath().process(),
 		SIGNAL(finished(int, QProcess::ExitStatus)),
 		this,
 		SLOT(finishedMetamathSlot(int, QProcess::ExitStatus))
@@ -129,13 +129,13 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 */
     reset();
 
-    bool run = Server::russell().isRunning();
+    bool run = Launcher::russellClient().isRunning();
 	configUi_.russellAliveEdit->setText(run ? QLatin1String("running") : QLatin1String("stopped"));
 	configUi_.russellStopButton->setEnabled(run);
 	configUi_.russellKillButton->setEnabled(run);
 	configUi_.russellStartButton->setEnabled(!run);
 
-	run = Server::metamath().isRunning();
+	run = Launcher::metamath().isRunning();
 	configUi_.metamathAliveEdit->setText(run ? QLatin1String("running") : QLatin1String("stopped"));
 	configUi_.metamathStopButton->setEnabled(run);
 	configUi_.metamathKillButton->setEnabled(run);
@@ -254,8 +254,8 @@ void RussellConfigPage::startRussellSlot() {
         return;
     }
 */
-	if (!Server::russell().isRunning()) {
-		Server::russell().start();
+	if (!Launcher::russellClient().isRunning()) {
+		Launcher::russellClient().start();
 		//QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 		//usleep(500);
 		//QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
@@ -264,7 +264,7 @@ void RussellConfigPage::startRussellSlot() {
 }
 
 void RussellConfigPage::stopRussellSlot() {
-	if (Server::russell().isRunning()) {
+	if (Launcher::russellClient().isRunning()) {
 		Execute::russellClient().execute(QLatin1String("exit"));
 		/*for (int i=0; i<configUi.targetList->count(); i++) {
 			if (configUi.targetList->item(i)->text() == target) {
@@ -279,8 +279,8 @@ void RussellConfigPage::stopRussellSlot() {
 }
 
 void RussellConfigPage::killRussellSlot() {
-	if (Server::russell().isRunning()) {
-		Server::russell().stop();
+	if (Launcher::russellClient().isRunning()) {
+		Launcher::russellClient().stop();
 	}
 }
 
@@ -349,8 +349,8 @@ void RussellConfigPage::finishedRussellSlot(int exitCode, QProcess::ExitStatus e
 
 
 void RussellConfigPage::startMetamathSlot() {
-	if (!Server::metamath().isRunning()) {
-		Server::metamath().start();
+	if (!Launcher::metamath().isRunning()) {
+		Launcher::metamath().start();
 		//QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 		//usleep(500);
 		//QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
@@ -358,14 +358,14 @@ void RussellConfigPage::startMetamathSlot() {
 }
 
 void RussellConfigPage::stopMetamathSlot() {
-	if (Server::metamath().isRunning()) {
+	if (Launcher::metamath().isRunning()) {
 		Execute::metamath().execute(QStringLiteral("exit\n"));
 	}
 }
 
 void RussellConfigPage::killMetamathSlot() {
-	if (Server::metamath().isRunning()) {
-		Server::metamath().stop();
+	if (Launcher::metamath().isRunning()) {
+		Launcher::metamath().stop();
 	}
 }
 

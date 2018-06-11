@@ -12,12 +12,12 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
+#include "Launcher.hpp"
+
 #include <QProcess>
 #include <QByteArray>
 
 #include <KMessageBox>
-
-#include "Server.hpp"
 
 #include "Execute.hpp"
 #include "RussellConfigPage.hpp"

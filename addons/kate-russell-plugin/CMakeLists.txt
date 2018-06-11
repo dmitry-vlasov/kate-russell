@@ -18,7 +18,7 @@ set (katerussell_SRC
 	LatexToUnicode.cpp
 	
 	commands.cpp
-	Server.cpp
+	Launcher.cpp
 	Execute.cpp
 	
 	Navigation.cpp

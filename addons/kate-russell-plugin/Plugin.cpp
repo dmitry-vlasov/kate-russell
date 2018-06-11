@@ -18,8 +18,8 @@
 #include "Plugin.hpp"
 
 #include "Execute.hpp"
+#include "Launcher.hpp"
 #include "View.hpp"
-#include "Server.hpp"
 
 K_PLUGIN_FACTORY_WITH_JSON (KateRussellPluginFactory, "katerussellplugin.json", registerPlugin<russell::Plugin>();)
 
@@ -39,10 +39,10 @@ namespace russell {
 		//KGlobal :: locale()->insertCatalog ("kate-russell-plugin");
 
 		if (RussellConfig::russellAutostart() && !Execute::russellClient().connection()) {
-			Server::russell().start();
+			Launcher::russellClient().start();
 		}
 		if (RussellConfig::metamathAutostart()) {
-			Server::metamath().start();
+			Launcher::metamath().start();
 		}
 	}
 	Plugin :: ~ Plugin() {
