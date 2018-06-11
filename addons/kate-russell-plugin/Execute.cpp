@@ -49,7 +49,7 @@ namespace russell {
 		return size == data.size();
 	}
 
-	Russell :: Russell():
+	RussellClient::RussellClient():
 	code_(0),
 	size_(0),
 	isBusy_(false) {
@@ -58,7 +58,7 @@ namespace russell {
 
 
 	bool
-	Russell :: connection()
+	RussellClient::connection()
 	{
 		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
 			//std :: cout << "already connected to server" << std :: endl;
@@ -82,7 +82,7 @@ namespace russell {
 	 ****************************/
 
 	bool
-	Russell :: execute (const QString& command)
+	RussellClient::execute (const QString& command)
 	{
 		if (!connection() || isBusy_) {
 			return false;
@@ -113,7 +113,7 @@ namespace russell {
 	 ****************************/
 
 	void
-	Russell::readyRead()
+	RussellClient::readyRead()
 	{
 		while (socket_.bytesAvailable() > 0) {
 			buffer_.append(socket_.readAll());
@@ -142,7 +142,7 @@ namespace russell {
 	 ****************************/
 
 	bool
-	Russell :: runCommand()
+	RussellClient::runCommand()
 	{
 		uint msg_len = command_.length() + sizeof(uint);
 		char *asciiCommand = new char [msg_len];
@@ -157,7 +157,7 @@ namespace russell {
 		return written;
 	}
 	void
-	Russell :: makeOutput()
+	RussellClient::makeOutput()
 	{
 		QDataStream data(&buffer_, QIODevice::ReadOnly);
 		data.setByteOrder(QDataStream::LittleEndian);
@@ -192,5 +192,25 @@ namespace russell {
 			socket_.disconnectFromHost();
 		}
 		isBusy_ = false;
+	}
+
+
+	Russell::Russell() {
+		connect(&client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+	}
+	bool Russell::success() const {
+		return client.success();
+	}
+	bool Russell::connection() {
+		return client.connection();
+	}
+	bool Russell::isBusy() const {
+		return client.isBusy();
+	}
+	bool Russell::execute(const QString& command) {
+		return client.execute(command);
+	}
+	void Russell::slotDataReceived(quint32 code, QString msg, QString data) {
+		emit dataReceived(code, msg, data);
 	}
 }

@@ -27,7 +27,7 @@ struct RussellConsole {
 private:
 	bool isBusy_;
 };
-/*
+
 class RussellClient : public QObject {
 Q_OBJECT
 public:
@@ -35,12 +35,10 @@ public:
 	bool success() const { return !code_; }
 	bool connection();
 	bool isBusy() const { return isBusy_; }
+	bool execute(const QString&);
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
-
-public Q_SLOTS:
-	bool execute(const QString&);
 
 private Q_SLOTS:
 	void readyRead();
@@ -59,7 +57,6 @@ private:
 	bool    isBusy_;
 	QString command_;
 };
-*/
 
 class Russell : public QObject {
 Q_OBJECT
@@ -67,30 +64,19 @@ public :
 	enum Runner { CLIENT, CONSOLE };
 
 	Russell();
-	bool success() const { return !code_; }
+	bool success() const;
 	bool connection();
-	bool isBusy() const { return isBusy_; }
+	bool isBusy() const;
 	bool execute(const QString&);
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
 
 private Q_SLOTS:
-	void readyRead();
+	void slotDataReceived(quint32, QString, QString);
 
 private:
-	bool runCommand();
-	bool readOutput();
-	void makeOutput();
-
-	QTcpSocket socket_;
-	QByteArray buffer_;
-	QString data_;
-	QString messages_;
-	quint32 code_;
-	quint32 size_;
-	bool    isBusy_;
-	QString command_;
+	RussellClient client;
 };
 
 struct Metamath {
