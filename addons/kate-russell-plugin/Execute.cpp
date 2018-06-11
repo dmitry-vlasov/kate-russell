@@ -49,7 +49,7 @@ namespace russell {
 		return size == data.size();
 	}
 
-	RussellClient :: RussellClient():
+	Russell :: Russell():
 	code_(0),
 	size_(0),
 	isBusy_(false) {
@@ -58,7 +58,7 @@ namespace russell {
 
 
 	bool
-	RussellClient :: connection()
+	Russell :: connection()
 	{
 		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
 			//std :: cout << "already connected to server" << std :: endl;
@@ -82,7 +82,7 @@ namespace russell {
 	 ****************************/
 
 	bool
-	RussellClient :: execute (const QString& command)
+	Russell :: execute (const QString& command)
 	{
 		if (!connection() || isBusy_) {
 			return false;
@@ -113,7 +113,7 @@ namespace russell {
 	 ****************************/
 
 	void
-	RussellClient::readyRead()
+	Russell::readyRead()
 	{
 		while (socket_.bytesAvailable() > 0) {
 			buffer_.append(socket_.readAll());
@@ -142,7 +142,7 @@ namespace russell {
 	 ****************************/
 
 	bool
-	RussellClient :: runCommand()
+	Russell :: runCommand()
 	{
 		uint msg_len = command_.length() + sizeof(uint);
 		char *asciiCommand = new char [msg_len];
@@ -157,7 +157,7 @@ namespace russell {
 		return written;
 	}
 	void
-	RussellClient :: makeOutput()
+	Russell :: makeOutput()
 	{
 		QDataStream data(&buffer_, QIODevice::ReadOnly);
 		data.setByteOrder(QDataStream::LittleEndian);

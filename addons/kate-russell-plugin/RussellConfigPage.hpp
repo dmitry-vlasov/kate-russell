@@ -24,6 +24,8 @@
 
 #include "ui_RussellConfig.h"
 
+#include "Execute.hpp"
+
 namespace russell {
 
 class Plugin;
@@ -38,6 +40,7 @@ public:
     static bool    russellConsoleAutostart();
     static QString metamathInvocation();
     static bool    metamathAutostart();
+    static Russell::Runner runner();
 private:
     RussellConfig();
     static RussellConfig& instance() {
@@ -85,6 +88,9 @@ private Q_SLOTS:
     void finishedMetamathSlot(int exitCode, QProcess::ExitStatus exitStatus);
 
     void checkPortSlot(QString);
+
+    void slotEnableDaemon();
+    void slotEnableConsole();
 
 private:
 

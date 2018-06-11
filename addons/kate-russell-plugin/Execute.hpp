@@ -20,9 +20,17 @@
 
 namespace russell {
 
+struct RussellConsole {
+	RussellConsole() : isBusy_(true) { }
+	bool execute(const QString& command);
+	bool isBusy() const { return isBusy_; }
+private:
+	bool isBusy_;
+};
+/*
 class RussellClient : public QObject {
 Q_OBJECT
-public :
+public:
 	RussellClient();
 	bool success() const { return !code_; }
 	bool connection();
@@ -32,7 +40,40 @@ Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
 
 public Q_SLOTS:
-	bool execute (const QString&);
+	bool execute(const QString&);
+
+private Q_SLOTS:
+	void readyRead();
+
+private:
+	bool runCommand();
+	bool readOutput();
+	void makeOutput();
+
+	QTcpSocket socket_;
+	QByteArray buffer_;
+	QString data_;
+	QString messages_;
+	quint32 code_;
+	quint32 size_;
+	bool    isBusy_;
+	QString command_;
+};
+*/
+
+class Russell : public QObject {
+Q_OBJECT
+public :
+	enum Runner { CLIENT, CONSOLE };
+
+	Russell();
+	bool success() const { return !code_; }
+	bool connection();
+	bool isBusy() const { return isBusy_; }
+	bool execute(const QString&);
+
+Q_SIGNALS:
+	void dataReceived(quint32, QString, QString);
 
 private Q_SLOTS:
 	void readyRead();
@@ -60,26 +101,16 @@ private:
 	bool isBusy_;
 };
 
-struct RussellConsole {
-	RussellConsole() : isBusy_(true) { }
-	bool execute(const QString& command);
-	bool isBusy() const { return isBusy_; }
-private:
-	bool isBusy_;
-};
-
 class Execute {
 public :
-	static RussellClient& russellClient() { return mod().russell_; }
-	static RussellConsole& russellConsole() { return mod().russellConsole_; }
+	static Russell& russell() { return mod().russell_; }
 	static Metamath& metamath() { return mod().metamath_; }
 
 private :
 	static Execute& mod() { static Execute exec; return exec; }
 	Execute() { }
-	RussellClient  russell_;
+	Russell  russell_;
 	Metamath metamath_;
-	RussellConsole russellConsole_;
 };
 
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>634</width>
-    <height>736</height>
+    <height>832</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -16,11 +16,43 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Russell runner</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QRadioButton" name="russellConsoleRadioButton">
+        <property name="text">
+         <string>Console</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="russellDaemonRadioButton">
+        <property name="text">
+         <string>Remote Daemon</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="russellConfigGroupBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
-      <string>Russell config</string>
+      <string>Russell daemon config</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
@@ -78,7 +110,7 @@
       <item row="4" column="0" colspan="2">
        <widget class="QGroupBox" name="russellStateGroupBox">
         <property name="title">
-         <string>Russell Daemon state</string>
+         <string>Daemon state</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -101,7 +133,7 @@
          <item>
           <widget class="QPushButton" name="russellCheckButton">
            <property name="enabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="text">
             <string>Check:</string>
@@ -144,7 +176,7 @@
    <item>
     <widget class="QGroupBox" name="russellConsoleConfigGroupBox">
      <property name="title">
-      <string>Russell config</string>
+      <string>Russell console config</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
@@ -167,7 +199,7 @@
       <item row="1" column="0" colspan="2">
        <widget class="QGroupBox" name="russellConsoleStateGroupBox">
         <property name="title">
-         <string>Console</string>
+         <string>Console state</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
@@ -243,20 +275,10 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="metamathInvocationEdit">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0" colspan="2">
        <widget class="QGroupBox" name="metamathStateGroupBox">
         <property name="title">
-         <string>Console</string>
+         <string>Console state</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
@@ -311,6 +333,16 @@
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="metamathInvocationEdit">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>

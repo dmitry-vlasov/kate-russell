@@ -24,6 +24,8 @@ const QString& default_russell_console_invocation() { static QString s = QLatin1
 bool           default_russell_console_autostart() { return false; }
 const QString& default_metamath_invocation() { static QString invoc = QLatin1String("metamath"); return invoc; }
 bool           default_metamath_autostart() { return false; }
+const QString& default_russell_runner() { static QString ret = QLatin1String("CONSOLE"); return ret; }
+
 inline QString to_string(bool v) { return v ? QLatin1String("true") : QLatin1String("false"); }
 inline bool    to_bool(const QString& s) { return s == QLatin1String("true"); }
 
@@ -86,6 +88,12 @@ bool RussellConfig::russellConsoleAutostart() {
 		default_russell_console_autostart();
 }
 
+Russell::Runner RussellConfig::runner() {
+	return instance().config.hasKey(QLatin1String("RussellRunner")) ?
+		(instance().config.readEntry(QLatin1String("RussellRunner")) == QLatin1String("CONSOLE") ? Russell::CONSOLE : Russell::CLIENT) :
+		(default_russell_runner() == QLatin1String("CONSOLE") ? Russell::CONSOLE : Russell::CLIENT);
+}
+
 RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin_(plug)
 {
 	 configUi_.setupUi(this);
@@ -105,6 +113,9 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
     connect(configUi.addButton, SIGNAL(clicked()), this, SLOT(addGlobalTagTarget()));
     connect(configUi.delButton, SIGNAL(clicked()), this, SLOT(delGlobalTagTarget()));
 */
+	connect(configUi_.russellConsoleRadioButton, SIGNAL(clicked()), this, SLOT(slotEnableConsole()));
+	connect(configUi_.russellDaemonRadioButton, SIGNAL(clicked()), this, SLOT(slotEnableDaemon()));
+
 	connect(configUi_.russellResetButton, SIGNAL(clicked()), this, SLOT(resetRussellConfigSlot()));
 	connect(configUi_.russellStartButton, SIGNAL(clicked()), this, SLOT(startRussellSlot()));
 	connect(configUi_.russellStopButton, SIGNAL(clicked()), this, SLOT(stopRussellSlot()));
@@ -178,6 +189,9 @@ void RussellConfigPage::apply() {
     config.writeEntry("RussellAutostart", configUi_.russellAutostartCheckBox->isChecked() ? "true" : "false");
     config.writeEntry("MetamathInvocation", configUi_.metamathInvocationEdit->text());
     config.writeEntry("MetamathAutostart", configUi_.metamathAutostartCheckBox->isChecked() ? "true" : "false");
+    config.writeEntry("RussellConsoleInvocation", configUi_.russellConsoleInvocationEdit->text());
+    config.writeEntry("RussellConsoleAutostart", configUi_.russellConsoleAutostartCheckBox->isChecked() ? "true" : "false");
+    config.writeEntry("RussellRunner", configUi_.russellConsoleRadioButton->isChecked() ? "CONSOLE" : "CLIENT");
     config.sync();
 }
 
@@ -189,6 +203,15 @@ void RussellConfigPage::reset() {
     configUi_.russellAutostartCheckBox->setChecked(to_bool(config.readEntry(QLatin1String("RussellAutostart"), to_string(default_russell_autostart()))));
     configUi_.metamathInvocationEdit->setText(config.readEntry(QLatin1String("MetamathInvocation"), default_metamath_invocation()));
     configUi_.metamathAutostartCheckBox->setChecked(to_bool(config.readEntry(QLatin1String("MetamathAutostart"), to_string(default_metamath_autostart()))));
+    configUi_.russellConsoleInvocationEdit->setText(config.readEntry(QLatin1String("RussellConsoleInvocation"), default_russell_console_invocation()));
+    configUi_.russellConsoleAutostartCheckBox->setChecked(to_bool(config.readEntry(QLatin1String("RussellConsoleAutostart"), to_string(default_russell_console_autostart()))));
+    if (config.readEntry(QLatin1String("RussellRunner"), default_russell_runner()) == QLatin1String("CONSOLE")) {
+    	configUi_.russellConsoleRadioButton->setChecked(true);
+    	slotEnableConsole();
+    } else {
+    	configUi_.russellDaemonRadioButton->setChecked(true);
+    	slotEnableDaemon();
+    }
     config.sync();
     checkRussellSlot();
 }
@@ -200,6 +223,15 @@ void RussellConfigPage::defaults() {
 	configUi_.russellAutostartCheckBox->setChecked(default_russell_autostart());
 	configUi_.metamathInvocationEdit->setText(default_metamath_invocation());
 	configUi_.metamathAutostartCheckBox->setChecked(default_metamath_autostart());
+	configUi_.russellConsoleInvocationEdit->setText(default_russell_console_invocation());
+	configUi_.russellConsoleAutostartCheckBox->setChecked(default_russell_console_autostart());
+	if (default_russell_runner() == QLatin1String("CONSOLE")) {
+    	configUi_.russellConsoleRadioButton->setChecked(true);
+    	slotEnableConsole();
+    } else {
+    	configUi_.russellDaemonRadioButton->setChecked(true);
+    	slotEnableDaemon();
+    }
 	checkRussellSlot();
 }
 
@@ -225,7 +257,7 @@ void RussellConfigPage::startRussellSlot() {
 
 void RussellConfigPage::stopRussellSlot() {
 	if (Launcher::russellClient().isRunning()) {
-		Execute::russellClient().execute(QLatin1String("exit"));
+		Execute::russell().execute(QLatin1String("exit"));
 		checkRussellSlot();
 	}
 }
@@ -237,7 +269,7 @@ void RussellConfigPage::killRussellSlot() {
 }
 
 bool RussellConfigPage::checkRussellSlot() {
-	bool ret = Execute::russellClient().connection();
+	bool ret = Execute::russell().connection();
 	configUi_.russellAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);
@@ -330,7 +362,7 @@ void RussellConfigPage::startRussellConsoleSlot() {
 
 void RussellConfigPage::stopRussellConsoleSlot() {
 	if (Launcher::russellConsole().isRunning()) {
-		Execute::russellConsole().execute(QLatin1String("exit\n"));
+		Execute::russell().execute(QLatin1String("exit\n"));
 	}
 }
 
@@ -358,6 +390,16 @@ void RussellConfigPage::finishedRussellConsoleSlot(int exitCode, QProcess::ExitS
 	configUi_.russellConsoleStartButton->setEnabled(true);
 }
 
+
+void RussellConfigPage::slotEnableDaemon() {
+	configUi_.russellConfigGroupBox->setEnabled(true);
+	configUi_.russellConsoleConfigGroupBox->setEnabled(false);
+}
+
+void RussellConfigPage::slotEnableConsole() {
+	configUi_.russellConfigGroupBox->setEnabled(false);
+	configUi_.russellConsoleConfigGroupBox->setEnabled(true);
+}
 
 void RussellConfigPage::checkPortSlot(QString port_str) {
 	bool ok = true;

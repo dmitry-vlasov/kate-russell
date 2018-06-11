@@ -38,7 +38,7 @@ namespace russell {
 		#endif
 		//KGlobal :: locale()->insertCatalog ("kate-russell-plugin");
 
-		if (RussellConfig::russellAutostart() && !Execute::russellClient().connection()) {
+		if (RussellConfig::russellAutostart() && !Execute::russell().connection()) {
 			Launcher::russellClient().start();
 		}
 		if (RussellConfig::russellConsoleAutostart()) {
