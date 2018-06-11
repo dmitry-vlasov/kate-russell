@@ -265,7 +265,7 @@ void RussellConfigPage::startRussellSlot() {
 
 void RussellConfigPage::stopRussellSlot() {
 	if (Server::russell().isRunning()) {
-		Execute::russell().execute(QLatin1String("exit"));
+		Execute::russellClient().execute(QLatin1String("exit"));
 		/*for (int i=0; i<configUi.targetList->count(); i++) {
 			if (configUi.targetList->item(i)->text() == target) {
 				return true;
@@ -285,7 +285,7 @@ void RussellConfigPage::killRussellSlot() {
 }
 
 bool RussellConfigPage::checkRussellSlot() {
-	bool ret = Execute::russell().connection();
+	bool ret = Execute::russellClient().connection();
 	configUi_.russellAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);

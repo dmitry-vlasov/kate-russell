@@ -20,10 +20,10 @@
 
 namespace russell {
 
-class Russell : public QObject {
+class RussellClient : public QObject {
 Q_OBJECT
 public :
-	Russell();
+	RussellClient();
 	bool success() const { return !code_; }
 	bool connection();
 	bool isBusy() const { return isBusy_; }
@@ -70,14 +70,14 @@ private:
 
 class Execute {
 public :
-	static Russell& russell() { return mod().russell_; }
+	static RussellClient& russellClient() { return mod().russell_; }
 	static RussellConsole& russellConsole() { return mod().russellConsole_; }
 	static Metamath& metamath() { return mod().metamath_; }
 
 private :
 	static Execute& mod() { static Execute exec; return exec; }
 	Execute() { }
-	Russell  russell_;
+	RussellClient  russell_;
 	Metamath metamath_;
 	RussellConsole russellConsole_;
 };
