@@ -28,21 +28,21 @@
 
 namespace russell {
 
-QString ProjectConfig::initProjectCommand() const {
-	QString command;
-	command += QLatin1String("rus curr proj=") + name_ + QLatin1String(";\n");
-	command += QLatin1String("rus opts verbose root=") + rusRoot_ + QLatin1String(";\n");
-	command += QLatin1String("mm  curr proj=") + name_ + QLatin1String(";\n");
-	command += QLatin1String("mm  opts verbose root=") + mmRoot_ + QLatin1String(";\n");
-	return command;
+QStringList ProjectConfig::initProjectCommands() const {
+	QStringList commands;
+	commands << QLatin1String("rus curr proj=") + name_;
+	commands << QLatin1String("rus opts verbose root=") + rusRoot_;
+	commands << QLatin1String("mm  curr proj=") + name_;
+	commands << QLatin1String("mm  opts verbose root=") + mmRoot_;
+	return commands;
 }
 
-QString ProjectConfig::loadMainCommand() const {
-	QString command;
-	command += QLatin1String("rus read in=") + rusMain_ + QLatin1String(";\n");
-	command += QLatin1String("rus parse;\n");
-	command += QLatin1String("rus verify;\n");
-	return command;
+QStringList ProjectConfig::loadMainCommands() const {
+	QStringList commands;
+	commands << QLatin1String("rus read in=") + rusMain_;
+	commands << QLatin1String("rus parse");
+	commands << QLatin1String("rus verify");
+	return commands;
 }
 
 const ProjectConfig* ProjectConfig::find(const QString& file) {
@@ -111,18 +111,18 @@ ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGro
 	connect(configUi_.initProjectButton, SIGNAL(clicked()), this, SLOT(initProjectSlot()));
 	connect(configUi_.loadMainButton, SIGNAL(clicked()), this, SLOT(loadMainSlot()));
 	loadConfig();
-	QString initCommand;
+	QStringList initCommands;
 	for (auto& conf : ProjectConfig::projects()) {
 		if (conf.autoinit()) {
-			initCommand += conf.initProjectCommand();
+			initCommands << conf.initProjectCommands();
 		}
 	}
 	for (auto& conf : ProjectConfig::projects()) {
 		if (conf.autoload()) {
-			initCommand += conf.loadMainCommand();
+			initCommands << conf.loadMainCommands();
 		}
 	}
-	if (initCommand.size()) Execute::russell().execute(initCommand);
+	if (initCommands.size()) Execute::russell().execute(initCommands);
 }
 
 ProjectConfigTab::~ProjectConfigTab() {
@@ -265,14 +265,14 @@ void ProjectConfigTab::switchProjectSlot(int index) {
 
 void ProjectConfigTab::initProjectSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
-	QString command = ProjectConfig::projects()[name].initProjectCommand();
-	Execute::russell().execute(command);
+	QStringList commands = ProjectConfig::projects()[name].initProjectCommands();
+	Execute::russell().execute(commands);
 }
 
 void ProjectConfigTab::loadMainSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
-	QString command = ProjectConfig::projects()[name].loadMainCommand();
-	Execute::russell().execute(command);
+	QStringList commands = ProjectConfig::projects()[name].loadMainCommands();
+	Execute::russell().execute(commands);
 }
 
 	/****************************

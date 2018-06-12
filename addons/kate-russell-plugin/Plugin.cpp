@@ -13,6 +13,7 @@
 /*****************************************************************************/
 
 #include <KPluginFactory>
+#include <unistd.h>
 
 #include "RussellConfigPage.hpp"
 #include "Plugin.hpp"
@@ -47,6 +48,7 @@ namespace russell {
 		if (RussellConfig::metamathAutostart()) {
 			Launcher::metamath().start();
 		}
+		//usleep(100);
 	}
 	Plugin :: ~ Plugin() {
 		#ifdef DEBUG_CREATE_DESTROY

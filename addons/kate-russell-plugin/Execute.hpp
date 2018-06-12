@@ -20,12 +20,30 @@
 
 namespace russell {
 
-struct RussellConsole {
-	RussellConsole() : isBusy_(true) { }
-	bool execute(const QString& command);
-	bool isBusy() const { return isBusy_; }
+class RussellConsole : public QObject {
+Q_OBJECT
+public:
+	RussellConsole();
+	bool success() const { return !code_; }
+	bool connection() { return true; }
+	bool execute(const QString&);
+
+Q_SIGNALS:
+	void dataReceived(quint32, QString, QString);
+
+private Q_SLOTS:
+	void readyReadOutput();
+	void readyReadError();
+
 private:
-	bool isBusy_;
+	void makeOutput();
+
+	quint32 code_;
+	QString command_;
+
+	QString buffer_;
+	QString data_;
+	QString messages_;
 };
 
 class RussellClient : public QObject {
@@ -67,7 +85,7 @@ public :
 	bool success() const;
 	bool connection();
 	bool isBusy() const;
-	bool execute(const QString&);
+	bool execute(const QStringList&);
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
@@ -76,7 +94,11 @@ private Q_SLOTS:
 	void slotDataReceived(quint32, QString, QString);
 
 private:
-	RussellClient client;
+	bool execute(const QString&);
+	RussellClient  client;
+	RussellConsole console;
+	QStringList    commandQueue;
+	std::atomic<bool> isBusy_;
 };
 
 struct Metamath {

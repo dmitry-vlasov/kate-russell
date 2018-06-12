@@ -88,10 +88,10 @@ bool RussellConfig::russellConsoleAutostart() {
 		default_russell_console_autostart();
 }
 
-Russell::Runner RussellConfig::runner() {
+QString RussellConfig::runner() {
 	return instance().config.hasKey(QLatin1String("RussellRunner")) ?
-		(instance().config.readEntry(QLatin1String("RussellRunner")) == QLatin1String("CONSOLE") ? Russell::CONSOLE : Russell::CLIENT) :
-		(default_russell_runner() == QLatin1String("CONSOLE") ? Russell::CONSOLE : Russell::CLIENT);
+		instance().config.readEntry(QLatin1String("RussellRunner")) :
+		default_russell_runner();
 }
 
 RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::ConfigPage(par), plugin_(plug)
@@ -134,6 +134,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.metamathStartButton, SIGNAL(clicked()), this, SLOT(startMetamathSlot()));
 	connect(configUi_.metamathStopButton, SIGNAL(clicked()), this, SLOT(stopMetamathSlot()));
 	connect(configUi_.metamathKillButton, SIGNAL(clicked()), this, SLOT(killMetamathSlot()));
+	connect(configUi_.metamathCheckButton, SIGNAL(clicked()), this, SLOT(checkMetamathSlot()));
 	connect(&Launcher::metamath().process(), SIGNAL(started()), this, SLOT(startedMetamathSlot()));
 	connect(
 		&Launcher::metamath().process(),
@@ -146,6 +147,7 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	connect(configUi_.russellConsoleStartButton, SIGNAL(clicked()), this, SLOT(startRussellConsoleSlot()));
 	connect(configUi_.russellConsoleStopButton, SIGNAL(clicked()), this, SLOT(stopRussellConsoleSlot()));
 	connect(configUi_.russellConsoleKillButton, SIGNAL(clicked()), this, SLOT(killRussellConsoleSlot()));
+	connect(configUi_.russellConsoleCheckButton, SIGNAL(clicked()), this, SLOT(checkRussellConsoleSlot()));
 	connect(&Launcher::russellConsole().process(), SIGNAL(started()), this, SLOT(startedRussellConsoleSlot()));
 	connect(
 		&Launcher::russellConsole().process(),
@@ -167,6 +169,12 @@ RussellConfigPage::RussellConfigPage(QWidget* par, Plugin *plug) : KTextEditor::
 	configUi_.metamathStopButton->setEnabled(run);
 	configUi_.metamathKillButton->setEnabled(run);
 	configUi_.metamathStartButton->setEnabled(!run);
+
+	run = Launcher::russellConsole().isRunning();
+	configUi_.russellConsoleAliveEdit->setText(run ? QLatin1String("running") : QLatin1String("stopped"));
+	configUi_.russellConsoleStopButton->setEnabled(run);
+	configUi_.russellConsoleKillButton->setEnabled(run);
+	configUi_.russellConsoleStartButton->setEnabled(!run);
 }
 
 QString RussellConfigPage::name() const {
@@ -257,7 +265,7 @@ void RussellConfigPage::startRussellSlot() {
 
 void RussellConfigPage::stopRussellSlot() {
 	if (Launcher::russellClient().isRunning()) {
-		Execute::russell().execute(QLatin1String("exit"));
+		Execute::russell().execute(QStringList() << QLatin1String("exit"));
 		checkRussellSlot();
 	}
 }
@@ -315,6 +323,14 @@ void RussellConfigPage::startMetamathSlot() {
 	}
 }
 
+bool RussellConfigPage::checkMetamathSlot() {
+	bool ret = Launcher::metamath().isRunning();
+	configUi_.metamathAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
+	configUi_.metamathStopButton->setEnabled(ret);
+	configUi_.metamathStartButton->setEnabled(!ret);
+	return ret;
+}
+
 void RussellConfigPage::stopMetamathSlot() {
 	if (Launcher::metamath().isRunning()) {
 		Execute::metamath().execute(QLatin1String("exit\n"));
@@ -360,9 +376,17 @@ void RussellConfigPage::startRussellConsoleSlot() {
 	}
 }
 
+bool RussellConfigPage::checkRussellConsoleSlot() {
+	bool ret = Launcher::russellConsole().isRunning();
+	configUi_.russellConsoleAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
+	configUi_.russellConsoleStopButton->setEnabled(ret);
+	configUi_.russellConsoleStartButton->setEnabled(!ret);
+	return ret;
+}
+
 void RussellConfigPage::stopRussellConsoleSlot() {
 	if (Launcher::russellConsole().isRunning()) {
-		Execute::russell().execute(QLatin1String("exit\n"));
+		Execute::russell().execute(QStringList() << QLatin1String("exit\n"));
 	}
 }
 

@@ -40,11 +40,11 @@ namespace russell {
 	bool Process::start() {
 		if (isRunning()) return true;
 		stop();
-		qDebug() << invocation_;
+		//qDebug() << invocation_;
 		process_.setProgram(invocation_);
 		switch (kind_) {
 			case RUSSELL_CLIENT:  process_.setArguments(QStringList() << QLatin1String("-d")); break;
-			case RUSSELL_CONSOLE: process_.setArguments(QStringList() << QLatin1String("-c")); break;
+			case RUSSELL_CONSOLE: process_.setArguments(QStringList() << QLatin1String("-c") << QLatin1String("--verb")); break;
 			case METAMATH: break;
 		}
 		process_.start();

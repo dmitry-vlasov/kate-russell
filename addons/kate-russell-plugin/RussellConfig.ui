@@ -221,9 +221,6 @@
          </item>
          <item>
           <widget class="QPushButton" name="russellConsoleCheckButton">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Check:</string>
            </property>
@@ -299,9 +296,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label">
+          <widget class="QPushButton" name="metamathCheckButton">
            <property name="text">
-            <string>Status:</string>
+            <string>Check:</string>
            </property>
           </widget>
          </item>

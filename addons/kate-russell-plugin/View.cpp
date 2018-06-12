@@ -281,8 +281,23 @@ namespace russell {
 	void
 	View :: slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data)
 	{
+		//QTextStream(stdout) << "DATA GOT " << data << "\n";
+		//QTextStream(stdout) << "INTERNAL STATE: " << (int)state_.get().state << "\n";
 		InternalState internal_state = state_.get();
 		state_.stop();
+
+		static QString mining_header    = QLatin1String("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE russell_mining_output>\n");
+		static QString structure_mining = QLatin1String("<structure>");
+		static QString outline_mining   = QLatin1String("<outline>");
+
+		if (data.size() && data.startsWith(mining_header)) {
+			if (data.mid(mining_header.length(), structure_mining.length()) == structure_mining) {
+				structure_->update(data);
+			} else if (data.mid(mining_header.length(), outline_mining.length()) == outline_mining) {
+				outline_->update(data);
+			}
+		}
+
 		if (!code) {
 			QApplication :: restoreOverrideCursor();
 			switch (internal_state.state) {
@@ -395,11 +410,10 @@ namespace russell {
 		QString file = currentFile();
 		if (file.size() && state_.start(State::TRANSLATING, file)) {
 			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
-				QString comm;
-				comm += command::translate(fc.file, ActionScope::FILE, Lang::MM);
-				//comm += command::translate(fc.conf->smmTarget(fc.file, true), ActionScope::FILE, Lang::MM);
-				comm += command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
-				Execute::russell().execute(comm);
+				QStringList commands;
+				commands << command::translate(fc.file, ActionScope::FILE, Lang::MM);
+				commands << command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
+				Execute::russell().execute(commands);
 			} else {
 				state_.stop();
 			}
@@ -589,7 +603,7 @@ namespace russell {
 		activeView->document()->replaceText (range, unicodeWord, true);
 	}
 
-	static void appendText(QPlainTextEdit* textEdit, const QString& text) {
+	void appendText(QPlainTextEdit* textEdit, const QString& text) {
 		textEdit->moveCursor (QTextCursor::End);
 		textEdit->insertPlainText (text);
 		textEdit->moveCursor (QTextCursor::End);
@@ -598,21 +612,29 @@ namespace russell {
 	void
 	View :: slotReadRussellStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardOutput());
+		QString serverStdOut = QString::fromUtf8(
+			RussellConfig::runner() == Russell::CONSOLE ?
+			Launcher::russellConsole().process().readAllStandardOutput() :
+			Launcher::russellClient().process().readAllStandardOutput()
+		);
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardError());
+		QString serverStdOut = QString::fromUtf8(
+			RussellConfig::runner() == Russell::CONSOLE ?
+			Launcher::russellConsole().process().readAllStandardError() :
+			Launcher::russellClient().process().readAllStandardError()
+		);
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void
 	View :: slotReadMetamathStdOut()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Launcher::metamath().process().readAllStandardOutput());
+		QString serverStdOut = QString::fromUtf8(Launcher::metamath().process().readAllStandardOutput());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(0);
 		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QLatin1String("MM> ")) {
@@ -622,14 +644,14 @@ namespace russell {
 	void
 	View :: slotReadMetamathStdErr()
 	{
-		QString serverStdOut = QString :: fromUtf8 (Launcher::russellClient().process().readAllStandardError());
+		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardError());
 		appendText(bottomUi_.metamathTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(0);
 	}
 
 	void View::slotExecuteRussellCommand() {
 		QString command = bottomUi_.russellCommandComboBox->currentText();
-		Execute::russell().execute(command + QLatin1String("\n"));
+		Execute::russell().execute(QStringList() << command + QLatin1String("\n"));
 	}
 	void View::slotExecuteMetamathCommand() {
 		QString command = bottomUi_.metamathCommandComboBox->currentText();
@@ -770,8 +792,8 @@ namespace russell {
 		lookupDefinition_ = popupMenu_->menu()->addAction (i18n ("Lookup definition: %1", QString()), this, SLOT(lookupDefinition()));
 		openDefinition_   = popupMenu_->menu()->addAction(i18n("Open definition: %1", QString()), this, SLOT(openDefinition()));
 		latexToUnicode_   = popupMenu_->menu()->addAction(i18n("Latex to unicode: %1", QString()), this, SLOT(latexToUnicode()));
-		proveAutomatically_ = popupMenu_->menu()->addAction(i18n("Prove automatically: %1", QString()), this, SLOT(proveIdAutomatically()));
-		proveInteractive_   = popupMenu_->menu()->addAction(i18n("Prove interactively: %1", QString()), this, SLOT(proveIdInteractively()));
+		//proveAutomatically_ = popupMenu_->menu()->addAction(i18n("Prove automatically: %1", QString()), this, SLOT(proveIdAutomatically()));
+		//proveInteractive_   = popupMenu_->menu()->addAction(i18n("Prove interactively: %1", QString()), this, SLOT(proveIdInteractively()));
 
 		latexToUnicode_->setShortcut (QKeySequence (Qt :: CTRL + Qt :: SHIFT + Qt :: Key_R));
 		connect (popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (showMenu()));
@@ -781,15 +803,15 @@ namespace russell {
 	{
 		QAction* action = NULL;
 
-		action = actionCollection()->addAction (QLatin1String("prove_verify"));
-		action->setText (i18n ("Prove && Verify"));
-		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_F));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProveVerify()));
+		//action = actionCollection()->addAction (QLatin1String("prove_verify"));
+		//action->setText (i18n ("Prove && Verify"));
+		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_F));
+		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProveVerify()));
 
-		action = actionCollection()->addAction (QLatin1String("prove"));
-		action->setText (i18n ("Prove"));
-		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_P));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProve()));
+		//action = actionCollection()->addAction (QLatin1String("prove"));
+		//action->setText (i18n ("Prove"));
+		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_P));
+		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProve()));
 
 		action = actionCollection()->addAction (QLatin1String("translate"));
 		action->setText (i18n ("Translate"));
@@ -801,10 +823,10 @@ namespace russell {
 		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_V));
 		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotVerify()));
 
-		action = actionCollection()->addAction (QLatin1String("learn"));
-		action->setText (i18n ("Learn"));
-		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_L));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotLearn()));
+		//action = actionCollection()->addAction (QLatin1String("learn"));
+		//action->setText (i18n ("Learn"));
+		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_L));
+		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotLearn()));
 
 		//action = actionCollection()->addAction (QLatin1String("stop"));
 		//action->setText (i18n ("Stop"));
@@ -824,27 +846,27 @@ namespace russell {
 		a->setText (i18n ("Next Target"));
 		connect (a, SIGNAL (triggered (bool)), this, SLOT (configNext()));*/
 
-		action = actionCollection()->addAction (QLatin1String("prove_verify_quick"));
-		action->setText (i18n ("Prove/Verify"));
+		//action = actionCollection()->addAction (QLatin1String("prove_verify_quick"));
+		//action->setText (i18n ("Prove/Verify"));
 
 		/*static const QPixmap provePixmap (prove_verify_xpm_);
 		QIcon (provePixmap)
 		a->setIcon (QIcon (provePixmap));*/
 		//a->setIcon (QIcon ("media-playback-start"));
 		//action->setIcon (QIcon ("preferences-kcalc-constants"));
-		action->setIcon (QIcon (QLatin1String("arrow-right")));
-		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveVerify()));
+		//action->setIcon (QIcon (QLatin1String("arrow-right")));
+		//connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveVerify()));
 
-		action = actionCollection()->addAction (QLatin1String("prove_interactive"));
-		action->setText (i18n ("Prove Interactive"));
+		//action = actionCollection()->addAction (QLatin1String("prove_interactive"));
+		//action->setText (i18n ("Prove Interactive"));
 
 		/*static const QPixmap provePixmap (prove_verify_xpm_);
 		QIcon (provePixmap)
 		a->setIcon (QIcon (provePixmap));*/
 		//a->setIcon (QIcon ("media-playback-start"));
-		action->setIcon (QIcon(QLatin1String("arrow-right-double")));
-		action->setIcon (QIcon(QLatin1String(":/katerussell/icons/hi22-actions-russell-axiom.png")));
-		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveInteractive()));
+		//action->setIcon (QIcon(QLatin1String("arrow-right-double")));
+		//action->setIcon (QIcon(QLatin1String(":/katerussell/icons/hi22-actions-russell-axiom.png")));
+		//connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveInteractive()));
 
 		action = actionCollection()->addAction (QLatin1String("start_server"));
 		action->setText (i18n ("Start mdl server"));
@@ -876,9 +898,10 @@ namespace russell {
 	{
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
+
 		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
 		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
-		connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
+		//connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(quint32, QString, QString)));
 		connect (this, SIGNAL (mmCommandFinished()), this, SLOT(slotMmCommandCompleted()));
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));

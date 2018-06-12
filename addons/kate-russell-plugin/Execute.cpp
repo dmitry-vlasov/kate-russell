@@ -33,29 +33,12 @@ namespace russell {
 	 *	Public members
 	 ****************************/
 
-	bool
-	Metamath::execute (const QString& command) {
-		QByteArray data = command.toLatin1();
-		qint64 size = Launcher::metamath().process().write(data);
-		View::get()->getBottomUi().metamathTextEdit->appendPlainText(command);
-		return size == data.size();
-	}
-
-	bool
-	RussellConsole::execute (const QString& command) {
-		QByteArray data = command.toLatin1();
-		qint64 size = Launcher::russellClient().process().write(data);
-		View::get()->getBottomUi().russellTextEdit->appendPlainText(command);
-		return size == data.size();
-	}
-
 	RussellClient::RussellClient():
 	code_(0),
 	size_(0),
 	isBusy_(false) {
 		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
-
 
 	bool
 	RussellClient::connection()
@@ -197,20 +180,128 @@ namespace russell {
 
 	Russell::Russell() {
 		connect(&client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+		connect(&console, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
 	}
 	bool Russell::success() const {
-		return client.success();
+		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.success() : client.success();
 	}
 	bool Russell::connection() {
-		return client.connection();
+		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.connection() : client.connection();
 	}
 	bool Russell::isBusy() const {
-		return client.isBusy();
+		return isBusy_;
 	}
 	bool Russell::execute(const QString& command) {
-		return client.execute(command);
+		isBusy_ = true;
+		//QTextStream(stdout) << "ABOUT TO EXEC: " << command << "\n";
+		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.execute(command) : client.execute(command);
+	}
+	bool Russell::execute(const QStringList& commands) {
+
+		/*QTextStream(stdout) << "ENQUEING COMMANDS: \n";
+		for (auto c : commands) {
+			QTextStream(stdout) << "\t" << c << "\n";
+		}
+		QTextStream(stdout) << "\n";*/
+
+		if (!commands.empty()) {
+			commandQueue.append(commands);
+			return isBusy_ ? true : execute(commandQueue.takeFirst());
+		} else {
+			return true;
+		}
 	}
 	void Russell::slotDataReceived(quint32 code, QString msg, QString data) {
 		emit dataReceived(code, msg, data);
+		if (!commandQueue.empty()) {
+			//QTextStream(stdout) << "ABOUT TO EXEC from queue: " << commandQueue.first() << "\n";
+			execute(commandQueue.takeFirst());
+		} else {
+			isBusy_ = false;
+		}
+	}
+
+	bool
+	Metamath::execute (const QString& command) {
+		QByteArray data = command.toLatin1();
+		qint64 size = Launcher::metamath().process().write(data);
+		View::get()->getBottomUi().metamathTextEdit->appendPlainText(command);
+		return size == data.size();
+	}
+
+	RussellConsole::RussellConsole() : code_(0) {
+		connect(&Launcher::russellConsole().process(), SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadOutput()));
+		connect(&Launcher::russellConsole().process(), SIGNAL(readyReadStandardError()), this, SLOT(readyReadError()));
+	}
+
+	bool
+	RussellConsole::execute (const QString& command) {
+		command_ = command.endsWith(QLatin1Char('\n')) ? command : command + QLatin1Char('\n');
+		buffer_.clear();
+		data_.clear();
+		messages_.clear();
+		code_ = 0;
+		QByteArray data = command_.toLatin1();
+		qint64 size = Launcher::russellConsole().process().write(data);
+		return size == data.size();
+	}
+
+	void RussellConsole::readyReadOutput() {
+		QString data = QString::fromUtf8(Launcher::russellConsole().process().readAllStandardOutput());
+		buffer_.append(data);
+
+		appendText(View::get()->getBottomUi().russellTextEdit, data);
+		View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
+
+		QStringList lines = data.split(QLatin1Char('\n'));
+		if (lines.size() && lines.last().trimmed() == QLatin1String(">>")) {
+			makeOutput();
+			//QTextStream(stdout) << "DATA:\n" << data_ << "\n";
+			data_ = data_.trimmed();
+			if (data_.endsWith(QLatin1String(">>"))) {
+				data_ = data_.mid(0, data_.length() - 2);
+				data_ = data_.trimmed();
+			}
+			emit dataReceived(code_, messages_, data_);
+		}
+	}
+
+	void RussellConsole::readyReadError() {
+		QString err = QString::fromUtf8(Launcher::russellConsole().process().readAllStandardError());
+		buffer_.append(err);
+
+		appendText(View::get()->getBottomUi().russellTextEdit, err);
+		View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
+
+		QStringList lines = buffer_.split(QLatin1Char('\n'));
+		if (lines.size() && lines.last() == QLatin1String("> ")) {
+			messages_ = buffer_;
+		}
+	}
+
+	void RussellConsole::makeOutput() {
+		QStringList lines = buffer_.split(QLatin1Char('\n'));
+		if (lines.size()) {
+			if (lines.first().startsWith(QLatin1String("error: "))) {
+				code_ = lines.first().mid(7).toInt();
+				lines.removeFirst();
+			}
+			bool in_messages = true;
+			while (!lines.empty()) {
+				QString line = lines.takeFirst();
+
+				//QTextStream(stdout) << "LINE: " << line << "\n";
+
+				if (line == QLatin1String("***** DATA *****")) {
+					in_messages = false;
+				} else {
+					if (in_messages) {
+						messages_ += line + QLatin1Char('\n');
+					} else {
+						data_ += line + QLatin1Char('\n');
+					}
+				}
+			}
+		}
 	}
 }

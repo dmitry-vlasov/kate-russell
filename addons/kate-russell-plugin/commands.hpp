@@ -24,17 +24,17 @@ namespace russell {
 
 namespace command {
 
-	QString read(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString translate(const QString& file, ActionScope scope = ActionScope::FILE, Lang target = Lang::MM);
-	QString merge(const QString& file, ActionScope scope = ActionScope::FILE);
+	QStringList read(const QString& file, ActionScope scope = ActionScope::FILE);
+	QStringList translate(const QString& file, ActionScope scope = ActionScope::FILE, Lang target = Lang::MM);
+	QStringList merge(const QString& file, ActionScope scope = ActionScope::FILE);
 
-	QString verifyRus(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString verifyMm(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString eraseMm(const QString& file, ActionScope scope = ActionScope::FILE);
+	QStringList verifyRus(const QString& file, ActionScope scope = ActionScope::FILE);
+	QString     verifyMm(const QString& file, ActionScope scope = ActionScope::FILE);
+	QString     eraseMm(const QString& file, ActionScope scope = ActionScope::FILE);
 
-	QString lookupDefinition(const QString& file, const int line, const int column);
-	QString lookupLocation(const QString& file, const int line, const int column);
-	QString mine (const QString& file, State state, const QString& options);
+	QStringList lookupDefinition(const QString& file, const int line, const int column);
+	QStringList lookupLocation(const QString& file, const int line, const int column);
+	QStringList mine (const QString& file, State state, const QString& options);
 
 	//QString prove(const QString& file, ProvingMode mode);
 	//QString prove(const QString& file, ProvingMode mode, const int line, const int column);

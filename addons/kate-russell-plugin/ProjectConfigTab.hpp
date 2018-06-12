@@ -40,8 +40,8 @@ public:
 	void setAutoinit(bool ai) { autoinit_ = ai; }
 	void setAutoload(bool al) { autoload_ = al; }
 
-	QString initProjectCommand() const;
-	QString loadMainCommand() const;
+	QStringList initProjectCommands() const;
+	QStringList loadMainCommands() const;
 
 	QString trimFile(const QString& file) const;
 

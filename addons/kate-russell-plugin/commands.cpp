@@ -16,15 +16,6 @@
 #include <map>
 
 #include "commands.hpp"
-//#include <QByteArray>
-//#include <QDataStream>
-//#include <QtNetwork>
-//#include <QMetaObject>
-//#include <QMessageBox>
-
-//#include <KMessageBox>
-
-//#include <KTextEditor/View>
 
 #include "RussellConfigPage.hpp"
 #include "ProjectConfigTab.hpp"
@@ -34,77 +25,73 @@
 
 namespace russell { namespace command {
 
-	QString read(const QString& file, ActionScope scope)
+	QStringList read(const QString& file, ActionScope scope)
 	{
 		if (FileConf fc = chooseFileConf(file, scope)) {
-			QString command;
+			QStringList commands;
 			QString lang = lang_string(file_type(fc.file));
-			command += lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += lang + QStringLiteral(" read ") + QStringLiteral("in=") + fc.conf->trimFile(file) + QStringLiteral(";");
-			command += lang + QStringLiteral(" parse ;");
-			command += lang + QStringLiteral(" verify ") + QStringLiteral("in=") + fc.conf->trimFile(file) + QStringLiteral(";");
-			return command;
+			commands << lang + QLatin1String(" curr proj=") + fc.conf->name();
+			commands << lang + QLatin1String(" read in=") + fc.conf->trimFile(file);
+			commands << lang + QLatin1String(" parse");
+			commands << lang + QLatin1String(" verify in=") + fc.conf->trimFile(file);
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
-	QString translate(const QString& file, ActionScope scope, Lang target)
+	QStringList translate(const QString& file, ActionScope scope, Lang target)
 	{
 		if (FileConf fc = chooseFileConf(file, scope)) {
-			QString command;
+			QStringList commands;
 			QString src_lang = lang_string(file_type(fc.file));
 			QString tgt_lang = lang_string(target);
-			command += src_lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += tgt_lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
+			commands << src_lang + QLatin1String(" curr proj=") + fc.conf->name();
+			commands << tgt_lang + QLatin1String(" curr proj=") + fc.conf->name();
 
-			command += src_lang + QStringLiteral(" transl ");
-			command += QStringLiteral("in=") + fc.conf->trimFile(fc.file) + QStringLiteral(" ");
-			command += QStringLiteral("out=") + fc.conf->target(fc.file, target) + QStringLiteral(";");
-			command += tgt_lang + QStringLiteral(" write deep=true ");
-			command += QStringLiteral("in=") + fc.conf->target(fc.file, target) + QStringLiteral(";");
+			commands << src_lang + QLatin1String(" transl in=") + fc.conf->trimFile(fc.file) + QLatin1String(" out=") + fc.conf->target(fc.file, target);
+			commands << tgt_lang + QLatin1String(" write deep=true in=") + fc.conf->target(fc.file, target);
 
-			return command;
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
-	QString merge(const QString& file, ActionScope scope)
+	QStringList merge(const QString& file, ActionScope scope)
 	{
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QString lang = lang_string(file_type(fc.file));
-			QString command;
-			command += QStringLiteral("mm curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += QStringLiteral("mm merge ");
-			command += QStringLiteral("in=") + fc.conf->trimFile(fc.file) + QStringLiteral(" ");
-			command += QStringLiteral("out=") + fc.conf->mergedTarget(fc.file) + QStringLiteral(" ");
-			command += QStringLiteral("out-root=") + fc.conf->mmRoot() + QStringLiteral(";");
-			return command;
+			QStringList commands;
+			commands << QLatin1String("mm curr proj=") + fc.conf->name();
+			commands <<
+				QLatin1String("mm merge in=") + fc.conf->trimFile(fc.file) +
+				QLatin1String(" out=") + fc.conf->mergedTarget(fc.file) +
+				QLatin1String(" out-root=") + fc.conf->mmRoot();
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
-	QString verifyRus(const QString& file, ActionScope scope)
+	QStringList verifyRus(const QString& file, ActionScope scope)
 	{
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QString lang = lang_string(file_type(fc.file));
-			QString command;
-			command += lang + QStringLiteral(" curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += lang + QStringLiteral(" verify ");
-			command += QStringLiteral("in=") + fc.conf->rusTarget(fc.file) + QStringLiteral(";");
-			return command;
+			QStringList commands;
+			commands << lang + QLatin1String(" curr proj=") + fc.conf->name();
+			commands << lang + QLatin1String(" verify in=") + fc.conf->rusTarget(fc.file);
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
 	QString verifyMm(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QString command;
-			command += QStringLiteral("read \"") + fc.conf->mergedTarget(fc.file, true) + QStringLiteral("\"");
-			command += QStringLiteral(" / verify \n");
+			command += QLatin1String("read \"") + fc.conf->mergedTarget(fc.file, true) + QLatin1String("\"");
+			command += QLatin1String(" / verify \n");
 			//qDebug() << command;
 			return command;
 		} else {
@@ -114,59 +101,62 @@ namespace russell { namespace command {
 
 	QString eraseMm(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
-			//return QStringLiteral("erase \"") + fc.conf->mergedTarget(fc.file, true) + QStringLiteral("\"\n");
-			return QStringLiteral("erase\n");
+			//return QLatin1String("erase \"") + fc.conf->mergedTarget(fc.file, true) + QLatin1String("\"\n");
+			return QLatin1String("erase\n");
 		} else {
 			return QString();
 		}
 	}
 
-	QString lookupDefinition(const QString& file, const int line, const int column)
+	QStringList lookupDefinition(const QString& file, const int line, const int column)
 	{
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
-			QString command = QStringLiteral("rus curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += QStringLiteral("rus lookup what=def in=") + fc.conf->trimFile(fc.file) + QStringLiteral(" ");
-			command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
-			command += QStringLiteral("col=") + QString::number(column) + QStringLiteral(";");
-			return command;
+			QStringList commands;
+			commands << QLatin1String("rus curr proj=") + fc.conf->name();
+			commands <<
+				QLatin1String("rus lookup what=def in=") + fc.conf->trimFile(fc.file) +
+				QLatin1String(" line=") + QString::number(line) +
+				QLatin1String(" col=") + QString::number(column);
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
-	QString lookupLocation(const QString& file, const int line, const int column)
+	QStringList lookupLocation(const QString& file, const int line, const int column)
 	{
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
-			QString command = QStringLiteral("rus curr proj=") + fc.conf->name() + QStringLiteral(";");
-			command += QStringLiteral("rus lookup what=loc in=") + fc.conf->trimFile(file) + QStringLiteral(" ");
-			command += QStringLiteral("line=") + QString::number(line) + QStringLiteral(" ");
-			command += QStringLiteral("col=") + QString::number(column) + QStringLiteral(";");
-			return command;
+			QStringList commands;
+			commands << QLatin1String("rus curr proj=") + fc.conf->name();
+			commands <<
+				QLatin1String("rus lookup what=loc in=") + fc.conf->trimFile(file) +
+				QLatin1String(" line=") + QString::number(line) +
+				QLatin1String(" col=") + QString::number(column);
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
-	QString mine(const QString& file, State state, const QString& options)
+	QStringList mine(const QString& file, State state, const QString& options)
 	{
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
-			QString command = QStringLiteral("rus curr proj=") + fc.conf->name() + QStringLiteral(";");
+			QStringList commands;
+			commands << QLatin1String("rus curr proj=") + fc.conf->name();
 			//if (!Connection::mod().execute (command)) return false;
 			switch (state) {
 			case State::MINING_OUTLINE :
-				command += QStringLiteral("rus outline in=") + fc.conf->trimFile(fc.file) + QStringLiteral(" ");
-				command += QStringLiteral("what=") + options + QStringLiteral(";");
+				commands << QLatin1String("rus outline in=") + fc.conf->trimFile(fc.file) + QLatin1String(" what=") + options;
 				break;
 			case State::MINING_STRUCTURE :
 			case State::MINING_TYPE_SYSTEM :
-				command  = QStringLiteral("rus struct ");
-				command += QStringLiteral("what=") + options + QStringLiteral(";");
+				commands << QLatin1String("rus struct what=") + options;
 				break;
-			default : return QString();
+			default : return QStringList();
 			}
-			return command;
+			return commands;
 		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 }
@@ -192,7 +182,7 @@ namespace russell { namespace command {
 		if (!conf) return FileConf {file, nullptr};
 		switch (scope) {
 		case ActionScope::PROJ: {
-			auto projFile = conf->rusRoot() + QStringLiteral("/") + conf->rusMain();
+			auto projFile = conf->rusRoot() + QLatin1String("/") + conf->rusMain();
 			return FileConf {projFile, conf};
 		}
 		case ActionScope::FILE: return FileConf{file, conf};

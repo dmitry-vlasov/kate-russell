@@ -89,8 +89,12 @@ inline QString de_escape_xml(const QString& s) {
 	void 
 	Navigation :: update (const char* header, const QString& output)
 	{
+		if (!output.size()) return;
 		QDomDocument document(i18n(header));
 		QString error;
+
+		//QTextStream(stdout) << "DATA: \n" << output << "\n";
+
 		if (!document.setContent (output, &error)) {
 			QMessageBox::information(this, QLatin1String("Couldn't parse xml"), error);
 			return;

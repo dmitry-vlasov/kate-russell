@@ -163,5 +163,7 @@ private:
 	StateKeeper state_;
 };
 
+void appendText(QPlainTextEdit* textEdit, const QString& text);
+
 }
 
