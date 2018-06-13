@@ -22,6 +22,7 @@ set (katerussell_SRC
 	commands.cpp
 	Launcher.cpp
 	Execute.cpp
+	Enums.cpp
 	
 	Navigation.cpp
 	Outline.cpp
