@@ -277,7 +277,7 @@ void RussellConfigPage::killRussellSlot() {
 }
 
 bool RussellConfigPage::checkRussellSlot() {
-	bool ret = RussellClient::connection();
+	bool ret = RussellClient::checkConnection();
 	configUi_.russellAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);

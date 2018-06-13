@@ -26,9 +26,9 @@ namespace russell {
 class RussellClient : public QObject {
 Q_OBJECT
 public:
-	RussellClient(const QString& command);
-	static bool connection();
-	bool execute();
+	RussellClient();
+	static bool checkConnection();
+	bool execute(const QString& command);
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
@@ -36,6 +36,7 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void readyRead();
 private:
+	bool makeConnection();
 	bool runCommand();
 	void makeOutput();
 

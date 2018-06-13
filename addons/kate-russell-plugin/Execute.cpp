@@ -31,29 +31,15 @@ namespace russell {
 using std::unique_ptr;
 using std::variant;
 
-	RussellClient::RussellClient(const QString& command) : code_(0), size_(0), command_(command) {
+	RussellClient::RussellClient() : code_(0), size_(0) {
 		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
-	bool RussellClient::connection() {
-		QTcpSocket socket;
-		if (socket.state() == QTcpSocket::SocketState::ConnectedState) {
-			//std :: cout << "already connected to server" << std :: endl;
-			return true;
-		}
-		socket.disconnectFromHost();
-		QString host = russell::RussellConfig::russellHost();
-		int port = russell::RussellConfig::russlelPort();
-		socket.connectToHost (host, port);
-		bool isConnected = socket.waitForConnected(100);
-		if (!isConnected) {
-			//std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << socket.errorString() << "\n";
-			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
-		}
-		return isConnected;
+	bool RussellClient::checkConnection() {
+		return RussellClient().makeConnection();
 	}
-	bool RussellClient::execute() {
-		if (!connection()) {
+	bool RussellClient::execute(const QString& command) {
+		command_ = command;
+		if (!makeConnection()) {
 			return false;
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
@@ -73,7 +59,23 @@ using std::variant;
 #endif
 		return !code_;
 	}
-
+	bool RussellClient::makeConnection() {
+		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
+			//std :: cout << "already connected to server" << std :: endl;
+			return true;
+		}
+		socket_.disconnectFromHost();
+		QString host = russell::RussellConfig::russellHost();
+		int port = russell::RussellConfig::russlelPort();
+		socket_.connectToHost (host, port);
+		bool isConnected = socket_.waitForConnected(100);
+		if (!isConnected) {
+			//std :: cout << "not connected to server:" << std :: endl;
+			QTextStream (stdout) << "\t" << socket_.errorString() << "\n";
+			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
+		}
+		return isConnected;
+	}
 	void RussellClient::readyRead() {
 		while (socket_.bytesAvailable() > 0) {
 			buffer_.append(socket_.readAll());
@@ -255,10 +257,16 @@ using std::variant;
 				connect(console, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
 				console->execute();
 			} else if (RussellConfig::runner() == QLatin1String("CLIENT")) {
-				auto client = new RussellClient(command);
-				executor = unique_ptr<RussellClient>(client);
-				connect(client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
-				client->execute();
+				RussellClient* client = nullptr;
+				if (executor.index() == 0) {
+					client = std::get<unique_ptr<RussellClient>>(executor).get();
+				}
+				if (!client) {
+					client = new RussellClient();
+					executor = unique_ptr<RussellClient>(client);
+					connect(client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+				}
+				client->execute(command);
 			} else {
 				QMessageBox::warning(nullptr, i18n("Unknown russell executor:"), RussellConfig::runner());
 			}
