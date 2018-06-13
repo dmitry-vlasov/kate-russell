@@ -324,9 +324,6 @@ namespace russell {
 			case State::PROVING :
 				reloadSource();
 				break;
-			case State::VERIFYING_MM :
-				//client_->verifyMm(currentFile());
-				break;
 			case State::TRANSLATING:
 				//if (internal_state.file.size() && state_.start(State::VERIFYING_MM, internal_state.file)) {
 				//	Execute::exec(command::verifyMm(internal_state.file, ActionScope::FILE));
@@ -431,7 +428,7 @@ namespace russell {
 	{
 		QString file = currentFile();
 		//qDebug() << file;
-		if (file.size() && state_.start(State::VERIFYING_RUS, file)) {
+		if (file.size() && state_.start(State::VERIFYING, file)) {
 			Execute::exec(command::verifyRus(file, ActionScope::FILE));
 		}
 	}
