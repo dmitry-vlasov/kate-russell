@@ -93,8 +93,7 @@ namespace russell {
 			mainWindow_->openUrl(file);
 		}
 	}
-	View :: ~View() 
-	{
+	View::~View() {
 		KConfigGroup config(KSharedConfig::openConfig(), QLatin1String("Russell"));
 		int count = 0;
 		for (KTextEditor::View* view : mainWindow_->views()) {
@@ -115,31 +114,18 @@ namespace russell {
 		delete proof_;
 	}
 
-	State View::getState() const {
-		return state_.get().state;
-	}
 	Ui::Bottom& View::getBottomUi() {
 		return bottomUi_;
 	}
 	QWidget* View::toolView() const {
 		return toolView_;
 	}
-	void 
-	View :: clearOutput() 
-	{
+	void View::clearOutput() {
 		bottomUi_.russellTextEdit->clear();
 		bottomUi_.metamathTextEdit->clear();
-		State s = state_.get().state;
-		if ((s == State::LOOKING_DEFINITION) || (s == State::OPENING_DEFINITION) ||
-			(s == State::MINING_OUTLINE) || (s == State::MINING_STRUCTURE) ||
-			(s == State::MINING_TYPE_SYSTEM)) {
-			return;
-		}
-		bottomUi_.qtabwidget->setCurrentIndex (1);
+		//bottomUi_.qtabwidget->setCurrentIndex (1);
 	}
-	void
-	View :: openLocation(const QString& loc)
-	{
+	void View::openLocation(const QString& loc) {
 		if (loc.isEmpty()) return;
 		QString location = loc;
 		QString path;
@@ -172,46 +158,36 @@ namespace russell {
 
 	Proof* View::proof() { return proof_; }
 
-	void 
-	View :: mineOutline (const QString& options) 
-	{
+	void View::mineOutline (const QString& options) {
 		QString file = currentFile();
-		if (file.size() && state_.start(State::MINING_OUTLINE, file)) {
+		if (file.size()) {
 			Execute::exec(command::mine(file, State::MINING_OUTLINE, options));
 		}
 	}
-	void 
-	View :: mineStructure (const QString& options) 
-	{
+	void View::mineStructure (const QString& options) {
 		QString file = currentFile();
-		if (file.size() && state_.start(State::MINING_STRUCTURE, file)) {
+		if (file.size()) {
 			Execute::exec(command::mine(file, State::MINING_STRUCTURE, options));
 		}
 	}
-	void 
-	View :: mineTypeSystem (const QString& options) 
-	{
+	void View::mineTypeSystem (const QString& options) {
 		QString file = currentFile();
-		if (file.size() && state_.start(State::MINING_TYPE_SYSTEM, file)) {
+		if (file.size()) {
 			Execute::exec(command::mine(file, State::MINING_TYPE_SYSTEM, options));
 		}
 	}
-	void 
-	View :: gotoLocation (const QString& path, const int line, const int column)
-	{
+	void View::gotoLocation (const QString& path, const int line, const int column) {
 		QUrl url(QLatin1String("file://") + path);
 		if (KTextEditor::View* view = mainWindow_->openUrl (url)) {
 			mainWindow_->activateView(view->document());
 			mainWindow_->activeView()->setCursorPosition (KTextEditor :: Cursor (line, column));
 			mainWindow_->activeView()->setFocus();
 		} else {
-			KMessageBox :: sorry (0, i18n ("Cannot open ") + path);
+			KMessageBox::sorry(0, i18n("Cannot open ") + path);
 		}
 	}
 
-	QUrl
-	View :: currentFileUrl (const bool save) const
-	{
+	QUrl View::currentFileUrl (const bool save) const {
 		KTextEditor::View* activeView = mainWindow()->activeView();
 		if (activeView == NULL) {
 			return QUrl();
@@ -221,9 +197,7 @@ namespace russell {
 		}
 		return activeView->document()->url();
 	}
-	QString
-	View :: currentFile (const bool save) const
-	{
+	QString View::currentFile (const bool save) const {
 		QUrl url = currentFileUrl (save);
 		if (url.isEmpty()) {
 			//KMessageBox :: sorry (0, i18n ("There's no active window."));
@@ -236,16 +210,13 @@ namespace russell {
 		}
 		return file;
 	}
-	Lang
-	View :: currentFileType() const {
+	Lang View::currentFileType() const {
 		return file_type(currentFile());
 	}
-	bool
-	View :: currentIsRus() const {
+	bool View::currentIsRus() const {
 		return currentFileType() == Lang::RUS;
 	}
-	bool
-	View :: currentIsMm() const {
+	bool View::currentIsMm() const {
 		return currentFileType() == Lang::MM;
 	}
 
@@ -253,10 +224,9 @@ namespace russell {
 	 *	Private Q_SLOTS members
 	 **********************************/
 
-	void
-	View::slotRead(KTextEditor::View* view) {
+	void View::slotRead(KTextEditor::View* view) {
 		QString file = currentFile();
-		if (file.size() && fileChanged(file) && state_.start(State::READING, file)) {
+		if (file.size() && fileChanged(file)) {
 			connect(
 				view->document(),
 				SIGNAL(documentSavedOrUploaded(KTextEditor::Document*, bool)),
@@ -267,47 +237,25 @@ namespace russell {
 			registerFileRead(file);
 		}
 	}
-	void
-	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
+	void View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
 		QString file = doc->url().toLocalFile();
-		if (file.size() && fileChanged(file) && state_.start(State::READING, file)) {
+		if (file.size() && fileChanged(file)) {
 			Execute::exec(command::read(file, ActionScope::FILE));
 			registerFileRead(file);
 		}
 	}
 
-	void
-	View :: slotRusCommandCompleted(const QString& command, quint32 code, const QString& msg, const QString& data)
-	{
-		//QTextStream(stdout) << "DATA GOT " << data << "\n";
-		//QTextStream(stdout) << "INTERNAL STATE: " << (int)state_.get().state << "\n";
-		InternalState internal_state = state_.get();
-		state_.stop();
-
-		static QString mining_header    = QLatin1String("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE russell_mining_output>\n");
-		static QString structure_mining = QLatin1String("<structure>");
-		static QString outline_mining   = QLatin1String("<outline>");
-		static QString types_mining     = QLatin1String("<types>");
-
-		if (data.size() && data.startsWith(mining_header)) {
-			if (data.mid(mining_header.length(), structure_mining.length()) == structure_mining) {
-				structure_->update(data);
-			} else if (data.mid(mining_header.length(), outline_mining.length()) == outline_mining) {
-				outline_->update(data);
-			} else if (data.mid(mining_header.length(), types_mining.length()) == types_mining) {
-				typeSystem_->update(data);
-			}
-		}
-
+	void View::slotRusCommandCompleted(const QString& command, quint32 code, const QString& msg, const QString& data) {
+		Task task = parse_task(command);
 		if (!code) {
-			QApplication :: restoreOverrideCursor();
-			switch (internal_state.state) {
+			switch (task.state) {
 			case State::READING:
 				outline_->refresh();
 				break;
 			case State::LOOKING_DEFINITION :
-				if (!data.isEmpty())
+				if (!data.isEmpty()) {
 					QMessageBox::information(mainWindow_->activeView(), i18n("Definition:"), data);
+				}
 				break;
 			case State::OPENING_DEFINITION :
 				openLocation(data);
@@ -324,54 +272,21 @@ namespace russell {
 			case State::PROVING :
 				reloadSource();
 				break;
-			case State::TRANSLATING:
-				//if (internal_state.file.size() && state_.start(State::VERIFYING_MM, internal_state.file)) {
-				//	Execute::exec(command::verifyMm(internal_state.file, ActionScope::FILE));
-				//}
-				break;
 			default :
-				/*KPassivePopup :: message
-				(
-					i18n ("Success"),
-					i18n("Proving and verification completed without problems."),
-					toolView_
-				);*/;
+				break;
 			}
 		} else {
-			switch (internal_state.state) {
+			switch (task.state) {
 			case State::READING:
 				QMessageBox::warning(mainWindow_->activeView(), i18n("Reading failed:"), msg);
 				break;
 			default :
 				QMessageBox::warning(mainWindow_->activeView(), i18n("Some error:"), msg);
 			}
-
-			//outputBuffer_ += QStringLiteral("process crushed\n");
-			//outputBuffer_ += QStringLiteral("error code: ");
-			//outputBuffer_ += QString :: number (code);
-			//outputBuffer_ += QStringLiteral("\n");
 		}
 	}
-	void
-	View :: slotMmCommandCompleted()
-	{
-		InternalState internal_state = state_.get();
-		state_.stop();
-		QApplication :: restoreOverrideCursor();
-		/*switch (internal_state.state) {
-		case State::VERIFYING_MM:
-			if (internal_state.file.size() && state_.start(State::ERASING_MM, internal_state.file)) {
-				Execute::metamath().execute(command::eraseMm(internal_state.file, ActionScope::FILE));
-			}
-			break;
-		default:
-			break;
-		}*/
 
-	}
-
-	void 
-	View :: slotRefreshOutline() {
+	void View::slotRefreshOutline() {
 		outline_->refresh();
 	}
 
@@ -403,32 +318,21 @@ namespace russell {
 		}
 	}
 */
-	void
-	View :: slotTranslate() {
+	void View::slotTranslate() {
 		QString file = currentFile();
-		if (file.size() && state_.start(State::TRANSLATING, file)) {
+		if (file.size()) {
 			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 				QStringList commands;
 				commands << command::translate(fc.file, ActionScope::FILE, Lang::MM);
 				commands << command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
 				commands << command::verifyMm(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
-
-				for (auto c : commands) {
-					QTextStream(stdout) << "TR: " << c << "\n";
-				}
-
 				Execute::exec(commands);
-			} else {
-				state_.stop();
 			}
 		}
 	}
-	void 
-	View :: slotVerify()
-	{
+	void View::slotVerify() {
 		QString file = currentFile();
-		//qDebug() << file;
-		if (file.size() && state_.start(State::VERIFYING, file)) {
+		if (file.size()) {
 			Execute::exec(command::verifyRus(file, ActionScope::FILE));
 		}
 	}
@@ -503,9 +407,7 @@ namespace russell {
 	}*/
 
 	// server slots
-	void
-	View :: slotManageServer()
-	{
+	void View::slotManageServer() {
 		QAction* action = nullptr;
 		if (Launcher::russellClient().isRunning()) {
 			Launcher::russellClient().stop();
@@ -521,21 +423,19 @@ namespace russell {
 	}
 
 	// popup menu
-	void 
-	View :: showMenu() 
-	{
+	void View::showMenu() {
 		const QString identifier = currentIdentifier();
 		if (identifier.isEmpty()) {
 			lookupDefinition_->setText (i18n ("Nothing to lookup"));
 			openDefinition_->setText (i18n ("Nothing to open"));
-			proveAutomatically_->setText (i18n ("Nothing to prove"));
-			proveInteractive_->setText (i18n ("Nothing to prove"));
+			//proveAutomatically_->setText (i18n ("Nothing to prove"));
+			//proveInteractive_->setText (i18n ("Nothing to prove"));
 		} else {
 			const QString squeezedIdentifier = KStringHandler :: csqueeze (identifier, 30);
 			lookupDefinition_->setText (i18n ("Lookup definition: %1", squeezedIdentifier));
 			openDefinition_->setText (i18n ("Open definition: %1", squeezedIdentifier));
-			proveAutomatically_->setText (i18n ("Prove automatically: %1", squeezedIdentifier));
-			proveInteractive_->setText (i18n ("Prove interactively: %1", squeezedIdentifier));
+			//proveAutomatically_->setText (i18n ("Prove automatically: %1", squeezedIdentifier));
+			//proveInteractive_->setText (i18n ("Prove interactively: %1", squeezedIdentifier));
 		}
 		int line = -1; int start = -1; int length = -1;
 		const QString latexExpression = currentLatexExpression (line, start, length);
@@ -546,9 +446,7 @@ namespace russell {
 			latexToUnicode_->setText (i18n("Latex to unicode: %1", squeezedExpression));
 		}
 	}
-	void 
-	View :: lookupDefinition() 
-	{		
+	void View::lookupDefinition() {
 		if (!currentIsRus()) return;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
@@ -563,13 +461,11 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (file.size() && state_.start(State::LOOKING_DEFINITION, file)) {
+		if (file.size()) {
 			Execute::exec(command::lookupDefinition(file, line, column));
 		}
 	}
-	void 
-	View :: openDefinition() 
-	{
+	void View::openDefinition() {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -583,13 +479,11 @@ namespace russell {
 		const int column = activeView->cursorPosition().column();
 
 		QString file = currentFile();
-		if (file.size() && state_.start(State::OPENING_DEFINITION, file)) {
+		if (file.size()) {
 			Execute::exec(command::lookupLocation (file, line, column));
 		}
 	}
-	void 
-	View :: latexToUnicode() 
-	{
+	void View::latexToUnicode() {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -613,16 +507,12 @@ namespace russell {
 		textEdit->moveCursor (QTextCursor::End);
 	}
 
-	void
-	View :: slotReadRussellStdOut()
-	{
+	void View::slotReadRussellStdOut() {
 		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardOutput());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
-	void 
-	View :: slotReadRussellStdErr()
-	{
+	void View::slotReadRussellStdErr() {
 		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardError());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
@@ -641,18 +531,14 @@ namespace russell {
 	 *	Private members
 	 ****************************/
 
-	void 
-	View :: reloadSource()
-	{
+	void View::reloadSource() {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (activeView == NULL) {
 			return;
 		}    
 		activeView->document()->documentReload();
 	}
-	QString 
-	View :: currentIdentifier() const
-	{
+	QString View::currentIdentifier() const {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			//qDebug() << "no KTextEditor::View" << endl;
@@ -696,9 +582,7 @@ namespace russell {
 		//qDebug() << linestr.mid(startPos+1, endPos-startPos-1);
 		return linestr.mid (startPos + 1, endPos - startPos - 1);
 	}
-	QString 
-	View :: currentLatexExpression (int& line, int& begin, int& length) const
-	{
+	QString View::currentLatexExpression (int& line, int& begin, int& length) const {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			//qDebug() << "no KTextEditor::View" << endl;
@@ -743,9 +627,7 @@ namespace russell {
 		length = endPos - startPos - 1;
 		return linestr.mid (begin, length);
 	}
-	bool
-	View :: checkLocal (const QUrl &url) const
-	{
+	bool View::checkLocal (const QUrl &url) const {
 		if (url.path().isEmpty()) {
 			KMessageBox :: sorry(0, i18n ("There is no file or directory specified for proving/translating/verifying."));
 			return false;
@@ -761,9 +643,7 @@ namespace russell {
 		return true;
 	}
 
-	void
-	View :: initPopupMenu()
-	{
+	void View::initPopupMenu() {
 		// popup menu
 		popupMenu_ = new KActionMenu (i18n ("Russell"), this);
 		actionCollection()->addAction(QLatin1String("popup_russell"), popupMenu_);
@@ -777,10 +657,8 @@ namespace russell {
 		latexToUnicode_->setShortcut (QKeySequence (Qt :: CTRL + Qt :: SHIFT + Qt :: Key_R));
 		connect (popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (showMenu()));
 	}
-	void
-	View :: initActions()
-	{
-		QAction* action = NULL;
+	void View::initActions() {
+		QAction* action = nullptr;
 
 		//action = actionCollection()->addAction (QLatin1String("prove_verify"));
 		//action->setText (i18n ("Prove && Verify"));
@@ -857,9 +735,7 @@ namespace russell {
 		action->setIcon (QIcon (QLatin1String("go-next")));
 		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotManageServer()));
 	}
-	void
-	View :: initBottomUi()
-	{
+	void View::initBottomUi() {
 		QWidget* configOutputWidget = new QWidget (toolView_);
 		bottomUi_.setupUi (configOutputWidget);
 
@@ -872,15 +748,13 @@ namespace russell {
 		connect(bottomUi_.russellExecuteButton, SIGNAL(clicked()), SLOT(slotExecuteRussellCommand()));
 		connect(bottomUi_.metamathExecuteButton, SIGNAL(clicked()), SLOT(slotExecuteMetamathCommand()));
 	}
-	void
-	View :: initLauncher()
-	{
+	void View::initLauncher() {
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
 
 		//connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
 		connect (&Execute::mod(), SIGNAL (dataReceived(QString, quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(QString, quint32, QString, QString)));
-		connect (this, SIGNAL (mmCommandFinished()), this, SLOT(slotMmCommandCompleted()));
+
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));

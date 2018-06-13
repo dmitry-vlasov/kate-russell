@@ -42,7 +42,6 @@ public:
 
 	static View* get() { return instance_; }
 
-	State getState() const;
 	Ui :: Bottom& getBottomUi();
 	QWidget* toolView() const;
 	void clearOutput();
@@ -70,7 +69,6 @@ private Q_SLOTS:
 	void slotDocumentSaved(KTextEditor::Document*, bool);
 
 	void slotRusCommandCompleted(const QString& command, quint32 code, const QString& msg, const QString& data);
-	void slotMmCommandCompleted();
 	void slotRefreshOutline();
 
 	// prove slots
@@ -135,30 +133,6 @@ private:
 	Proof*      proof_;
 
 	static View* instance_;
-
-	struct InternalState {
-		InternalState() : state(State::WAITING) { }
-		InternalState(State s, const QString& f) : state(s), file(f) { }
-		State state;
-		QString file;
-	};
-
-	struct StateKeeper {
-		InternalState get() const {
-			return internal_state_;
-		}
-		bool start(State s, const QString& f) {
-			if (internal_state_.state != State::WAITING) return false;
-			internal_state_ = InternalState(s, f);
-			return true;
-		}
-		void stop() {
-			internal_state_ = InternalState();
-		}
-	private:
-		InternalState internal_state_;
-	};
-	StateKeeper state_;
 };
 
 void appendText(QPlainTextEdit* textEdit, const QString& text);
