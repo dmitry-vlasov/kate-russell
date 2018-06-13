@@ -122,7 +122,7 @@ ProjectConfigTab::ProjectConfigTab(QWidget* parent) : QWidget(parent), configGro
 			initCommands << conf.loadMainCommands();
 		}
 	}
-	if (initCommands.size()) Execute::russell().execute(initCommands);
+	if (initCommands.size()) Execute::exec(initCommands);
 }
 
 ProjectConfigTab::~ProjectConfigTab() {
@@ -266,13 +266,13 @@ void ProjectConfigTab::switchProjectSlot(int index) {
 void ProjectConfigTab::initProjectSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
 	QStringList commands = ProjectConfig::projects()[name].initProjectCommands();
-	Execute::russell().execute(commands);
+	Execute::exec(commands);
 }
 
 void ProjectConfigTab::loadMainSlot() {
 	QString name = configUi_.projectsComboBox->currentText();
 	QStringList commands = ProjectConfig::projects()[name].loadMainCommands();
-	Execute::russell().execute(commands);
+	Execute::exec(commands);
 }
 
 	/****************************

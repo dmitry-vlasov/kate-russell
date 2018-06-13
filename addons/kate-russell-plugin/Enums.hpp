@@ -15,6 +15,7 @@
 #pragma once
 
 #include <QString>
+#include <QMap>
 
 namespace russell {
 
@@ -41,7 +42,7 @@ enum class State {
 	TRANSLATING,
 	VERIFYING_RUS,
 	VERIFYING_MM,
-	ERASING_MM,
+	ERASING,
 	LEARNING,
 	LOOKING_DEFINITION,
 	OPENING_DEFINITION,
@@ -53,8 +54,8 @@ enum class State {
 enum class Lang { RUS, MM, OTHER };
 
 inline Lang file_type(const QString& file) {
-	if (file.endsWith(QStringLiteral(".rus"))) return Lang::RUS;
-	if (file.endsWith(QStringLiteral(".mm")))  return Lang::MM;
+	if (file.endsWith(QLatin1String(".rus"))) return Lang::RUS;
+	if (file.endsWith(QLatin1String(".mm")))  return Lang::MM;
 	return Lang::OTHER;
 }
 
@@ -68,18 +69,30 @@ inline QString trim_ext(const QString& file) {
 
 inline QString lang_string(Lang lang) {
 	switch (lang) {
-	case Lang::RUS: return QStringLiteral("rus");
-	case Lang::MM:  return QStringLiteral("mm");
-	default:        return QStringLiteral("");
+	case Lang::RUS: return QLatin1String("rus");
+	case Lang::MM:  return QLatin1String("mm");
+	default:        return QLatin1String("");
 	}
 }
 
 inline QString change_file_lang(const QString& file, Lang lang) {
-	return trim_ext(file) + QStringLiteral(".") + lang_string(lang);
+	return trim_ext(file) + QLatin1String(".") + lang_string(lang);
 }
 
 enum class ActionScope { PROJ, FILE };
 enum class ProvingMode { AUTO, INTERACTIVE };
+enum class Program { MDL, METAMATH };
+
+struct Task {
+	Task(): lang(Lang::OTHER), state(State::WAITING), program(Program::MDL) { }
+	Lang    lang;
+	State   state;
+	Program program;
+	QString action;
+	QMap<QString, QString> options;
+};
+
+Task parse_task(const QString& command);
 
 }
 

@@ -87,24 +87,15 @@ namespace russell { namespace command {
 		}
 	}
 
-	QString verifyMm(const QString& file, ActionScope scope) {
+	QStringList verifyMm(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
-			QString command;
-			command += QLatin1String("read \"") + fc.conf->mergedTarget(fc.file, true) + QLatin1String("\"");
-			command += QLatin1String(" / verify \n");
-			//qDebug() << command;
-			return command;
+			QStringList commands;
+			commands << QLatin1String("metamath read \"") + fc.conf->mergedTarget(fc.file, true) + QLatin1String("\"");
+			commands << QLatin1String("metamath verify proof *");
+			commands << QLatin1String("metamath erase");
+			return commands;
 		} else {
-			return QString();
-		}
-	}
-
-	QString eraseMm(const QString& file, ActionScope scope) {
-		if (FileConf fc = chooseFileConf(file, scope)) {
-			//return QLatin1String("erase \"") + fc.conf->mergedTarget(fc.file, true) + QLatin1String("\"\n");
-			return QLatin1String("erase\n");
-		} else {
-			return QString();
+			return QStringList();
 		}
 	}
 
@@ -143,14 +134,15 @@ namespace russell { namespace command {
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 			QStringList commands;
 			commands << QLatin1String("rus curr proj=") + fc.conf->name();
-			//if (!Connection::mod().execute (command)) return false;
 			switch (state) {
 			case State::MINING_OUTLINE :
 				commands << QLatin1String("rus outline in=") + fc.conf->trimFile(fc.file) + QLatin1String(" what=") + options;
 				break;
 			case State::MINING_STRUCTURE :
-			case State::MINING_TYPE_SYSTEM :
 				commands << QLatin1String("rus struct what=") + options;
+				break;
+			case State::MINING_TYPE_SYSTEM :
+				commands << QLatin1String("rus types");
 				break;
 			default : return QStringList();
 			}

@@ -14,19 +14,45 @@
 
 #pragma once
 
+#include <variant>
+#include <memory>
+
 #include <QTcpSocket>
 #include <QByteArray>
 #include <QString>
 
 namespace russell {
 
+class RussellClient : public QObject {
+Q_OBJECT
+public:
+	RussellClient(const QString& command);
+	static bool connection();
+	bool execute();
+
+Q_SIGNALS:
+	void dataReceived(quint32, QString, QString);
+
+private Q_SLOTS:
+	void readyRead();
+private:
+	bool runCommand();
+	void makeOutput();
+
+	QTcpSocket socket_;
+	QByteArray buffer_;
+	QString data_;
+	QString messages_;
+	quint32 code_;
+	quint32 size_;
+	QString command_;
+};
+
 class RussellConsole : public QObject {
 Q_OBJECT
 public:
-	RussellConsole();
-	bool success() const { return !code_; }
-	bool connection() { return true; }
-	bool execute(const QString&);
+	RussellConsole(const QString& command);
+	bool execute ();
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
@@ -46,80 +72,54 @@ private:
 	QString messages_;
 };
 
-class RussellClient : public QObject {
+
+class MetamathConsole : public QObject {
 Q_OBJECT
 public:
-	RussellClient();
-	bool success() const { return !code_; }
-	bool connection();
-	bool isBusy() const { return isBusy_; }
-	bool execute(const QString&);
+	MetamathConsole(const QString& command);
+	bool execute();
 
 Q_SIGNALS:
 	void dataReceived(quint32, QString, QString);
 
 private Q_SLOTS:
-	void readyRead();
+	void readyReadOutput();
+	void readyReadError();
 
 private:
-	bool runCommand();
-	bool readOutput();
-	void makeOutput();
-
-	QTcpSocket socket_;
-	QByteArray buffer_;
-	QString data_;
-	QString messages_;
-	quint32 code_;
-	quint32 size_;
-	bool    isBusy_;
 	QString command_;
+	QString buffer_;
 };
 
-class Russell : public QObject {
+class Execute : public QObject {
 Q_OBJECT
 public :
-	enum Runner { CLIENT, CONSOLE };
-
-	Russell();
-	bool success() const;
-	bool connection();
-	bool isBusy() const;
-	bool execute(const QStringList&);
+	static void exec(const QStringList& commands) {
+		mod().execCommands(commands);
+	}
+	static Execute& mod() { static Execute exec; return exec; }
 
 Q_SIGNALS:
-	void dataReceived(quint32, QString, QString);
+	void dataReceived(QString, quint32, QString, QString);
 
 private Q_SLOTS:
 	void slotDataReceived(quint32, QString, QString);
 
-private:
-	bool execute(const QString&);
-	RussellClient  client;
-	RussellConsole console;
-	QStringList    commandQueue;
-	std::atomic<bool> isBusy_;
-};
-
-struct Metamath {
-	Metamath() : isBusy_(true) { }
-	bool execute(const QString& command);
-	bool isBusy() const { return isBusy_; }
-private:
-	bool isBusy_;
-};
-
-class Execute {
-public :
-	static Russell& russell() { return mod().russell_; }
-	static Metamath& metamath() { return mod().metamath_; }
-
 private :
-	static Execute& mod() { static Execute exec; return exec; }
 	Execute() { }
-	Russell  russell_;
-	Metamath metamath_;
-};
 
+	typedef std::variant<
+		std::unique_ptr<RussellClient>,
+		std::unique_ptr<RussellConsole>,
+		std::unique_ptr<MetamathConsole>
+	> Executor;
+
+	void execCommand(const QString& command);
+	void execCommands(const QStringList& commands);
+
+	Executor    executor;
+	QStringList commandQueue;
+	QString     commandCurrent;
+};
 
 }

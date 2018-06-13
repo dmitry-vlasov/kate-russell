@@ -9,6 +9,8 @@ set(CMAKE_CXX_FLAGS "-O0 -ggdb3")
 set(CXXFLAGS "-O0 -ggdb3")
 set(CPPFLAGS "-O0 -ggdb3")
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory(syntax)
 
 set (katerussell_SRC 

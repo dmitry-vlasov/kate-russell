@@ -16,8 +16,7 @@
 #include <QDataStream>
 #include <QtNetwork>
 #include <QMetaObject>
-
-#include <KMessageBox>
+#include <QMessageBox>
 
 #include "RussellConfigPage.hpp"
 #include "Execute.hpp"
@@ -29,49 +28,34 @@
 
 namespace russell {
 
-	/****************************
-	 *	Public members
-	 ****************************/
+using std::unique_ptr;
+using std::variant;
 
-	RussellClient::RussellClient():
-	code_(0),
-	size_(0),
-	isBusy_(false) {
+	RussellClient::RussellClient(const QString& command) : code_(0), size_(0), command_(command) {
 		connect(&socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 	}
-
-	bool
-	RussellClient::connection()
-	{
-		if (socket_.state() == QTcpSocket::SocketState::ConnectedState) {
+	bool RussellClient::connection() {
+		QTcpSocket socket;
+		if (socket.state() == QTcpSocket::SocketState::ConnectedState) {
 			//std :: cout << "already connected to server" << std :: endl;
 			return true;
 		}
-		socket_.disconnectFromHost();
+		socket.disconnectFromHost();
 		QString host = russell::RussellConfig::russellHost();
 		int port = russell::RussellConfig::russlelPort();
-		socket_.connectToHost (host, port);
-		bool isConnected = socket_.waitForConnected(100);
+		socket.connectToHost (host, port);
+		bool isConnected = socket.waitForConnected(100);
 		if (!isConnected) {
 			//std :: cout << "not connected to server:" << std :: endl;
-			QTextStream (stdout) << "\t" << socket_.errorString() << "\n";
+			QTextStream (stdout) << "\t" << socket.errorString() << "\n";
 			QTextStream (stdout) << "\tat: " << host << ":" << port << "\n";
 		}
 		return isConnected;
 	}
-
-	/****************************
-	 *	Public slots
-	 ****************************/
-
-	bool
-	RussellClient::execute (const QString& command)
-	{
-		if (!connection() || isBusy_) {
+	bool RussellClient::execute() {
+		if (!connection()) {
 			return false;
 		}
-		command_ = command;
-		isBusy_ = true;
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
 		QTextStream (stdout) << "========================================\n";
 		QTextStream (stdout) << " about to execute:\n";
@@ -82,7 +66,6 @@ namespace russell {
 		messages_.clear();
 		code_ = 1;
 		if (!runCommand()) {
-			isBusy_ = false;
 			return false;
 		}
 #if OUTPUT_CLIENT_DEBUG_INFO_TO_STDOUT
@@ -91,13 +74,7 @@ namespace russell {
 		return !code_;
 	}
 
-	/****************************
-	 *	Private slots
-	 ****************************/
-
-	void
-	RussellClient::readyRead()
-	{
+	void RussellClient::readyRead() {
 		while (socket_.bytesAvailable() > 0) {
 			buffer_.append(socket_.readAll());
 			// While can process data, process it
@@ -120,13 +97,7 @@ namespace russell {
 		}
 	}
 
-	/****************************
-	 *	Private members
-	 ****************************/
-
-	bool
-	RussellClient::runCommand()
-	{
+	bool RussellClient::runCommand() {
 		uint msg_len = command_.length() + sizeof(uint);
 		char *asciiCommand = new char [msg_len];
 		*((uint*)asciiCommand) = command_.length();
@@ -139,9 +110,7 @@ namespace russell {
 		delete[] asciiCommand;
 		return written;
 	}
-	void
-	RussellClient::makeOutput()
-	{
+	void RussellClient::makeOutput() {
 		QDataStream data(&buffer_, QIODevice::ReadOnly);
 		data.setByteOrder(QDataStream::LittleEndian);
 		data >> code_;
@@ -174,73 +143,14 @@ namespace russell {
 		if (command_ == QLatin1String("exit")) {
 			socket_.disconnectFromHost();
 		}
-		isBusy_ = false;
 	}
 
-
-	Russell::Russell() {
-		connect(&client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
-		connect(&console, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
-	}
-	bool Russell::success() const {
-		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.success() : client.success();
-	}
-	bool Russell::connection() {
-		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.connection() : client.connection();
-	}
-	bool Russell::isBusy() const {
-		return isBusy_;
-	}
-	bool Russell::execute(const QString& command) {
-		isBusy_ = true;
-		//QTextStream(stdout) << "ABOUT TO EXEC: " << command << "\n";
-		return RussellConfig::runner() == QLatin1String("CONSOLE") ? console.execute(command) : client.execute(command);
-	}
-	bool Russell::execute(const QStringList& commands) {
-
-		/*QTextStream(stdout) << "ENQUEING COMMANDS: \n";
-		for (auto c : commands) {
-			QTextStream(stdout) << "\t" << c << "\n";
-		}
-		QTextStream(stdout) << "\n";*/
-
-		if (!commands.empty()) {
-			commandQueue.append(commands);
-			return isBusy_ ? true : execute(commandQueue.takeFirst());
-		} else {
-			return true;
-		}
-	}
-	void Russell::slotDataReceived(quint32 code, QString msg, QString data) {
-		emit dataReceived(code, msg, data);
-		if (!commandQueue.empty()) {
-			//QTextStream(stdout) << "ABOUT TO EXEC from queue: " << commandQueue.first() << "\n";
-			execute(commandQueue.takeFirst());
-		} else {
-			isBusy_ = false;
-		}
-	}
-
-	bool
-	Metamath::execute (const QString& command) {
-		QByteArray data = command.toLatin1();
-		qint64 size = Launcher::metamath().process().write(data);
-		View::get()->getBottomUi().metamathTextEdit->appendPlainText(command);
-		return size == data.size();
-	}
-
-	RussellConsole::RussellConsole() : code_(0) {
+	RussellConsole::RussellConsole(const QString& command) :
+	code_(0), command_(command.endsWith(QLatin1Char('\n')) ? command : command + QLatin1Char('\n')) {
 		connect(&Launcher::russellConsole().process(), SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadOutput()));
 		connect(&Launcher::russellConsole().process(), SIGNAL(readyReadStandardError()), this, SLOT(readyReadError()));
 	}
-
-	bool
-	RussellConsole::execute (const QString& command) {
-		command_ = command.endsWith(QLatin1Char('\n')) ? command : command + QLatin1Char('\n');
-		buffer_.clear();
-		data_.clear();
-		messages_.clear();
-		code_ = 0;
+	bool RussellConsole::execute () {
 		QByteArray data = command_.toLatin1();
 		qint64 size = Launcher::russellConsole().process().write(data);
 		return size == data.size();
@@ -256,7 +166,6 @@ namespace russell {
 		QStringList lines = data.split(QLatin1Char('\n'));
 		if (lines.size() && lines.last().trimmed() == QLatin1String(">>")) {
 			makeOutput();
-			//QTextStream(stdout) << "DATA:\n" << data_ << "\n";
 			data_ = data_.trimmed();
 			if (data_.endsWith(QLatin1String(">>"))) {
 				data_ = data_.mid(0, data_.length() - 2);
@@ -265,7 +174,6 @@ namespace russell {
 			emit dataReceived(code_, messages_, data_);
 		}
 	}
-
 	void RussellConsole::readyReadError() {
 		QString err = QString::fromUtf8(Launcher::russellConsole().process().readAllStandardError());
 		buffer_.append(err);
@@ -274,7 +182,7 @@ namespace russell {
 		View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
 
 		QStringList lines = buffer_.split(QLatin1Char('\n'));
-		if (lines.size() && lines.last() == QLatin1String("> ")) {
+		if (lines.size() && lines.last().trimmed() == QLatin1String(">>")) {
 			messages_ = buffer_;
 		}
 	}
@@ -289,9 +197,6 @@ namespace russell {
 			bool in_messages = true;
 			while (!lines.empty()) {
 				QString line = lines.takeFirst();
-
-				//QTextStream(stdout) << "LINE: " << line << "\n";
-
 				if (line == QLatin1String("***** DATA *****")) {
 					in_messages = false;
 				} else {
@@ -302,6 +207,81 @@ namespace russell {
 					}
 				}
 			}
+		}
+	}
+
+	MetamathConsole::MetamathConsole(const QString& command) :
+	command_(command.endsWith(QLatin1Char('\n')) ? command : command + QLatin1Char('\n')) {
+		if (command_.startsWith(QLatin1String("metamath"))) {
+			command_ = command_.mid(QLatin1String("metamath").size()).trimmed() + QLatin1Char('\n');
+		}
+		connect(&Launcher::metamath().process(), SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadOutput()));
+		connect(&Launcher::metamath().process(), SIGNAL(readyReadStandardError()), this, SLOT(readyReadError()));
+	}
+	bool MetamathConsole::execute() {
+		QByteArray data = command_.toLatin1();
+		qint64 size = Launcher::metamath().process().write(data);
+		return size == data.size();
+	}
+
+	void MetamathConsole::readyReadOutput() {
+		QString data = QString::fromUtf8(Launcher::metamath().process().readAllStandardOutput());
+		buffer_.append(data);
+
+		appendText(View::get()->getBottomUi().metamathTextEdit, data);
+		View::get()->getBottomUi().qtabwidget->setCurrentIndex(0);
+
+		QStringList lines = data.split(QLatin1Char('\n'));
+		if (lines.size() && lines.last().trimmed() == QLatin1String("MM>")) {
+			emit dataReceived(0, QString(), QString());
+		}
+	}
+	void MetamathConsole::readyReadError() {
+		QString err = QString::fromUtf8(Launcher::metamath().process().readAllStandardError());
+		buffer_.append(err);
+
+		appendText(View::get()->getBottomUi().metamathTextEdit, err);
+		View::get()->getBottomUi().qtabwidget->setCurrentIndex(0);
+	}
+
+	void Execute::execCommand(const QString& command) {
+		QTextStream(stdout) << "EXEC: " << command << "\n";
+		commandCurrent = command;
+		QString exec_kind = command.mid(0, command.indexOf(QLatin1Char(' ')));
+		if (exec_kind == QLatin1String("rus") || exec_kind == QLatin1String("mm")) {
+			if (RussellConfig::runner() == QLatin1String("CONSOLE")) {
+				auto console = new RussellConsole(command);
+				executor = unique_ptr<RussellConsole>(console);
+				connect(console, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+				console->execute();
+			} else if (RussellConfig::runner() == QLatin1String("CLIENT")) {
+				auto client = new RussellClient(command);
+				executor = unique_ptr<RussellClient>(client);
+				connect(client, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+				client->execute();
+			} else {
+				QMessageBox::warning(nullptr, i18n("Unknown russell executor:"), RussellConfig::runner());
+			}
+		} else if (exec_kind == QLatin1String("metamath")) {
+			auto console = new MetamathConsole(command);
+			executor = unique_ptr<MetamathConsole>(console);
+			connect(console, SIGNAL(dataReceived(quint32, QString, QString)), this, SLOT(slotDataReceived(quint32, QString, QString)));
+			console->execute();
+		} else {
+			QMessageBox::warning(nullptr, i18n("Unknown executor:"), exec_kind);
+		}
+	}
+	void Execute::execCommands(const QStringList& commands) {
+		commandQueue.append(commands);
+		if (!commandQueue.empty() && !commandCurrent.size()) {
+			execCommand(commandQueue.takeFirst());
+		}
+	}
+	void Execute::slotDataReceived(quint32 code, QString msg, QString data) {
+		emit dataReceived(commandCurrent, code, msg, data);
+		commandCurrent.clear();
+		if (!commandQueue.empty()) {
+			execCommand(commandQueue.takeFirst());
 		}
 	}
 }

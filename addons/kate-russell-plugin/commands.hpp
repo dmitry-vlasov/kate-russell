@@ -29,8 +29,7 @@ namespace command {
 	QStringList merge(const QString& file, ActionScope scope = ActionScope::FILE);
 
 	QStringList verifyRus(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString     verifyMm(const QString& file, ActionScope scope = ActionScope::FILE);
-	QString     eraseMm(const QString& file, ActionScope scope = ActionScope::FILE);
+	QStringList verifyMm(const QString& file, ActionScope scope = ActionScope::FILE);
 
 	QStringList lookupDefinition(const QString& file, const int line, const int column);
 	QStringList lookupLocation(const QString& file, const int line, const int column);

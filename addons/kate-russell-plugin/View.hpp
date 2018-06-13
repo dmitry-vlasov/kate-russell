@@ -69,7 +69,7 @@ private Q_SLOTS:
 	void slotRead(KTextEditor::View*);
 	void slotDocumentSaved(KTextEditor::Document*, bool);
 
-	void slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data);
+	void slotRusCommandCompleted(const QString& command, quint32 code, const QString& msg, const QString& data);
 	void slotMmCommandCompleted();
 	void slotRefreshOutline();
 
@@ -96,8 +96,6 @@ private Q_SLOTS:
 	// server output slots
 	void slotReadRussellStdErr();
 	void slotReadRussellStdOut();
-	void slotReadMetamathStdErr();
-	void slotReadMetamathStdOut();
 
 	// execute custom command
 	void slotExecuteRussellCommand();

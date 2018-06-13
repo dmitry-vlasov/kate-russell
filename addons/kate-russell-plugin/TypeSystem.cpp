@@ -48,7 +48,7 @@ namespace russell {
 
 	void 
 	TypeSystem :: update(const QString& data) {
-		Navigation :: update ("structure", data);
+		Navigation :: update ("types", data);
 	}
 
 	/****************************

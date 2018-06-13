@@ -265,7 +265,7 @@ void RussellConfigPage::startRussellSlot() {
 
 void RussellConfigPage::stopRussellSlot() {
 	if (Launcher::russellClient().isRunning()) {
-		Execute::russell().execute(QStringList() << QLatin1String("exit"));
+		Execute::exec(QStringList() << QLatin1String("rus exit"));
 		checkRussellSlot();
 	}
 }
@@ -277,7 +277,7 @@ void RussellConfigPage::killRussellSlot() {
 }
 
 bool RussellConfigPage::checkRussellSlot() {
-	bool ret = Execute::russell().connection();
+	bool ret = RussellClient::connection();
 	configUi_.russellAliveEdit->setText(ret ? QLatin1String("running") : QLatin1String("is not running"));
 	configUi_.russellStopButton->setEnabled(ret);
 	configUi_.russellStartButton->setEnabled(!ret);
@@ -333,7 +333,7 @@ bool RussellConfigPage::checkMetamathSlot() {
 
 void RussellConfigPage::stopMetamathSlot() {
 	if (Launcher::metamath().isRunning()) {
-		Execute::metamath().execute(QLatin1String("exit\n"));
+		Execute::exec(QStringList() << QLatin1String("metamath exit"));
 	}
 }
 
@@ -386,7 +386,7 @@ bool RussellConfigPage::checkRussellConsoleSlot() {
 
 void RussellConfigPage::stopRussellConsoleSlot() {
 	if (Launcher::russellConsole().isRunning()) {
-		Execute::russell().execute(QStringList() << QLatin1String("exit\n"));
+		Execute::exec(QStringList() << QLatin1String("rus exit"));
 	}
 }
 

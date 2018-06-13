@@ -177,7 +177,7 @@ namespace russell {
 	{
 		QString file = currentFile();
 		if (file.size() && state_.start(State::MINING_OUTLINE, file)) {
-			Execute::russell().execute(command::mine(file, State::MINING_OUTLINE, options));
+			Execute::exec(command::mine(file, State::MINING_OUTLINE, options));
 		}
 	}
 	void 
@@ -185,7 +185,7 @@ namespace russell {
 	{
 		QString file = currentFile();
 		if (file.size() && state_.start(State::MINING_STRUCTURE, file)) {
-			Execute::russell().execute(command::mine(file, State::MINING_STRUCTURE, options));
+			Execute::exec(command::mine(file, State::MINING_STRUCTURE, options));
 		}
 	}
 	void 
@@ -193,7 +193,7 @@ namespace russell {
 	{
 		QString file = currentFile();
 		if (file.size() && state_.start(State::MINING_TYPE_SYSTEM, file)) {
-			Execute::russell().execute(command::mine(file, State::MINING_TYPE_SYSTEM, options));
+			Execute::exec(command::mine(file, State::MINING_TYPE_SYSTEM, options));
 		}
 	}
 	void 
@@ -263,23 +263,21 @@ namespace russell {
 				this,
 				SLOT(slotDocumentSaved(KTextEditor::Document*, bool))
 			);
-			if (Execute::russell().execute(command::read(file, ActionScope::FILE))) {
-				registerFileRead(file);
-			}
+			Execute::exec(command::read(file, ActionScope::FILE));
+			registerFileRead(file);
 		}
 	}
 	void
 	View::slotDocumentSaved(KTextEditor::Document* doc, bool) {
 		QString file = doc->url().toLocalFile();
 		if (file.size() && fileChanged(file) && state_.start(State::READING, file)) {
-			if (Execute::russell().execute(command::read(file, ActionScope::FILE))) {
-				registerFileRead(file);
-			}
+			Execute::exec(command::read(file, ActionScope::FILE));
+			registerFileRead(file);
 		}
 	}
 
 	void
-	View :: slotRusCommandCompleted(quint32 code, const QString& msg, const QString& data)
+	View :: slotRusCommandCompleted(const QString& command, quint32 code, const QString& msg, const QString& data)
 	{
 		//QTextStream(stdout) << "DATA GOT " << data << "\n";
 		//QTextStream(stdout) << "INTERNAL STATE: " << (int)state_.get().state << "\n";
@@ -289,12 +287,15 @@ namespace russell {
 		static QString mining_header    = QLatin1String("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE russell_mining_output>\n");
 		static QString structure_mining = QLatin1String("<structure>");
 		static QString outline_mining   = QLatin1String("<outline>");
+		static QString types_mining     = QLatin1String("<types>");
 
 		if (data.size() && data.startsWith(mining_header)) {
 			if (data.mid(mining_header.length(), structure_mining.length()) == structure_mining) {
 				structure_->update(data);
 			} else if (data.mid(mining_header.length(), outline_mining.length()) == outline_mining) {
 				outline_->update(data);
+			} else if (data.mid(mining_header.length(), types_mining.length()) == types_mining) {
+				typeSystem_->update(data);
 			}
 		}
 
@@ -323,13 +324,13 @@ namespace russell {
 			case State::PROVING :
 				reloadSource();
 				break;
-			case State::VERIFYING_RUS :
+			case State::VERIFYING_MM :
 				//client_->verifyMm(currentFile());
 				break;
 			case State::TRANSLATING:
-				if (internal_state.file.size() && state_.start(State::VERIFYING_MM, internal_state.file)) {
-					Execute::metamath().execute(command::verifyMm(internal_state.file, ActionScope::FILE));
-				}
+				//if (internal_state.file.size() && state_.start(State::VERIFYING_MM, internal_state.file)) {
+				//	Execute::exec(command::verifyMm(internal_state.file, ActionScope::FILE));
+				//}
 				break;
 			default :
 				/*KPassivePopup :: message
@@ -360,7 +361,7 @@ namespace russell {
 		InternalState internal_state = state_.get();
 		state_.stop();
 		QApplication :: restoreOverrideCursor();
-		switch (internal_state.state) {
+		/*switch (internal_state.state) {
 		case State::VERIFYING_MM:
 			if (internal_state.file.size() && state_.start(State::ERASING_MM, internal_state.file)) {
 				Execute::metamath().execute(command::eraseMm(internal_state.file, ActionScope::FILE));
@@ -368,7 +369,7 @@ namespace russell {
 			break;
 		default:
 			break;
-		}
+		}*/
 
 	}
 
@@ -413,7 +414,13 @@ namespace russell {
 				QStringList commands;
 				commands << command::translate(fc.file, ActionScope::FILE, Lang::MM);
 				commands << command::merge(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
-				Execute::russell().execute(commands);
+				commands << command::verifyMm(fc.conf->mmTarget(fc.file, true), ActionScope::FILE);
+
+				for (auto c : commands) {
+					QTextStream(stdout) << "TR: " << c << "\n";
+				}
+
+				Execute::exec(commands);
 			} else {
 				state_.stop();
 			}
@@ -425,7 +432,7 @@ namespace russell {
 		QString file = currentFile();
 		//qDebug() << file;
 		if (file.size() && state_.start(State::VERIFYING_RUS, file)) {
-			Execute::russell().execute(command::verifyRus(file, ActionScope::FILE));
+			Execute::exec(command::verifyRus(file, ActionScope::FILE));
 		}
 	}
 
@@ -560,7 +567,7 @@ namespace russell {
 
 		QString file = currentFile();
 		if (file.size() && state_.start(State::LOOKING_DEFINITION, file)) {
-			Execute::russell().execute(command::lookupDefinition(file, line, column));
+			Execute::exec(command::lookupDefinition(file, line, column));
 		}
 	}
 	void 
@@ -580,7 +587,7 @@ namespace russell {
 
 		QString file = currentFile();
 		if (file.size() && state_.start(State::OPENING_DEFINITION, file)) {
-			Execute::russell().execute(command::lookupLocation (file, line, column));
+			Execute::exec(command::lookupLocation (file, line, column));
 		}
 	}
 	void 
@@ -612,50 +619,25 @@ namespace russell {
 	void
 	View :: slotReadRussellStdOut()
 	{
-		QString serverStdOut = QString::fromUtf8(
-			RussellConfig::runner() == Russell::CONSOLE ?
-			Launcher::russellConsole().process().readAllStandardOutput() :
-			Launcher::russellClient().process().readAllStandardOutput()
-		);
+		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardOutput());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
 	}
 	void 
 	View :: slotReadRussellStdErr()
 	{
-		QString serverStdOut = QString::fromUtf8(
-			RussellConfig::runner() == Russell::CONSOLE ?
-			Launcher::russellConsole().process().readAllStandardError() :
-			Launcher::russellClient().process().readAllStandardError()
-		);
+		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardError());
 		appendText(bottomUi_.russellTextEdit, serverStdOut);
 		bottomUi_.qtabwidget->setCurrentIndex(1);
-	}
-	void
-	View :: slotReadMetamathStdOut()
-	{
-		QString serverStdOut = QString::fromUtf8(Launcher::metamath().process().readAllStandardOutput());
-		appendText(bottomUi_.metamathTextEdit, serverStdOut);
-		bottomUi_.qtabwidget->setCurrentIndex(0);
-		if (serverStdOut.mid(serverStdOut.length() - 4, 4) == QLatin1String("MM> ")) {
-			emit mmCommandFinished();
-		}
-	}
-	void
-	View :: slotReadMetamathStdErr()
-	{
-		QString serverStdOut = QString::fromUtf8(Launcher::russellClient().process().readAllStandardError());
-		appendText(bottomUi_.metamathTextEdit, serverStdOut);
-		bottomUi_.qtabwidget->setCurrentIndex(0);
 	}
 
 	void View::slotExecuteRussellCommand() {
 		QString command = bottomUi_.russellCommandComboBox->currentText();
-		Execute::russell().execute(QStringList() << command + QLatin1String("\n"));
+		Execute::exec(QStringList() << command);
 	}
 	void View::slotExecuteMetamathCommand() {
 		QString command = bottomUi_.metamathCommandComboBox->currentText();
-		Execute::metamath().execute(command + QLatin1String("\n"));
+		Execute::exec(QStringList() << QLatin1String("metamath ") + command);
 	}
 
 	/****************************
@@ -899,10 +881,8 @@ namespace russell {
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
 		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
 
-		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadMetamathStdErr()));
-		connect (&Launcher::metamath().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadMetamathStdOut()));
 		//connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
-		connect (&Execute::russell(), SIGNAL (dataReceived(quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(quint32, QString, QString)));
+		connect (&Execute::mod(), SIGNAL (dataReceived(QString, quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(QString, quint32, QString, QString)));
 		connect (this, SIGNAL (mmCommandFinished()), this, SLOT(slotMmCommandCompleted()));
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));

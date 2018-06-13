@@ -30,7 +30,7 @@ namespace russell {
 
 	bool Process::isRunning() const {
 		switch (kind_) {
-		case RUSSELL_CLIENT:  return Execute::russell().connection();
+		case RUSSELL_CLIENT:  return RussellClient::connection();
 		case RUSSELL_CONSOLE: return process_.state() == QProcess::Running;
 		case METAMATH:        return process_.state() == QProcess::Running;
 		default: return false;
