@@ -13,6 +13,7 @@
 /*****************************************************************************/
 
 #include <QScrollBar>
+#include <QToolTip>
 
 #include <KXMLGUIFactory>
 #include <KStringHandler>
@@ -237,7 +238,17 @@ namespace russell {
 				break;
 			case State::LOOKING_DEFINITION :
 				if (!data.isEmpty()) {
-					QMessageBox::information(mainWindow_->activeView(), i18n("Definition:"), data);
+					QStringList lines = data.split(QLatin1Char('\n'));
+					QString lastLine = lines.last();
+					int firstNonSpace = 0;
+					QString indent;
+					while (lastLine.at(firstNonSpace).isSpace()) {
+						indent += lines.last().at(firstNonSpace);
+						++firstNonSpace;
+					}
+					QPoint viewCoordinates = mainWindow_->activeView()->cursorPositionCoordinates();
+					QPoint globalCoorinates = mainWindow_->activeView()->mapToGlobal(viewCoordinates);
+					QToolTip::showText(globalCoorinates, indent + data);
 				}
 				break;
 			case State::OPENING_DEFINITION :
@@ -738,7 +749,6 @@ namespace russell {
 		connect (&Execute::mod(), SIGNAL (dataReceived(QString, quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(QString, quint32, QString, QString)));
 
 		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
-		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
 	}
 
