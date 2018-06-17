@@ -128,34 +128,13 @@ namespace russell {
 		//bottomUi_.qtabwidget->setCurrentIndex (1);
 	}
 	void View::openLocation(const QString& loc) {
-		if (loc.isEmpty()) return;
-		QString location = loc;
-		QString path;
-		int line = 1;
-		int column = 1;
-
-		int endlIndex = location.indexOf (QLatin1String("\n"));
-		// chopping prefix "path: " (6 chars)
-		path = location.mid (0, endlIndex);
-		path.remove (0, 6);
-		location.remove (0, endlIndex + 1);
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QLatin1String("\n"));
-			// chopping prefix "line: " (6 chars)
-			QString lineString = location.mid (0, endlIndex);
-			lineString.remove (0, 6);
-			location.remove (0, endlIndex + 1);
-			line = lineString.toInt();
+		static QRegExp locExpr(QLatin1String("line:\\s(\\d+)\\scol:\\s(\\d+)\\spath:\\s(.+)"));
+		if (locExpr.exactMatch(loc)) {
+			int line = locExpr.cap(1).toInt();
+			int column = locExpr.cap(2).toInt();
+			QString path = locExpr.cap(3);
+			gotoLocation(path, line, column);
 		}
-		if (!location.isEmpty()) {
-			endlIndex = location.indexOf (QLatin1String("\n"));
-			// chopping prefix "col: " (5 chars)
-			QString columnString = location.mid (0, endlIndex);
-			columnString.remove (0, 5);
-			location.remove (0, endlIndex + 1);
-			column = columnString.toInt();
-		}
-		gotoLocation (path, line, column);
 	}
 
 	Proof* View::proof() { return proof_; }
@@ -643,7 +622,7 @@ namespace russell {
 			}
 			return false;
 		}
-		return true;
+		return QFile(url.toLocalFile()).exists();
 	}
 
 	void View::initPopupMenu() {
