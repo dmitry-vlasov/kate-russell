@@ -252,7 +252,9 @@ namespace russell {
 		if (!code) {
 			switch (task.state) {
 			case State::READING:
-				outline_->refresh();
+				if (task.program == Program::MDL) {
+					outline_->refresh();
+				}
 				break;
 			case State::LOOKING_DEFINITION :
 				if (!data.isEmpty()) {

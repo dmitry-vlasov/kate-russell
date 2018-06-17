@@ -161,10 +161,7 @@ using std::variant;
 	void RussellConsole::readyReadOutput() {
 		QString data = QString::fromUtf8(Launcher::russellConsole().process().readAllStandardOutput());
 		buffer_.append(data);
-
 		appendText(View::get()->getBottomUi().russellTextEdit, data);
-		View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
-
 		QStringList lines = data.split(QLatin1Char('\n'));
 		if (lines.size() && lines.last().trimmed() == QLatin1String(">>")) {
 			makeOutput();
@@ -174,15 +171,15 @@ using std::variant;
 				data_ = data_.trimmed();
 			}
 			emit dataReceived(code_, messages_, data_);
+		} else {
+			View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
 		}
 	}
 	void RussellConsole::readyReadError() {
 		QString err = QString::fromUtf8(Launcher::russellConsole().process().readAllStandardError());
 		buffer_.append(err);
-
 		appendText(View::get()->getBottomUi().russellTextEdit, err);
 		View::get()->getBottomUi().qtabwidget->setCurrentIndex(1);
-
 		QStringList lines = buffer_.split(QLatin1Char('\n'));
 		if (lines.size() && lines.last().trimmed() == QLatin1String(">>")) {
 			messages_ = buffer_;
@@ -229,13 +226,12 @@ using std::variant;
 	void MetamathConsole::readyReadOutput() {
 		QString data = QString::fromUtf8(Launcher::metamath().process().readAllStandardOutput());
 		buffer_.append(data);
-
 		appendText(View::get()->getBottomUi().metamathTextEdit, data);
-		View::get()->getBottomUi().qtabwidget->setCurrentIndex(0);
-
 		QStringList lines = data.split(QLatin1Char('\n'));
 		if (lines.size() && lines.last().trimmed() == QLatin1String("MM>")) {
 			emit dataReceived(0, QString(), QString());
+		} else {
+			View::get()->getBottomUi().qtabwidget->setCurrentIndex(0);
 		}
 	}
 	void MetamathConsole::readyReadError() {
