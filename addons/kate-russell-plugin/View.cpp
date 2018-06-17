@@ -12,8 +12,6 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#include <experimental/filesystem>
-
 #include <QScrollBar>
 
 #include <KXMLGUIFactory>
@@ -92,7 +90,7 @@ namespace russell {
 		int count = config.readEntry(QLatin1String("Opened files number"), 0);
 		while (count) {
 			QUrl file = config.readEntry(QStringLiteral("Opened file %1 name").arg(--count), QUrl());
-			if (std::experimental::filesystem::exists(std::experimental::filesystem::path(file.toLocalFile().toStdString()))) {
+			if (checkLocal(file, true)) {
 				mainWindow_->openUrl(file);
 			}
 		}
@@ -631,17 +629,16 @@ namespace russell {
 		length = endPos - startPos - 1;
 		return linestr.mid (begin, length);
 	}
-	bool View::checkLocal (const QUrl &url) const {
+	bool View::checkLocal(const QUrl &url, bool silent) const {
 		if (url.path().isEmpty()) {
-			KMessageBox :: sorry(0, i18n ("There is no file or directory specified for proving/translating/verifying."));
+			if (!silent) {
+				KMessageBox::sorry(0, i18n ("There is no file or directory specified for proving/translating/verifying."));
+			}
 			return false;
 		} else if (!url.isLocalFile()) {
-			KMessageBox :: sorry (0, i18n
-			(
-				"The file \"%1\" is not a local file."
-				"Non-local files cannot be processed.",
-				url.path()
-			));
+			if (!silent) {
+				KMessageBox::sorry(0, i18n("The file \"%1\" is not a local file. Non-local files cannot be processed.", url.path()));
+			}
 			return false;
 		}
 		return true;

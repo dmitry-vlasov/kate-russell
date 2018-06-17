@@ -105,7 +105,7 @@ private:
 	void reloadSource();
 	QString currentIdentifier() const;
 	QString currentLatexExpression (int&, int&, int&) const;
-	bool checkLocal (const QUrl &url) const;
+	bool checkLocal (const QUrl &url, bool silent = false) const;
 
 	void initPopupMenu();
 	void initActions();
