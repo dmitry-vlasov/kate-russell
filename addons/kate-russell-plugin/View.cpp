@@ -12,6 +12,8 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
+#include <experimental/filesystem>
+
 #include <QScrollBar>
 
 #include <KXMLGUIFactory>
@@ -90,7 +92,9 @@ namespace russell {
 		int count = config.readEntry(QLatin1String("Opened files number"), 0);
 		while (count) {
 			QUrl file = config.readEntry(QStringLiteral("Opened file %1 name").arg(--count), QUrl());
-			mainWindow_->openUrl(file);
+			if (std::experimental::filesystem::exists(std::experimental::filesystem::path(file.toLocalFile().toStdString()))) {
+				mainWindow_->openUrl(file);
+			}
 		}
 	}
 	View::~View() {
@@ -423,7 +427,7 @@ namespace russell {
 	}
 
 	// popup menu
-	void View::showMenu() {
+	void View::slotShowMenu() {
 		const QString identifier = currentIdentifier();
 		if (identifier.isEmpty()) {
 			lookupDefinition_->setText (i18n ("Nothing to lookup"));
@@ -446,7 +450,7 @@ namespace russell {
 			latexToUnicode_->setText (i18n("Latex to unicode: %1", squeezedExpression));
 		}
 	}
-	void View::lookupDefinition() {
+	void View::slotLookupDefinition() {
 		if (!currentIsRus()) return;
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
@@ -465,7 +469,7 @@ namespace russell {
 			Execute::exec(command::lookupDefinition(file, line, column));
 		}
 	}
-	void View::openDefinition() {
+	void View::slotOpenDefinition() {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -483,7 +487,7 @@ namespace russell {
 			Execute::exec(command::lookupLocation (file, line, column));
 		}
 	}
-	void View::latexToUnicode() {
+	void View::slotLatexToUnicode() {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			qDebug() << "no KTextEditor::View" << endl;
@@ -648,14 +652,14 @@ namespace russell {
 		popupMenu_ = new KActionMenu (i18n ("Russell"), this);
 		actionCollection()->addAction(QLatin1String("popup_russell"), popupMenu_);
 
-		lookupDefinition_ = popupMenu_->menu()->addAction (i18n ("Lookup definition: %1", QString()), this, SLOT(lookupDefinition()));
-		openDefinition_   = popupMenu_->menu()->addAction(i18n("Open definition: %1", QString()), this, SLOT(openDefinition()));
-		latexToUnicode_   = popupMenu_->menu()->addAction(i18n("Latex to unicode: %1", QString()), this, SLOT(latexToUnicode()));
+		lookupDefinition_ = popupMenu_->menu()->addAction (i18n ("Lookup definition: %1", QString()), this, SLOT(slotLookupDefinition()));
+		openDefinition_   = popupMenu_->menu()->addAction(i18n("Open definition: %1", QString()), this, SLOT(slotOpenDefinition()));
+		latexToUnicode_   = popupMenu_->menu()->addAction(i18n("Latex to unicode: %1", QString()), this, SLOT(slotLatexToUnicode()));
 		//proveAutomatically_ = popupMenu_->menu()->addAction(i18n("Prove automatically: %1", QString()), this, SLOT(proveIdAutomatically()));
 		//proveInteractive_   = popupMenu_->menu()->addAction(i18n("Prove interactively: %1", QString()), this, SLOT(proveIdInteractively()));
 
 		latexToUnicode_->setShortcut (QKeySequence (Qt :: CTRL + Qt :: SHIFT + Qt :: Key_R));
-		connect (popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (showMenu()));
+		connect (popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (slotShowMenu()));
 	}
 	void View::initActions() {
 		QAction* action = nullptr;

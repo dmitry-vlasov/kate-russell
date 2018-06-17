@@ -86,10 +86,10 @@ private Q_SLOTS:
 	void slotManageServer();
 
 	// popup menu
-	void showMenu();
-	void lookupDefinition();
-	void openDefinition();
-	void latexToUnicode();
+	void slotShowMenu();
+	void slotLookupDefinition();
+	void slotOpenDefinition();
+	void slotLatexToUnicode();
 
 	// server output slots
 	void slotReadRussellStdErr();
@@ -98,9 +98,6 @@ private Q_SLOTS:
 	// execute custom command
 	void slotExecuteRussellCommand();
 	void slotExecuteMetamathCommand();
-
-Q_SIGNALS:
-    void mmCommandFinished();
 
 private:
     void openFile(const QString& file);
