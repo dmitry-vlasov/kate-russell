@@ -32,7 +32,7 @@ Task parse_task(const QString& command) {
 			if (task.action == QLatin1String("read")) {
 				task.state = State::READING;
 			} else if (task.action == QLatin1String("prove")) {
-				task.state = State::PROVING;
+				task.state = State::PROVING_AUTOMATICALLY;
 			} else if (task.action == QLatin1String("transl")) {
 				task.state = State::TRANSLATING;
 			} else if (task.action == QLatin1String("verify")) {
@@ -59,6 +59,8 @@ Task parse_task(const QString& command) {
 				task.state = State::MINING_OUTLINE;
 			} else if (task.action == QLatin1String("types")) {
 				task.state = State::MINING_TYPE_SYSTEM;
+			} else if (task.action.startsWith(QLatin1String("prove_"))) {
+				task.state = State::PROVING_INTERACTIVELY;
 			}
 		}
 	}

@@ -77,10 +77,10 @@ private Q_SLOTS:
 	//void slotProveInteractive();
 	void slotVerify();
 	void slotTranslate();
-	//void slotConfirmProof(int);
+	void slotConfirmProof(int);
 
-	//void proveIdAutomatically();
-	//void proveIdInteractively();
+	void proveIdAutomatically();
+	void proveIdInteractively();
 
 	// server slots
 	void slotManageServer();

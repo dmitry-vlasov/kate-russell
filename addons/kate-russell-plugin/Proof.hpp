@@ -40,24 +40,23 @@ Q_SIGNALS:
 	void proofFound (int proofIndex) const;
 
 public Q_SLOTS:
-	void slotShowContextMenu (const QPoint&);
+	void slotShowContextMenu(const QPoint&);
 	void expandTree();
 	void doNothing();
 
 	// Proof tree cultivation
-	void startProving();
-	void growTree (QTreeWidgetItem*);
+	void startProving(const QString& file, int line, int col);
+	void growTree(QTreeWidgetItem*);
 	void stopProving();
 	void info();
 	void show();
 	void hide();
-	void visibilityChanged (bool visible);
+	void visibilityChanged(bool visible);
+	void updateXML(const QString& XMLSource);
 
 private :
 	void setupSlotsAndSignals();
 	void setupLayout();
-
-	void updateXML (const QString& XMLSource);
 
 	// Building up a tree structure
 	void buildTree      (QDomNode&);

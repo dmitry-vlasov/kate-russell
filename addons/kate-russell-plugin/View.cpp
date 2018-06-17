@@ -65,13 +65,14 @@ namespace russell {
 	proveAutomatically_ (nullptr),
 	proveInteractive_(nullptr),
 
-	outline_ (new Outline (mainWindow_, this)),
-	structure_ (new Structure (mainWindow_, this)),
-	typeSystem_ (new TypeSystem (mainWindow_, this)),
-	proof_ (new Proof (mainWindow_, this))
+	outline_ (new Outline(mainWindow_, this)),
+	structure_ (new Structure(mainWindow_, this)),
+	typeSystem_ (new TypeSystem(mainWindow_, this)),
+	proof_ (new Proof(mainWindow_, this))
 	{
-		if (instance_)
-			KMessageBox::error(0, i18n ("Russell plugin view is already initialized"));
+		if (instance_) {
+			KMessageBox::error(0, i18n("Russell plugin view is already initialized"));
+		}
 		instance_ = this;
 		#ifdef DEBUG_CREATE_DESTROY
 		std :: cout << "View :: View (KTextEditor::MainWindow* mw)" << std :: endl;
@@ -263,7 +264,10 @@ namespace russell {
 			case State::MINING_TYPE_SYSTEM :
 				typeSystem_->update(data);
 				break;
-			case State::PROVING :
+			case State::PROVING_INTERACTIVELY :
+				proof_->updateXML(data);
+				break;
+			case State::PROVING_AUTOMATICALLY :
 				reloadSource();
 				break;
 			default :
@@ -337,68 +341,51 @@ namespace russell {
 		if (state_.start(VERIFYING)) {
 			//client_->learn();
 		}
-	}
-	void
-	View :: slotConfirmProof(int proofIndex)
-	{
-		//client_->setupIndex (proofIndex);
-		//client_->execute(QStringLiteral("confirm"));
-		//client_->execute(QStringLiteral("write"));
-	}
-
-	void
-	View :: proveIdAutomatically()
-	{
-		if (state_.start(State::PROVING)) {
-			KTextEditor :: View* activeView = mainWindow()->activeView();
-			if (!activeView) {
-				qDebug() << "no KTextEditor::View" << endl;
-				return;
-			}
-			if (!activeView->cursorPosition().isValid()) {
-				qDebug() << "cursor not valid!" << endl;
-				return;
-			}
-			const int line = activeView->cursorPosition().line();
-			const int column = activeView->cursorPosition().column();
-
-			client_->prove (line, column, true);
-		}
-	}
-	void
-	View :: proveIdInteractively()
-	{
-		if (!Server::russell().isRunning()) {
-			KMessageBox :: sorry (0, i18n ("Server could not start."));
-			return;
-		}
-		if (state_.start(State::PROVING_INTERACTIVELY)) {
-			KTextEditor :: View* activeView = mainWindow()->activeView();
-			if (!activeView) {
-				qDebug() << "no KTextEditor::View" << endl;
-				return;
-			}
-			if (!activeView->cursorPosition().isValid()) {
-				qDebug() << "cursor not valid!" << endl;
-				return;
-			}
-			const int line = activeView->cursorPosition().line();
-			const int column = activeView->cursorPosition().column();
-
-			if (!Server::russell().isRunning()) {
-				KMessageBox :: sorry (0, i18n ("Server could not start."));
-				return;
-			}
-			proof_->stopProving();
-			//client_->setupInFile();
-			//client_->setupOutFile();
-			client_->execute (QStringLiteral("read"));
-			client_->execute (QStringLiteral("check"));
-			//client_->setupPosition (line, column);
-			proof_->startProving();
-			proof_->show();
-		}
 	}*/
+	void View::slotConfirmProof(int proofIndex) {
+		Execute::exec(QStringList() << QLatin1String("rus prove_confirm what=") + QString::number(proofIndex));
+	}
+
+	void View::proveIdAutomatically() {
+		QString file = currentFile();
+		if (file.size()) {
+			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
+				KTextEditor :: View* activeView = mainWindow()->activeView();
+				if (!activeView) {
+					qDebug() << "no KTextEditor::View" << endl;
+					return;
+				}
+				if (!activeView->cursorPosition().isValid()) {
+					qDebug() << "cursor not valid!" << endl;
+					return;
+				}
+				const int line = activeView->cursorPosition().line();
+				const int column = activeView->cursorPosition().column();
+				Execute::exec(command::prove(fc.file, ProvingMode::AUTO, line, column));
+			}
+		}
+	}
+	void View::proveIdInteractively() {
+		QString file = currentFile();
+		if (file.size()) {
+			if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
+				KTextEditor :: View* activeView = mainWindow()->activeView();
+				if (!activeView) {
+					qDebug() << "no KTextEditor::View" << endl;
+					return;
+				}
+				if (!activeView->cursorPosition().isValid()) {
+					qDebug() << "cursor not valid!" << endl;
+					return;
+				}
+				const int line = activeView->cursorPosition().line();
+				const int column = activeView->cursorPosition().column();
+				proof_->stopProving();
+				proof_->startProving(fc.file, line, column);
+				proof_->show();
+			}
+		}
+	}
 
 	// server slots
 	void View::slotManageServer() {
@@ -422,14 +409,14 @@ namespace russell {
 		if (identifier.isEmpty()) {
 			lookupDefinition_->setText (i18n ("Nothing to lookup"));
 			openDefinition_->setText (i18n ("Nothing to open"));
-			//proveAutomatically_->setText (i18n ("Nothing to prove"));
-			//proveInteractive_->setText (i18n ("Nothing to prove"));
+			proveAutomatically_->setText (i18n ("Nothing to prove"));
+			proveInteractive_->setText (i18n ("Nothing to prove"));
 		} else {
 			const QString squeezedIdentifier = KStringHandler :: csqueeze (identifier, 30);
 			lookupDefinition_->setText (i18n ("Lookup definition: %1", squeezedIdentifier));
 			openDefinition_->setText (i18n ("Open definition: %1", squeezedIdentifier));
-			//proveAutomatically_->setText (i18n ("Prove automatically: %1", squeezedIdentifier));
-			//proveInteractive_->setText (i18n ("Prove interactively: %1", squeezedIdentifier));
+			proveAutomatically_->setText (i18n ("Prove automatically: %1", squeezedIdentifier));
+			proveInteractive_->setText (i18n ("Prove interactively: %1", squeezedIdentifier));
 		}
 		int line = -1; int start = -1; int length = -1;
 		const QString latexExpression = currentLatexExpression (line, start, length);
@@ -535,11 +522,9 @@ namespace russell {
 	QString View::currentIdentifier() const {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
-			//qDebug() << "no KTextEditor::View" << endl;
 			return QString();
 		}
 		if (!activeView->cursorPosition().isValid()) {
-			//qDebug() << "cursor not valid!" << endl;
 			return QString();
 		}
 		const int line = activeView->cursorPosition().line();
@@ -570,20 +555,16 @@ namespace russell {
 			++ endPos;
 		}
 		if  (startPos == endPos) {
-			//qDebug() << "no word found!" << endl;
 			return QString();
 		}
-		//qDebug() << linestr.mid(startPos+1, endPos-startPos-1);
 		return linestr.mid (startPos + 1, endPos - startPos - 1);
 	}
 	QString View::currentLatexExpression (int& line, int& begin, int& length) const {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
-			//qDebug() << "no KTextEditor::View" << endl;
 			return QString();
 		}
 		if (!activeView->cursorPosition().isValid()) {
-			//qDebug() << "cursor not valid!" << endl;
 			return QString();
 		}
 		line = activeView->cursorPosition().line();
@@ -614,7 +595,6 @@ namespace russell {
 			++ endPos;
 		}
 		if  (startPos == endPos) {
-			//qDebug() << "no word found!" << endl;
 			return QString();
 		}
 		begin = startPos + 1;
@@ -644,89 +624,23 @@ namespace russell {
 		lookupDefinition_ = popupMenu_->menu()->addAction (i18n ("Lookup definition: %1", QString()), this, SLOT(slotLookupDefinition()));
 		openDefinition_   = popupMenu_->menu()->addAction(i18n("Open definition: %1", QString()), this, SLOT(slotOpenDefinition()));
 		latexToUnicode_   = popupMenu_->menu()->addAction(i18n("Latex to unicode: %1", QString()), this, SLOT(slotLatexToUnicode()));
-		//proveAutomatically_ = popupMenu_->menu()->addAction(i18n("Prove automatically: %1", QString()), this, SLOT(proveIdAutomatically()));
-		//proveInteractive_   = popupMenu_->menu()->addAction(i18n("Prove interactively: %1", QString()), this, SLOT(proveIdInteractively()));
+		proveAutomatically_ = popupMenu_->menu()->addAction(i18n("Prove automatically: %1", QString()), this, SLOT(proveIdAutomatically()));
+		proveInteractive_   = popupMenu_->menu()->addAction(i18n("Prove interactively: %1", QString()), this, SLOT(proveIdInteractively()));
 
 		latexToUnicode_->setShortcut (QKeySequence (Qt :: CTRL + Qt :: SHIFT + Qt :: Key_R));
-		connect (popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (slotShowMenu()));
+		connect(popupMenu_->menu(), SIGNAL (aboutToShow()), this, SLOT (slotShowMenu()));
 	}
 	void View::initActions() {
 		QAction* action = nullptr;
+		action = actionCollection()->addAction(QLatin1String("translate"));
+		action->setText(i18n ("Translate"));
+		actionCollection()->setDefaultShortcut(action, QKeySequence(Qt :: CTRL + Qt :: ALT + Qt :: Key_T));
+		connect(action, SIGNAL(triggered (bool)), this, SLOT(slotTranslate()));
 
-		//action = actionCollection()->addAction (QLatin1String("prove_verify"));
-		//action->setText (i18n ("Prove && Verify"));
-		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_F));
-		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProveVerify()));
-
-		//action = actionCollection()->addAction (QLatin1String("prove"));
-		//action->setText (i18n ("Prove"));
-		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_P));
-		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotProve()));
-
-		action = actionCollection()->addAction (QLatin1String("translate"));
-		action->setText (i18n ("Translate"));
-		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_T));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotTranslate()));
-
-		action = actionCollection()->addAction (QLatin1String("verify"));
-		action->setText (i18n ("Verify"));
-		actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_V));
-		connect (action, SIGNAL (triggered (bool)), this, SLOT (slotVerify()));
-
-		//action = actionCollection()->addAction (QLatin1String("learn"));
-		//action->setText (i18n ("Learn"));
-		//actionCollection()->setDefaultShortcut(action, QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_L));
-		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotLearn()));
-
-		//action = actionCollection()->addAction (QLatin1String("stop"));
-		//action->setText (i18n ("Stop"));
-		//+connect (action, SIGNAL (triggered (bool)), this, SLOT (slotStop()));
-
-		//action = actionCollection()->addAction (QLatin1String("goto_next"));
-		//action->setText (i18n ("Next Error"));
-		//a->setShortcut (QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_Right));
-		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotNext()));
-
-		//action = actionCollection()->addAction (QLatin1String("goto_prev"));
-		//action->setText (i18n ("Previous Error"));
-		//a->setShortcut (QKeySequence (Qt :: CTRL + Qt :: ALT + Qt :: Key_Left));
-		//connect (action, SIGNAL (triggered (bool)), this, SLOT (slotPrev()));
-
-		/*a = actionCollection()->addAction ("target_next");
-		a->setText (i18n ("Next Target"));
-		connect (a, SIGNAL (triggered (bool)), this, SLOT (configNext()));*/
-
-		//action = actionCollection()->addAction (QLatin1String("prove_verify_quick"));
-		//action->setText (i18n ("Prove/Verify"));
-
-		/*static const QPixmap provePixmap (prove_verify_xpm_);
-		QIcon (provePixmap)
-		a->setIcon (QIcon (provePixmap));*/
-		//a->setIcon (QIcon ("media-playback-start"));
-		//action->setIcon (QIcon ("preferences-kcalc-constants"));
-		//action->setIcon (QIcon (QLatin1String("arrow-right")));
-		//connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveVerify()));
-
-		//action = actionCollection()->addAction (QLatin1String("prove_interactive"));
-		//action->setText (i18n ("Prove Interactive"));
-
-		/*static const QPixmap provePixmap (prove_verify_xpm_);
-		QIcon (provePixmap)
-		a->setIcon (QIcon (provePixmap));*/
-		//a->setIcon (QIcon ("media-playback-start"));
-		//action->setIcon (QIcon(QLatin1String("arrow-right-double")));
-		//action->setIcon (QIcon(QLatin1String(":/katerussell/icons/hi22-actions-russell-axiom.png")));
-		//connect (action, SIGNAL (triggered(bool)), this, SLOT (slotProveInteractive()));
-
-		action = actionCollection()->addAction (QLatin1String("start_server"));
-		action->setText (i18n ("Start mdl server"));
-
-		/*static const QPixmap provePixmap (prove_verify_xpm_);
-		QIcon (provePixmap)
-		a->setIcon (QIcon (provePixmap));*/
-		//a->setIcon (QIcon ("media-playback-start"));
-		action->setIcon (QIcon (QLatin1String("go-next")));
-		connect (action, SIGNAL (triggered(bool)), this, SLOT (slotManageServer()));
+		action = actionCollection()->addAction(QLatin1String("verify"));
+		action->setText(i18n ("Verify"));
+		actionCollection()->setDefaultShortcut(action, QKeySequence(Qt :: CTRL + Qt :: ALT + Qt :: Key_V));
+		connect(action, SIGNAL(triggered (bool)), this, SLOT(slotVerify()));
 	}
 	void View::initBottomUi() {
 		QWidget* configOutputWidget = new QWidget (toolView_);
@@ -742,14 +656,14 @@ namespace russell {
 		connect(bottomUi_.metamathExecuteButton, SIGNAL(clicked()), SLOT(slotExecuteMetamathCommand()));
 	}
 	void View::initLauncher() {
-		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardError()), this, SLOT (slotReadRussellStdErr()));
-		connect (&Launcher::russellClient().process(), SIGNAL (readyReadStandardOutput()), this, SLOT (slotReadRussellStdOut()));
+		connect (&Launcher::russellClient().process(), SIGNAL(readyReadStandardError()), this, SLOT(slotReadRussellStdErr()));
+		connect (&Launcher::russellClient().process(), SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadRussellStdOut()));
 
-		//connect (proof_, SIGNAL (proofFound(int)), this, SLOT (slotConfirmProof(int)));
+		connect (proof_, SIGNAL(proofFound(int)), this, SLOT(slotConfirmProof(int)));
 		connect (&Execute::mod(), SIGNAL (dataReceived(QString, quint32, QString, QString)), this, SLOT(slotRusCommandCompleted(QString, quint32, QString, QString)));
 
-		connect (mainWindow_, SIGNAL (viewChanged(KTextEditor::View*)), this, SLOT (slotRefreshOutline()));
-		connect (mainWindow_, SIGNAL (viewCreated(KTextEditor::View*)), this, SLOT (slotRead(KTextEditor::View*)));
+		connect (mainWindow_, SIGNAL(viewChanged(KTextEditor::View*)), this, SLOT(slotRefreshOutline()));
+		connect (mainWindow_, SIGNAL(viewCreated(KTextEditor::View*)), this, SLOT(slotRead(KTextEditor::View*)));
 	}
 
 	View* View::instance_ = nullptr;

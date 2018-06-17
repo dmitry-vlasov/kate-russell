@@ -35,9 +35,8 @@ namespace command {
 	QStringList lookupLocation(const QString& file, const int line, const int column);
 	QStringList mine (const QString& file, State state, const QString& options);
 
-	//QString prove(const QString& file, ProvingMode mode);
-	//QString prove(const QString& file, ProvingMode mode, const int line, const int column);
-	//QString expandNode(const long);
+	QStringList prove(const QString& file, ProvingMode mode, const int line, const int column);
+	QStringList expandNode(const QString& file, const long);
 
 	//QString learn(const bool clearOutput = true);
 }

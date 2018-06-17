@@ -25,8 +25,7 @@
 
 namespace russell { namespace command {
 
-	QStringList read(const QString& file, ActionScope scope)
-	{
+	QStringList read(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QStringList commands;
 			QString lang = lang_string(file_type(fc.file));
@@ -40,8 +39,7 @@ namespace russell { namespace command {
 		}
 	}
 
-	QStringList translate(const QString& file, ActionScope scope, Lang target)
-	{
+	QStringList translate(const QString& file, ActionScope scope, Lang target) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QStringList commands;
 			QString src_lang = lang_string(file_type(fc.file));
@@ -58,8 +56,7 @@ namespace russell { namespace command {
 		}
 	}
 
-	QStringList merge(const QString& file, ActionScope scope)
-	{
+	QStringList merge(const QString& file, ActionScope scope) {
 		if (FileConf fc = chooseFileConf(file, scope)) {
 			QString lang = lang_string(file_type(fc.file));
 			QStringList commands;
@@ -99,8 +96,7 @@ namespace russell { namespace command {
 		}
 	}
 
-	QStringList lookupDefinition(const QString& file, const int line, const int column)
-	{
+	QStringList lookupDefinition(const QString& file, const int line, const int column) {
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 			QStringList commands;
 			commands << QLatin1String("rus curr proj=") + fc.conf->name();
@@ -114,8 +110,7 @@ namespace russell { namespace command {
 		}
 	}
 
-	QStringList lookupLocation(const QString& file, const int line, const int column)
-	{
+	QStringList lookupLocation(const QString& file, const int line, const int column) {
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 			QStringList commands;
 			commands << QLatin1String("rus curr proj=") + fc.conf->name();
@@ -129,8 +124,7 @@ namespace russell { namespace command {
 		}
 	}
 
-	QStringList mine(const QString& file, State state, const QString& options)
-	{
+	QStringList mine(const QString& file, State state, const QString& options) {
 		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
 			QStringList commands;
 			commands << QLatin1String("rus curr proj=") + fc.conf->name();
@@ -146,6 +140,32 @@ namespace russell { namespace command {
 				break;
 			default : return QStringList();
 			}
+			return commands;
+		} else {
+			return QStringList();
+		}
+	}
+
+	QStringList prove(const QString& file, ProvingMode mode, const int line, const int column) {
+		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
+			QStringList commands;
+			commands << QLatin1String("rus curr proj=") + fc.conf->name();
+			commands <<
+				QLatin1String("rus prove_start mode=") +
+				(mode == ProvingMode::AUTO ? QLatin1String("auto in=") : QLatin1String("inter")) +
+				QLatin1String(" in=") + fc.conf->trimFile(fc.file) +
+				QLatin1String(" line=") + QString::number(line) +
+				QLatin1String(" col=") + QString::number(column);
+			return commands;
+		} else {
+			return QStringList();
+		}
+	}
+	QStringList expandNode(const QString& file, const long index) {
+		if (FileConf fc = chooseFileConf(file, ActionScope::FILE)) {
+			QStringList commands;
+			commands << QLatin1String("rus curr proj=") + fc.conf->name();
+			commands << QLatin1String("rus prove_step what=") + QString::number(index);
 			return commands;
 		} else {
 			return QStringList();
