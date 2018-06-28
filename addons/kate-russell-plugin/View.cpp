@@ -405,26 +405,26 @@ namespace russell {
 
 	// popup menu
 	void View::slotShowMenu() {
-		const QString identifier = currentIdentifier();
-		if (identifier.isEmpty()) {
-			lookupDefinition_->setText (i18n ("Nothing to lookup"));
-			openDefinition_->setText (i18n ("Nothing to open"));
-			proveAutomatically_->setText (i18n ("Nothing to prove"));
-			proveInteractive_->setText (i18n ("Nothing to prove"));
-		} else {
-			const QString squeezedIdentifier = KStringHandler :: csqueeze (identifier, 30);
-			lookupDefinition_->setText (i18n ("Lookup definition: %1", squeezedIdentifier));
-			openDefinition_->setText (i18n ("Open definition: %1", squeezedIdentifier));
-			proveAutomatically_->setText (i18n ("Prove automatically: %1", squeezedIdentifier));
-			proveInteractive_->setText (i18n ("Prove interactively: %1", squeezedIdentifier));
-		}
 		int line = -1; int start = -1; int length = -1;
-		const QString latexExpression = currentLatexExpression (line, start, length);
-		if (latexExpression.isEmpty()) {
-			latexToUnicode_->setText (i18n ("No latex expression"));
+		const QString identifier = currentIdentifier(line, start, length);
+		if (identifier.isEmpty()) {
+			lookupDefinition_->setText(i18n("Nothing to lookup"));
+			openDefinition_->setText(i18n("Nothing to open"));
+			proveAutomatically_->setText(i18n("Nothing to prove"));
+			proveInteractive_->setText(i18n("Nothing to prove"));
 		} else {
-			const QString squeezedExpression = KStringHandler :: csqueeze (latexExpression, 30);
-			latexToUnicode_->setText (i18n("Latex to unicode: %1", squeezedExpression));
+			const QString squeezedIdentifier = KStringHandler::csqueeze (identifier, 30);
+			lookupDefinition_->setText(i18n("Lookup definition: %1", squeezedIdentifier));
+			openDefinition_->setText(i18n("Open definition: %1", squeezedIdentifier));
+			proveAutomatically_->setText(i18n("Prove automatically: %1", squeezedIdentifier));
+			proveInteractive_->setText(i18n("Prove interactively: %1", squeezedIdentifier));
+		}
+		const QString latexExpression = currentIdentifier(line, start, length);
+		if (latexExpression.isEmpty()) {
+			latexToUnicode_->setText(i18n ("No latex expression"));
+		} else {
+			const QString squeezedExpression = KStringHandler::csqueeze(latexExpression, 30);
+			latexToUnicode_->setText(i18n("Latex to unicode: %1", squeezedExpression));
 		}
 	}
 	void View::slotLookupDefinition() {
@@ -475,11 +475,11 @@ namespace russell {
 			return;
 		}
 		int line = -1; int start = -1; int length = -1;
-		const QString latexWord = currentLatexExpression (line, start, length);
+		const QString latexWord = currentIdentifier(line, start, length);
 		LatexToUnicode translator (latexWord);
 		const QString& unicodeWord = translator.translate();
-		const KTextEditor :: Range range (line, start, line, start + length);
-		activeView->document()->replaceText (range, unicodeWord, true);
+		const KTextEditor::Range range(line, start, line, start + length);
+		activeView->document()->replaceText(range, unicodeWord, true);
 	}
 
 	void appendText(QPlainTextEdit* textEdit, const QString& text) {
@@ -519,47 +519,7 @@ namespace russell {
 		}    
 		activeView->document()->documentReload();
 	}
-	QString View::currentIdentifier() const {
-		KTextEditor :: View* activeView = mainWindow()->activeView();
-		if (!activeView) {
-			return QString();
-		}
-		if (!activeView->cursorPosition().isValid()) {
-			return QString();
-		}
-		const int line = activeView->cursorPosition().line();
-		const int col = activeView->cursorPosition().column();
-
-		QString linestr = activeView->document()->line (line);
-
-		int startPos = qMax (qMin (col, linestr.length() - 1), 0);
-		int endPos = startPos;
-		while (startPos >= 0) {
-			bool inId = linestr[startPos].isLetterOrNumber();
-			inId = inId || (linestr[startPos] == QLatin1Char('_'));
-			inId = inId || (linestr[startPos] == QLatin1Char('.'));
-			inId = inId || (linestr[startPos] == QLatin1Char('-'));
-			if (!inId) {
-				break;
-			}
-			-- startPos;
-		}
-		while (endPos < linestr.length()) {
-			bool inId = linestr[endPos].isLetterOrNumber();
-			inId = inId || (linestr[endPos] == QLatin1Char('_'));
-			inId = inId || (linestr[endPos] == QLatin1Char('.'));
-			inId = inId || (linestr[endPos] == QLatin1Char('-'));
-			if (!inId) {
-				break;
-			}
-			++ endPos;
-		}
-		if  (startPos == endPos) {
-			return QString();
-		}
-		return linestr.mid (startPos + 1, endPos - startPos - 1);
-	}
-	QString View::currentLatexExpression (int& line, int& begin, int& length) const {
+	QString View::currentIdentifier(int& line, int& begin, int& length) const {
 		KTextEditor :: View* activeView = mainWindow()->activeView();
 		if (!activeView) {
 			return QString();
@@ -570,28 +530,14 @@ namespace russell {
 		line = activeView->cursorPosition().line();
 		const int col = activeView->cursorPosition().column();
 
-		QString linestr = activeView->document()->line (line);
+		QString linestr = activeView->document()->line(line);
 
-		int startPos = qMax (qMin (col, linestr.length() - 1), 0);
+		int startPos = qMax(qMin (col, linestr.length() - 1), 0);
 		int endPos = startPos;
-		while (startPos >= 0) {
-			bool out =   (linestr [startPos] == QLatin1Char(' '));
-			out = out || (linestr [startPos] == QLatin1Char('\t'));
-			out = out || (linestr [startPos] == QLatin1Char('\n'));
-			out = out || (linestr [startPos] == QLatin1Char('\r'));
-			if (out) {
-				break;
-			}
+		while (startPos >= 0 && !linestr [startPos].isSpace()) {
 			-- startPos;
 		}
-		while (endPos < linestr.length()) {
-			bool out =   (linestr [endPos] == QLatin1Char(' '));
-			out = out || (linestr [endPos] == QLatin1Char('\t'));
-			out = out || (linestr [endPos] == QLatin1Char('\n'));
-			out = out || (linestr [endPos] == QLatin1Char('\r'));
-			if (out) {
-				break;
-			}
+		while (endPos < linestr.length() && !linestr [endPos].isSpace()) {
 			++ endPos;
 		}
 		if  (startPos == endPos) {

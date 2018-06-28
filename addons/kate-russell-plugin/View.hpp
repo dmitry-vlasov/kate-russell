@@ -103,8 +103,7 @@ private:
     void openFile(const QString& file);
 	void showBuffer (const bool = false);
 	void reloadSource();
-	QString currentIdentifier() const;
-	QString currentLatexExpression (int&, int&, int&) const;
+	QString currentIdentifier(int& line, int& begin, int& length) const;
 	bool checkLocal (const QUrl &url, bool silent = false) const;
 
 	void initPopupMenu();
