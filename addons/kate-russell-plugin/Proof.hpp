@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QWidget>
 #include <QPoint>
 #include <QTreeWidget>
@@ -22,6 +24,10 @@
 #include <QAction>
 
 #include <ktexteditor/mainwindow.h>
+
+#include "Enums.hpp"
+#include "ProofInfo.hpp"
+#include "ProofNode.hpp"
 
 namespace russell {
 
@@ -52,11 +58,18 @@ public Q_SLOTS:
 	void show();
 	void hide();
 	void visibilityChanged(bool visible);
-	void updateXML(const QString& XMLSource);
+	void updateXML(const QString& XMLSource, const Task& task);
+	void slotShowAssertionVariant(QTableWidgetItem* item);
 
 private :
 	void setupSlotsAndSignals();
 	void setupLayout();
+
+	void processInfo(QDomNode&);
+	void processInfoNode(QDomNode);
+	HypInfo infoHyp(QDomNode&);
+	PropInfo infoProp(QDomNode&);
+	void processInfoChildren(QDomNode);
 
 	// Building up a tree structure
 	void buildTree      (QDomNode&);
@@ -92,6 +105,8 @@ private :
 	TreeItemVector_  treeItems_;
 	QTreeWidgetItem* root_;
 	QStringList  proofs_;
+
+	std::unique_ptr<ProofNode> nodeView;
 };
 
 }

@@ -12,7 +12,7 @@
 /*****************************************************************************/
 
 #include <QLineEdit>
-
+#include <QDialog>
 #include <KMessageBox>
 
 #include "Proof.hpp"
@@ -23,6 +23,7 @@
 
 #include "commands.hpp"
 #include "Execute.hpp"
+#include "ProofNode.hpp"
 
 namespace russell {
 
@@ -35,7 +36,6 @@ namespace russell {
 		KTextEditor::MainWindow* mainWindow,
 		View* russellView
 	) :
-	//QWidget (mainWindow->centralWidget()),
 	QWidget (),
 	mainWindow_ (mainWindow),
 	russellView_ (russellView),
@@ -57,18 +57,11 @@ namespace russell {
 	root_ (nullptr),
 	proofs_ ()
 	{
+		nodeView.reset(new ProofNode());
 		setupSlotsAndSignals();
 		setupLayout();
 	}
-	Proof::~ Proof() {
-		/*delete popup_;
-		delete tree_;
-		delete layout_;
-		delete frame_;
-		delete stop_;
-		delete admit_;*/
-		//delete proofView_;
-	}
+	Proof::~ Proof() { }
 
 	bool Proof::isProved() const {
 		return !proofs_.empty();
@@ -86,6 +79,13 @@ namespace russell {
 			popup_->popup (tree_->mapToGlobal (point));
 		}
 	}
+	void Proof::slotShowAssertionVariant(QTableWidgetItem* item) {
+		//QTextStream(stdout) << "ASS: " << nodeView.get()->propInfoVector[item->row()].assertion << "\n";
+		nodeView.get()->ui_.assertionTextEdit->setPlainText(
+			align_assertion(nodeView.get()->propInfoVector[item->row()].assertion)
+		);
+	}
+
 	void Proof::expandTree() {
 		for (int i = 0; i < treeItems_.size(); ++ i) {
 			treeItems_[i]->setExpanded (true);
@@ -100,94 +100,21 @@ namespace russell {
 		root_ = nullptr;
 		proofs_.clear();
 		Execute::exec(command::prove(file, ProvingMode::INTERACTIVE, line, col));
-/*
-		// setup plant options
-		QString options = QLatin1String("setup ");
-		options += QLatin1String("--interactive ");
-		options += QLatin1String("--info-tree-sprout ");
-		options += QLatin1String("--info-xml-format ");
-		//russellView_->client()->execute (options);
-
-		// do plant job
-		//russellView_->client()->execute (QString(QLatin1String("plant")));
-
-		// setup info options
-		options = QLatin1String("setup ");
-		options += QLatin1String("--info-tree-sprout ");
-		options += QLatin1String("--info-xml-format ");
-		options += QLatin1String("--hide-comments yes");
-		//russellView_->client()->execute (options);
-
-		// request for the result of plant operation
-		//russellView_->client()->execute (QString(QLatin1String("info")));
-		root_ = nullptr;
-		proofs_.clear();
-		const QString output; // =  Connection::get().data(); //russellView_->client()->getData();
-		updateXML (output);
-
-		// now set showing comments back to default
-		options.clear();
-		options += QLatin1String("setup --hide-comments no");
-		//russellView_->client()->execute (options);*/
 	}
-	void Proof::growTree (QTreeWidgetItem* item) {
+	void Proof::growTree(QTreeWidgetItem* item) {
 		if (!item) {
 			return;
 		}
-		const QString indexString = item->text (1);
+		const QString indexString = item->text(1);
 		const int index = indexString.toInt();
 		if (index == -1) {
 			return;
 		}
-		Execute::exec(QStringList() << QLatin1String("rus prove_step what=") + QString::number(index));
-
-		/*
-		// setup the expansion index:
-		QString command = QLatin1String("setup --index ");
-		command += QString :: number (index);
-		//russellView_->client()->execute (command);
-
-		// do grow job
-		//russellView_->client()->execute (QString(QLatin1String("grow")));
-
-		// setup info options
-		QString options = QLatin1String("setup ");
-		options += QLatin1String("--info-tree-sprout ");
-		options += QLatin1String("--info-xml-format ");
-		options += QLatin1String("--hide-comments yes");
-		//russellView_->client()->execute (options);
-
-		// request for the result of grow operation
-		//russellView_->client()->execute (QString(QLatin1String("info")));
-		const QString output; // = Connection::get().data(); //russellView_->client()->getData();
-		updateXML (output);
-
-		// now set showing comments back to default
-		options.clear();
-		options += QLatin1String("setup --hide-comments no");
-		//russellView_->client()->execute (options);
-
-		if (isProved()) {
-			QString message = QLatin1String("Proofs found:\n");
-			message += proofs_.join(QLatin1String("\n"));
-			message += QLatin1String("admit or continue?");
-			const int decision = KMessageBox :: questionYesNo
-			(
-				tree_,
-				message,
-				QLatin1String("proofs"),
-				KStandardGuiItem :: yes(),
-				KStandardGuiItem :: cont()
-			);
-
-			proofFound(0);
-
-			/*if (decision == KMessageBox :: Yes) {
-
-			} else {
-
-			}* /
-		}*/
+		Execute::exec(
+			QStringList() << QLatin1String("rus prove_info") +
+			QLatin1String(" index=") + QString::number(index) +
+			QLatin1String(" what=children")
+		);
 	}
 	void Proof::stopProving() {
 		Execute::exec(QStringList() << QLatin1String("rus prove_stop"));
@@ -203,15 +130,11 @@ namespace russell {
 			if (index == -1) {
 				return;
 			}
-			Execute::exec(QStringList() << QLatin1String("rus prove_info what=") + QString::number(index));
-
-			/*
-			//russellView_->client()->execute (options);
-			//russellView_->client()->execute (QString(QLatin1String("info")));
-			QString nodeXML;
-			//nodeXML += Connection::get().data(); //russellView_->client()->getData();
-			updateXML (nodeXML);
-			*/
+			Execute::exec(
+				QStringList() << QLatin1String("rus prove_info") +
+				QLatin1String(" index=") + QString::number(index) +
+				QLatin1String(" what=children")
+			);
 		}
 	}
 	void Proof::show() {
@@ -222,8 +145,11 @@ namespace russell {
 	}
 	void Proof::visibilityChanged(bool visible) {
 	}
-	void Proof::updateXML(const QString& XMLSource) {
-		QDomDocument document(QLatin1String("tree"));
+	void Proof::updateXML(const QString& XMLSource, const Task& task) {
+		if (XMLSource.isEmpty()) {
+			return;
+		}
+		QDomDocument document;
 		QString errorMsg;
 		int errorLine = 0;
 		int errorColumn = 0;
@@ -237,10 +163,12 @@ namespace russell {
 		}
 		QDomElement root = document.documentElement();
 		QDomNode node = root.firstChild();
-		if (root.tagName() == QLatin1String("sprout")) {
-			buildTree (node);
+		if (root.tagName() == QLatin1String("new")) {
+			buildTree(node);
 		} else if (root.tagName() == QLatin1String("node")) {
-			buildNode (node);
+			buildNode(node);
+		} else if (root.tagName() == QLatin1String("info")) {
+			processInfo(node);
 		}
 	}
 
@@ -268,6 +196,7 @@ namespace russell {
 		connect(tree_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(slotShowContextMenu(const QPoint&)));
 		connect(tree_, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(growTree(QTreeWidgetItem*)));
 		connect(proofView_, SIGNAL(toolVisibleChanged(bool)), this, SLOT(visibilityChanged(bool)));
+		connect(nodeView.get()->ui_.variantTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowAssertionVariant(QTableWidgetItem*)));
 	}
 	void Proof::setupLayout() {
 		QStringList titles;
@@ -292,17 +221,100 @@ namespace russell {
 		//proofView_->setContentsMargins(1, 1, 1, 1);
 	}
 
+	void Proof::processInfo(QDomNode& outlineNode) {
+		while (!outlineNode.isNull()) {
+			QDomElement outlineElement = outlineNode.toElement();
+			if (!outlineElement.isNull()) {
+				if (outlineElement.tagName() == QLatin1String("node")) {
+					processInfoNode(outlineNode.firstChild());
+				} else if (outlineElement.tagName() == QLatin1String("children")) {
+					processInfoChildren(outlineNode.firstChild());
+				}
+			}
+			outlineNode = outlineNode.nextSibling();
+		}
+	}
+
+	void Proof::processInfoNode(QDomNode outlineNode) {
+	}
+
+	void Proof::processInfoChildren(QDomNode outlineNode) {
+		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
+		nodeView.get()->setVisible(true);
+		nodeView.get()->propInfoVector.clear();
+		while (!outlineNode.isNull()) {
+			QDomElement outlineElement = outlineNode.toElement();
+			if (!outlineElement.isNull()) {
+				if (outlineElement.tagName() == QLatin1String("prop")) {
+					PropInfo info = infoProp(outlineNode);
+					int row = nodeView->ui_.variantTableWidget->rowCount();
+					nodeView.get()->ui_.variantTableWidget->insertRow(row);
+					QTableWidgetItem* assertion = new QTableWidgetItem(info.name);
+					Qt::ItemFlags flags = assertion->flags();
+					assertion->setFlags(flags & ~Qt::ItemIsEditable);
+					nodeView.get()->ui_.variantTableWidget->setItem(row, 0, assertion);
+					nodeView.get()->propInfoVector.append(info);
+					//QTextStream(stdout) << "A: " << info.assertion << "\n";
+				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
+					HypInfo info = infoHyp(outlineNode);
+				}
+			}
+			outlineNode = outlineNode.nextSibling();
+		}
+	}
+
+	PropInfo Proof::infoProp(QDomNode& outlineNode) {
+		QDomElement outlineElement = outlineNode.toElement();
+		PropInfo info;
+		info.name = outlineElement.attribute(QLatin1String("name"));
+		info.hint = (outlineElement.attribute(QLatin1String("hint")) == QLatin1String("+"));
+		info.index = outlineElement.attribute(QLatin1String("index")).toInt();
+		info.parent = outlineElement.attribute(QLatin1String("index")).toInt();
+		for (const auto& ch : outlineElement.attribute(QLatin1String("children")).split(QLatin1Char(','))) {
+			info.premises.append(ch.toInt());
+		}
+		QDomNode childNode = outlineNode.firstChild();
+		QDomElement childElement = childNode.toElement();
+		int downIndex = 0; // = childElement.attribute("index", "").toInt();
+		QString assertion;
+		while (!childNode.isNull()) {
+			QDomElement childElement = childNode.toElement();
+			QTextStream(stdout) << "TAG: " << childElement.tagName() << "\n";
+			if (childElement.tagName() == QLatin1String("assertion")) {
+				info.assertion = childElement.text();
+			} else if (childElement.tagName() == QLatin1String("down")) {
+				downIndex = childElement.attribute(QLatin1String("index")).toInt();
+			} else if (childElement.tagName() == QLatin1String("substitution")) {
+				info.substitution = childElement.attribute(QLatin1String("index")).toInt();
+			}
+			childNode = childNode.nextSibling();
+		}
+		return info;
+	}
+	HypInfo Proof::infoHyp(QDomNode& outlineNode) {
+		QDomElement outlineElement = outlineNode.toElement();
+		HypInfo info;
+		info.index = outlineElement.attribute(QLatin1String("index")).toInt();
+		info.parent = outlineElement.attribute(QLatin1String("parent")).toInt();
+		for (const auto& ch : outlineElement.attribute(QLatin1String("children")).split(QLatin1Char(','))) {
+			info.variants.append(ch.toInt());
+		}
+		QDomNode childNode = outlineNode.firstChild();
+		while (!childNode.isNull()) {
+			QDomElement childElement = childNode.toElement();
+			if (childElement.tagName() == QLatin1String("expression")) {
+				info.expression = childElement.text();
+			}
+			childNode = childNode.nextSibling();
+		}
+		return info;
+	}
+
 	void Proof::buildTree(QDomNode& outlineNode) {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("up")) {
-					QDomNode upNode = outlineNode.firstChild();
-					buildTreeUp (upNode);
-				} else if (outlineElement.tagName() == QLatin1String("root")) {
-					QDomNode downNode = outlineNode.firstChild();
-					buildRoot (downNode);
-				}
+				buildTreeUp (outlineElement);
 			}
 			outlineNode = outlineNode.nextSibling();
 		}

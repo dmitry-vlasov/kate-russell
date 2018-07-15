@@ -239,17 +239,11 @@ namespace russell {
 				break;
 			case State::LOOKING_DEFINITION :
 				if (!data.isEmpty()) {
-					QStringList lines = data.split(QLatin1Char('\n'));
-					QString lastLine = lines.last();
-					int firstNonSpace = 0;
-					QString indent;
-					while (lastLine.at(firstNonSpace).isSpace()) {
-						indent += lines.last().at(firstNonSpace);
-						++firstNonSpace;
-					}
+					QString aligned = align_assertion(data);
+					QTextStream(stdout) << "ALIGNED: " << aligned << "\n";
 					QPoint viewCoordinates = mainWindow_->activeView()->cursorPositionCoordinates();
 					QPoint globalCoorinates = mainWindow_->activeView()->mapToGlobal(viewCoordinates);
-					QToolTip::showText(globalCoorinates, indent + data);
+					QToolTip::showText(globalCoorinates, align_assertion(data));
 				}
 				break;
 			case State::OPENING_DEFINITION :
@@ -265,7 +259,7 @@ namespace russell {
 				typeSystem_->update(data);
 				break;
 			case State::PROVING_INTERACTIVELY :
-				proof_->updateXML(data);
+				proof_->updateXML(data, task);
 				break;
 			case State::PROVING_AUTOMATICALLY :
 				reloadSource();
@@ -274,13 +268,7 @@ namespace russell {
 				break;
 			}
 		} else {
-			switch (task.state) {
-			case State::READING:
-				QMessageBox::warning(mainWindow_->activeView(), i18n("Reading failed:"), msg);
-				break;
-			default :
-				QMessageBox::warning(mainWindow_->activeView(), i18n("Some error:"), msg);
-			}
+			QMessageBox::warning(mainWindow_->activeView(), i18n("Some error:"), msg);
 		}
 	}
 
@@ -532,7 +520,7 @@ namespace russell {
 
 		QString linestr = activeView->document()->line(line);
 
-		int startPos = qMax(qMin (col, linestr.length() - 1), 0);
+		int startPos = qMax(qMin(col, linestr.length() - 1), 0);
 		int endPos = startPos;
 		while (startPos >= 0 && !linestr [startPos].isSpace()) {
 			-- startPos;
@@ -545,7 +533,7 @@ namespace russell {
 		}
 		begin = startPos + 1;
 		length = endPos - startPos - 1;
-		return linestr.mid (begin, length);
+		return linestr.mid(begin, length);
 	}
 	bool View::checkLocal(const QUrl &url, bool silent) const {
 		if (url.path().isEmpty()) {

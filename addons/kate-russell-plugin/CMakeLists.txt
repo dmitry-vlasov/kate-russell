@@ -31,6 +31,7 @@ set (katerussell_SRC
 	Proof.cpp
 	View.cpp
 	Plugin.cpp
+	ProofNode.cpp
 )
 
 set (syntaxhighlighting
@@ -39,7 +40,7 @@ set (syntaxhighlighting
 	syntax/mm.xml
 )
 
-ki18n_wrap_ui(katerussell_SRC BottomTab.ui RussellConfig.ui ProjectsTab.ui)
+ki18n_wrap_ui(katerussell_SRC BottomTab.ui RussellConfig.ui ProjectsTab.ui ProofNode.ui)
 
 qt5_add_resources(katerussell_SRC plugin.qrc)
 

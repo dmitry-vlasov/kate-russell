@@ -67,4 +67,24 @@ Task parse_task(const QString& command) {
 	return task;
 }
 
+QString align_assertion(QString data) {
+	QStringList lines = data.split(QLatin1Char('\n'));
+	if (lines.isEmpty()) {
+		return QString();
+	}
+	QString lastLine = lines.last();
+	int firstNonSpace = 0;
+	while (firstNonSpace < lastLine.size() && lastLine.at(firstNonSpace).isSpace()) {
+		++firstNonSpace;
+	}
+	bool first = true;
+	for (auto& line : lines) {
+		if (!first) {
+			line = line.mid(firstNonSpace);
+		}
+		first = false;
+	}
+	return lines.join(QLatin1Char('\n'));
+}
+
 }

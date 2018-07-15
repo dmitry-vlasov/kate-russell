@@ -92,5 +92,7 @@ struct Task {
 
 Task parse_task(const QString& command);
 
+QString align_assertion(QString assertion);
+
 }
 
