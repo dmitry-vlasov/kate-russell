@@ -26,8 +26,8 @@
 #include <ktexteditor/mainwindow.h>
 
 #include "Enums.hpp"
+#include "HypNode.hpp"
 #include "ProofInfo.hpp"
-#include "ProofNode.hpp"
 
 namespace russell {
 
@@ -108,7 +108,7 @@ private :
 	QTreeWidgetItem* root_;
 	QStringList  proofs_;
 
-	std::unique_ptr<ProofNode> nodeView;
+	HypNode      hypNodeView;
 };
 
 }

@@ -23,7 +23,7 @@
 
 #include "commands.hpp"
 #include "Execute.hpp"
-#include "ProofNode.hpp"
+#include "HypNode.hpp"
 
 namespace russell {
 
@@ -57,7 +57,7 @@ namespace russell {
 	root_ (nullptr),
 	proofs_ ()
 	{
-		nodeView.reset(new ProofNode());
+		//hypNodeView.reset(new ProofNode());
 		setupSlotsAndSignals();
 		setupLayout();
 	}
@@ -76,12 +76,12 @@ namespace russell {
 
 	void Proof::slotShowContextMenu(const QPoint& point) {
 		if (popup_ != nullptr) {
-			popup_->popup (tree_->mapToGlobal (point));
+			popup_->popup(tree_->mapToGlobal(point));
 		}
 	}
 	void Proof::slotShowAssertionVariant(QTableWidgetItem* item) {
-		nodeView.get()->ui_.assertionTextEdit->setPlainText(
-			align_assertion(nodeView.get()->propInfoVector[item->row()].assertion)
+		hypNodeView.ui_.assertionTextEdit->setPlainText(
+			align_assertion(hypNodeView.propInfoVector[item->row()].assertion)
 		);
 	}
 
@@ -95,8 +95,8 @@ namespace russell {
 	void Proof::slotDoNothing() {
 	}
 	void Proof::slotExpandNode() {
-		if (QTableWidgetItem* item = nodeView.get()->ui_.variantTableWidget->currentItem()) {
-			int index = nodeView.get()->propInfoVector[item->row()].index;
+		if (QTableWidgetItem* item = hypNodeView.ui_.variantTableWidget->currentItem()) {
+			int index = hypNodeView.propInfoVector[item->row()].index;
 			Execute::exec(
 				QStringList() << QLatin1String("rus prove_step") +
 				QLatin1String(" index=") + QString::number(index)
@@ -104,8 +104,8 @@ namespace russell {
 		}
 	}
 	void Proof::slotDeleteNode() {
-		if (QTableWidgetItem* item = nodeView.get()->ui_.variantTableWidget->currentItem()) {
-			int index = nodeView.get()->propInfoVector[item->row()].index;
+		if (QTableWidgetItem* item = hypNodeView.ui_.variantTableWidget->currentItem()) {
+			int index = hypNodeView.propInfoVector[item->row()].index;
 			Execute::exec(
 				QStringList() << QLatin1String("rus prove_delete") +
 				QLatin1String(" index=") + QString::number(index)
@@ -129,6 +129,9 @@ namespace russell {
 		if (index == -1) {
 			return;
 		}
+		hypNodeView.show();
+		hypNodeView.activateWindow();
+		hypNodeView.raise();
 		Execute::exec(
 			QStringList() << QLatin1String("rus prove_info") +
 			QLatin1String(" index=") + QString::number(index) +
@@ -149,6 +152,9 @@ namespace russell {
 			if (index == -1) {
 				return;
 			}
+			hypNodeView.show();
+			hypNodeView.activateWindow();
+			hypNodeView.raise();
 			Execute::exec(
 				QStringList() << QLatin1String("rus prove_info") +
 				QLatin1String(" index=") + QString::number(index) +
@@ -168,6 +174,7 @@ namespace russell {
 		if (XMLSource.isEmpty()) {
 			return;
 		}
+		//QTextStream(stdout) << "XMLSource \n\n\n" << XMLSource << "\n\n\n";
 		QDomDocument document;
 		QString errorMsg;
 		int errorLine = 0;
@@ -183,7 +190,7 @@ namespace russell {
 		QDomElement root = document.documentElement();
 		QDomNode node = root.firstChild();
 		if (root.tagName() == QLatin1String("new")) {
-			buildTree(node);
+			buildTreeUp(node);
 		} else if (root.tagName() == QLatin1String("node")) {
 			buildNode(node);
 		} else if (root.tagName() == QLatin1String("info")) {
@@ -215,9 +222,9 @@ namespace russell {
 		connect(tree_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(slotShowContextMenu(const QPoint&)));
 		connect(tree_, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(slotGrowTree(QTreeWidgetItem*)));
 		connect(proofView_, SIGNAL(toolVisibleChanged(bool)), this, SLOT(slotVisibilityChanged(bool)));
-		connect(nodeView.get()->ui_.variantTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowAssertionVariant(QTableWidgetItem*)));
-		connect(nodeView.get()->ui_.expandNode, SIGNAL(clicked()), this, SLOT(slotExpandNode()));
-		connect(nodeView.get()->ui_.deleteNode, SIGNAL(clicked()), this, SLOT(slotDeleteNode()));
+		connect(hypNodeView.ui_.variantTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowAssertionVariant(QTableWidgetItem*)));
+		connect(hypNodeView.ui_.expandNode, SIGNAL(clicked()), this, SLOT(slotExpandNode()));
+		connect(hypNodeView.ui_.deleteNode, SIGNAL(clicked()), this, SLOT(slotDeleteNode()));
 	}
 	void Proof::setupLayout() {
 		QStringList titles;
@@ -261,21 +268,22 @@ namespace russell {
 
 	void Proof::processInfoChildren(QDomNode outlineNode) {
 		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
-		nodeView.get()->setVisible(true);
-		nodeView.get()->propInfoVector.clear();
+		hypNodeView.setVisible(true);
+		hypNodeView.propInfoVector.clear();
+		hypNodeView.ui_.variantTableWidget->setRowCount(0);
+		hypNodeView.ui_.assertionTextEdit->clear();
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
 				if (outlineElement.tagName() == QLatin1String("prop")) {
 					PropInfo info = infoProp(outlineNode);
-					int row = nodeView->ui_.variantTableWidget->rowCount();
-					nodeView.get()->ui_.variantTableWidget->insertRow(row);
+					int row = hypNodeView.ui_.variantTableWidget->rowCount();
+					hypNodeView.ui_.variantTableWidget->insertRow(row);
 					QTableWidgetItem* assertion = new QTableWidgetItem(info.name);
 					Qt::ItemFlags flags = assertion->flags();
 					assertion->setFlags(flags & ~Qt::ItemIsEditable);
-					nodeView.get()->ui_.variantTableWidget->setItem(row, 0, assertion);
-					nodeView.get()->propInfoVector.append(info);
-					//QTextStream(stdout) << "A: " << info.assertion << "\n";
+					hypNodeView.ui_.variantTableWidget->setItem(row, 0, assertion);
+					hypNodeView.propInfoVector.append(info);
 				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
 					HypInfo info = infoHyp(outlineNode);
 				}
@@ -328,15 +336,6 @@ namespace russell {
 		return info;
 	}
 
-	void Proof::buildTree(QDomNode& outlineNode) {
-		while (!outlineNode.isNull()) {
-			QDomElement outlineElement = outlineNode.toElement();
-			if (!outlineElement.isNull()) {
-				buildTreeUp (outlineElement);
-			}
-			outlineNode = outlineNode.nextSibling();
-		}
-	}
 	void Proof::buildTreeUp (QDomNode& outlineNode) {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();

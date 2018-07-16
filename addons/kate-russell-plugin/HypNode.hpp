@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /* Project name:    Kate plugin for Russell prover integration               */
-/* File Name:       plugin_kate_russell_ProofNode.cpp                            */
+/* File Name:       plugin_kate_russell_Proof.hpp                            */
 /* Description:     an proof view for a Russell support                      */
 /* Copyright:       (c) 2011 Dmitri Vlasov                                   */
 /* Author:          Dmitri Yurievich Vlasov, Novosibirsk, Russia             */
@@ -11,26 +11,32 @@
 /* License:         GNU General Public License Version 3                     */
 /*****************************************************************************/
 
-#include <QLineEdit>
-#include <QWindow>
+#pragma once
 
-#include "ProofNode.hpp"
-#include "View.hpp"
-#include "Icon.hpp"
+#include <QWidget>
+#include <QPoint>
+#include <QTreeWidget>
+#include <QTableWidget>
+#include <QDomNode>
+#include <QMenu>
+#include <QAction>
 
-#include "ProofNode.moc"
+#include <ktexteditor/mainwindow.h>
 
-#include "Execute.hpp"
+#include "Enums.hpp"
+#include "ProofInfo.hpp"
+#include "ui_HypNode.h"
 
 namespace russell {
 
-	/****************************
-	 *	Public members
-	 ****************************/
+class HypNode : public QWidget {
+Q_OBJECT
+public:
+	HypNode ();
+	virtual ~ HypNode();
 
-	ProofNode::ProofNode() :
-	QWidget (nullptr, Qt::SubWindow) {
-		ui_.setupUi(this);
-	}
-	ProofNode::~ ProofNode() { }
+	Ui::HypNode ui_;
+	QVector<PropInfo> propInfoVector;
+};
+
 }
