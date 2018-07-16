@@ -47,18 +47,20 @@ Q_SIGNALS:
 
 public Q_SLOTS:
 	void slotShowContextMenu(const QPoint&);
-	void expandTree();
-	void doNothing();
+	void slotExpandTree();
+	void slotExpandNode();
+	void slotDeleteNode();
+	void slotDoNothing();
 
 	// Proof tree cultivation
-	void startProving(const QString& file, int line, int col);
-	void growTree(QTreeWidgetItem*);
+	void slotStartProving(const QString& file, int line, int col);
+	void slotGrowTree(QTreeWidgetItem*);
 	void stopProving();
-	void info();
-	void show();
-	void hide();
-	void visibilityChanged(bool visible);
-	void updateXML(const QString& XMLSource, const Task& task);
+	void slotInfo();
+	void slotShow();
+	void slotHide();
+	void slotVisibilityChanged(bool visible);
+	void slotUpdateXML(const QString& XMLSource, const Task& task);
 	void slotShowAssertionVariant(QTableWidgetItem* item);
 
 private :

@@ -259,7 +259,7 @@ namespace russell {
 				typeSystem_->update(data);
 				break;
 			case State::PROVING_INTERACTIVELY :
-				proof_->updateXML(data, task);
+				proof_->slotUpdateXML(data, task);
 				break;
 			case State::PROVING_AUTOMATICALLY :
 				reloadSource();
@@ -369,8 +369,8 @@ namespace russell {
 				const int line = activeView->cursorPosition().line();
 				const int column = activeView->cursorPosition().column();
 				proof_->stopProving();
-				proof_->startProving(fc.file, line, column);
-				proof_->show();
+				proof_->slotStartProving(fc.file, line, column);
+				proof_->slotShow();
 			}
 		}
 	}
