@@ -57,6 +57,7 @@ namespace russell {
 	root_ (nullptr),
 	proofs_ ()
 	{
+		proofsViewUi.setupUi(&proofsView);
 		setupSlotsAndSignals();
 		setupLayout();
 	}
@@ -79,26 +80,39 @@ namespace russell {
 		}
 	}
 	void Proof::slotShowAssertionVariant(QTableWidgetItem* item) {
-		hypNodeView.ui_.assertionTextEdit->setPlainText(
-			align_assertion(hypNodeView.propInfoVector[item->row()].assertion)
-		);
+		if (item->row() < hypNodeView.propInfoVector.size()) {
+			hypNodeView.ui_.assertionTextEdit->setPlainText(
+				align_assertion(hypNodeView.propInfoVector[item->row()].assertion)
+			);
+		}
+	}
+	void Proof::slotShowProofVariant(QTableWidgetItem* item) {
+		if (item->row() < proofsVector.size()) {
+			proofsViewUi.proofTextEdit->setPlainText(
+				align_assertion(proofsVector[item->row()])
+			);
+		}
 	}
 	void Proof::slotExpandNode() {
 		if (QTableWidgetItem* item = hypNodeView.ui_.variantTableWidget->currentItem()) {
-			int index = hypNodeView.propInfoVector[item->row()].index;
-			Execute::exec(
-				QStringList() << QLatin1String("rus prove_step") +
-				QLatin1String(" index=") + QString::number(index)
-			);
+			if (item->row() < hypNodeView.propInfoVector.size()) {
+				int index = hypNodeView.propInfoVector[item->row()].index;
+				Execute::exec(
+					QStringList() << QLatin1String("rus prove_step") +
+					QLatin1String(" index=") + QString::number(index)
+				);
+			}
 		}
 	}
 	void Proof::slotDeleteNode() {
 		if (QTableWidgetItem* item = hypNodeView.ui_.variantTableWidget->currentItem()) {
-			int index = hypNodeView.propInfoVector[item->row()].index;
-			Execute::exec(
-				QStringList() << QLatin1String("rus prove_delete") +
-				QLatin1String(" index=") + QString::number(index)
-			);
+			if (item->row() < hypNodeView.propInfoVector.size()) {
+				int index = hypNodeView.propInfoVector[item->row()].index;
+				Execute::exec(
+					QStringList() << QLatin1String("rus prove_delete") +
+					QLatin1String(" index=") + QString::number(index)
+				);
+			}
 		}
 	}
 
@@ -117,9 +131,6 @@ namespace russell {
 		if (index == -1) {
 			return;
 		}
-		hypNodeView.show();
-		hypNodeView.activateWindow();
-		hypNodeView.raise();
 		Execute::exec(
 			QStringList() << QLatin1String("rus prove_info") +
 			QLatin1String(" index=") + QString::number(index) +
@@ -142,9 +153,7 @@ namespace russell {
 			if (index == -1) {
 				return;
 			}
-			hypNodeView.show();
-			hypNodeView.activateWindow();
-			hypNodeView.raise();
+
 			Execute::exec(
 				QStringList() << QLatin1String("rus prove_info") +
 				QLatin1String(" index=") + QString::number(index) +
@@ -195,9 +204,10 @@ namespace russell {
 		connect(popup_->addAction(QLatin1String("proofs")), SIGNAL(triggered()), this, SLOT(slotProofsInfo()));
 
 		connect(tree_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(slotShowContextMenu(const QPoint&)));
-		connect(tree_, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(slotChooseVariant(QTreeWidgetItem*)));
+		connect(tree_, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(slotChooseVariant(QTreeWidgetItem*)));
 		connect(proofView_, SIGNAL(toolVisibleChanged(bool)), this, SLOT(slotVisibilityChanged(bool)));
 		connect(hypNodeView.ui_.variantTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowAssertionVariant(QTableWidgetItem*)));
+		connect(proofsViewUi.expressionTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowProofVariant(QTableWidgetItem*)));
 		connect(hypNodeView.ui_.expandNode, SIGNAL(clicked()), this, SLOT(slotExpandNode()));
 		connect(hypNodeView.ui_.deleteNode, SIGNAL(clicked()), this, SLOT(slotDeleteNode()));
 	}
@@ -240,8 +250,10 @@ namespace russell {
 	}
 
 	void Proof::processInfoChildren(QDomNode outlineNode) {
-		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
 		hypNodeView.setVisible(true);
+		hypNodeView.show();
+		hypNodeView.activateWindow();
+		hypNodeView.raise();
 		hypNodeView.propInfoVector.clear();
 		hypNodeView.ui_.variantTableWidget->setRowCount(0);
 		hypNodeView.ui_.assertionTextEdit->clear();
@@ -253,8 +265,7 @@ namespace russell {
 					int row = hypNodeView.ui_.variantTableWidget->rowCount();
 					hypNodeView.ui_.variantTableWidget->insertRow(row);
 					QTableWidgetItem* assertion = new QTableWidgetItem(info.name);
-					Qt::ItemFlags flags = assertion->flags();
-					assertion->setFlags(flags & ~Qt::ItemIsEditable);
+					assertion->setFlags(assertion->flags() & ~Qt::ItemIsEditable);
 					hypNodeView.ui_.variantTableWidget->setItem(row, 0, assertion);
 					hypNodeView.propInfoVector.append(info);
 				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
@@ -266,25 +277,23 @@ namespace russell {
 	}
 
 	void Proof::processInfoProofs(QDomNode outlineNode) {
-		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
-		hypNodeView.setVisible(true);
-		hypNodeView.propInfoVector.clear();
-		hypNodeView.ui_.variantTableWidget->setRowCount(0);
-		hypNodeView.ui_.assertionTextEdit->clear();
+		proofsView.setVisible(true);
+		proofsView.show();
+		proofsView.activateWindow();
+		proofsView.raise();
+		proofsVector.clear();
+		proofsViewUi.expressionTableWidget->setRowCount(0);
+		proofsViewUi.proofTextEdit->clear();
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("prop")) {
-					PropInfo info = infoProp(outlineNode);
-					int row = hypNodeView.ui_.variantTableWidget->rowCount();
-					hypNodeView.ui_.variantTableWidget->insertRow(row);
-					QTableWidgetItem* assertion = new QTableWidgetItem(info.name);
-					Qt::ItemFlags flags = assertion->flags();
-					assertion->setFlags(flags & ~Qt::ItemIsEditable);
-					hypNodeView.ui_.variantTableWidget->setItem(row, 0, assertion);
-					hypNodeView.propInfoVector.append(info);
-				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
-					HypInfo info = infoHyp(outlineNode);
+				if (outlineElement.tagName() == QLatin1String("proof")) {
+					int row = proofsViewUi.expressionTableWidget->rowCount();
+					proofsViewUi.expressionTableWidget->insertRow(row);
+					QTableWidgetItem* expr = new QTableWidgetItem(outlineElement.attribute(QLatin1String("expr")));
+					expr->setFlags(expr->flags() & ~Qt::ItemIsEditable);
+					proofsViewUi.expressionTableWidget->setItem(row, 0, expr);
+					proofsVector.append(outlineElement.text());
 				}
 			}
 			outlineNode = outlineNode.nextSibling();

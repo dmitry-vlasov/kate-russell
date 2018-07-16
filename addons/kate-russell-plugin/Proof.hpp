@@ -28,6 +28,7 @@
 #include "Enums.hpp"
 #include "HypNode.hpp"
 #include "ProofInfo.hpp"
+#include "ui_ProofsView.h"
 
 namespace russell {
 
@@ -60,6 +61,7 @@ public Q_SLOTS:
 	void slotVisibilityChanged(bool visible);
 	void slotUpdateXML(const QString& XMLSource, const Task& task);
 	void slotShowAssertionVariant(QTableWidgetItem* item);
+	void slotShowProofVariant(QTableWidgetItem* item);
 
 private :
 	void setupSlotsAndSignals();
@@ -100,7 +102,10 @@ private :
 	QTreeWidgetItem* root_;
 	QStringList  proofs_;
 
-	HypNode      hypNodeView;
+	HypNode        hypNodeView;
+	QWidget        proofsView;
+	Ui::ProofsView proofsViewUi;
+	QVector<QString> proofsVector;
 };
 
 }
