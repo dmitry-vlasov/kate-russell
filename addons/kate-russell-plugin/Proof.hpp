@@ -77,15 +77,10 @@ private :
 
 	// Building up a tree structure
 	void buildTree      (QDomNode&);
-	void buildTreeUp    (QDomNode&);
-	void buildTreeUpRoot (QDomNode&);
+	void buildTreeRoot (QDomNode&);
 	void buildTreeHyp   (QDomNode&);
 	void buildTreeProp  (QDomNode&);
 	void buildTreeRef   (QDomNode&);
-	void buildTreeTop   (QDomNode&);
-	void buildRoot      (QDomNode&);
-	void buildRootProof (QDomNode&);
-
 
 	typedef
 		std :: map<int, QTreeWidgetItem*>

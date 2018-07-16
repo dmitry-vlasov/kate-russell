@@ -189,7 +189,7 @@ namespace russell {
 		QDomElement root = document.documentElement();
 		QDomNode node = root.firstChild();
 		if (root.tagName() == QLatin1String("new")) {
-			buildTreeUp(node);
+			buildTree(node);
 		} else if (root.tagName() == QLatin1String("info")) {
 			processInfo(node);
 		}
@@ -344,12 +344,12 @@ namespace russell {
 		return info;
 	}
 
-	void Proof::buildTreeUp (QDomNode& outlineNode) {
+	void Proof::buildTree(QDomNode& outlineNode) {
 		while (!outlineNode.isNull()) {
 			QDomElement outlineElement = outlineNode.toElement();
 			if (!outlineElement.isNull()) {
 				if (outlineElement.tagName() == QLatin1String("root")) {
-					buildTreeUpRoot (outlineNode);
+					buildTreeRoot (outlineNode);
 				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
 					buildTreeHyp (outlineNode);
 				} else if (outlineElement.tagName() == QLatin1String("prop")) {
@@ -363,7 +363,7 @@ namespace russell {
 			outlineNode = outlineNode.nextSibling();
 		}
 	}
-	void Proof::buildTreeUpRoot(QDomNode& outlineNode) {
+	void Proof::buildTreeRoot(QDomNode& outlineNode) {
 		HypInfo info = infoHyp(outlineNode);
 		root_ = new QTreeWidgetItem(tree_);
 		treeItems_[info.index] = root_;
