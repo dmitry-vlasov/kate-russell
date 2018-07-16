@@ -57,7 +57,6 @@ namespace russell {
 	root_ (nullptr),
 	proofs_ ()
 	{
-		//hypNodeView.reset(new ProofNode());
 		setupSlotsAndSignals();
 		setupLayout();
 	}
@@ -83,16 +82,6 @@ namespace russell {
 		hypNodeView.ui_.assertionTextEdit->setPlainText(
 			align_assertion(hypNodeView.propInfoVector[item->row()].assertion)
 		);
-	}
-
-	void Proof::slotExpandTree() {
-		for (int i = 0; i < treeItems_.size(); ++ i) {
-			if (treeItems_[i]) {
-				treeItems_[i]->setExpanded(true);
-			}
-		}
-	}
-	void Proof::slotDoNothing() {
 	}
 	void Proof::slotExpandNode() {
 		if (QTableWidgetItem* item = hypNodeView.ui_.variantTableWidget->currentItem()) {
@@ -120,12 +109,11 @@ namespace russell {
 		proofs_.clear();
 		Execute::exec(command::prove(file, ProvingMode::INTERACTIVE, line, col));
 	}
-	void Proof::slotGrowTree(QTreeWidgetItem* item) {
-		if (!item) {
+	void Proof::slotChooseVariant(QTreeWidgetItem* item) {
+		if (!item || item->text(2) == QLatin1String("prop")) {
 			return;
 		}
-		const QString indexString = item->text(1);
-		const int index = indexString.toInt();
+		int index = item->text(1).toInt();
 		if (index == -1) {
 			return;
 		}
@@ -145,10 +133,12 @@ namespace russell {
 		root_ = nullptr;
 		//hide();
 	}
-	void Proof::slotInfo() {
+	void Proof::slotProofsInfo() {
 		if (QTreeWidgetItem* item = tree_->currentItem()) {
-			const QString indexString = item->text(1);
-			const int index = indexString.toInt();
+			if (item->text(2) == QLatin1String("prop")) {
+				return;
+			}
+			int index = item->text(1).toInt();
 			if (index == -1) {
 				return;
 			}
@@ -158,7 +148,7 @@ namespace russell {
 			Execute::exec(
 				QStringList() << QLatin1String("rus prove_info") +
 				QLatin1String(" index=") + QString::number(index) +
-				QLatin1String(" what=children")
+				QLatin1String(" what=proofs")
 			);
 		}
 	}
@@ -191,8 +181,6 @@ namespace russell {
 		QDomNode node = root.firstChild();
 		if (root.tagName() == QLatin1String("new")) {
 			buildTreeUp(node);
-		} else if (root.tagName() == QLatin1String("node")) {
-			buildNode(node);
 		} else if (root.tagName() == QLatin1String("info")) {
 			processInfo(node);
 		}
@@ -203,24 +191,11 @@ namespace russell {
 	 ****************************/
 
 	void Proof::setupSlotsAndSignals() {
-		QAction* showAct = new QAction(QIcon(QLatin1String("open.png")), tr("&show..."), popup_);
-		//showAct->setShortcuts(QKeySequence::Open);
-		showAct->setStatusTip(tr("Show complete info"));
-		connect(showAct, SIGNAL(triggered()), this, SLOT(slotInfo()));
-		popup_->insertAction(nullptr, showAct);
-/*
-		popup_->insertItem (i18n ("FUCK"), this, SLOT (doNothing()));
-		popup_->insertItem (i18n ("FUCK"), this, SLOT (doNothing()));
-		popup_->insertItem (i18n ("FUCK"), this, SLOT (doNothing()));
-		popup_->insertItem (i18n ("FUCK"), this, SLOT (doNothing()));
-		popup_->insertItem (i18n ("expand"), this, SLOT (expandTree()));
-*/
-		QAction* expand = popup_->addAction(QLatin1String("expand"));
-
-		connect(expand, SIGNAL(changed()), this, SLOT(slotExpandTree()));
+		connect(popup_->addAction(QLatin1String("expand")), SIGNAL(triggered()), this, SLOT(slotExpandTree()));
+		connect(popup_->addAction(QLatin1String("proofs")), SIGNAL(triggered()), this, SLOT(slotProofsInfo()));
 
 		connect(tree_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(slotShowContextMenu(const QPoint&)));
-		connect(tree_, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(slotGrowTree(QTreeWidgetItem*)));
+		connect(tree_, SIGNAL(itemActivated(QTreeWidgetItem*, int)), this, SLOT(slotChooseVariant(QTreeWidgetItem*)));
 		connect(proofView_, SIGNAL(toolVisibleChanged(bool)), this, SLOT(slotVisibilityChanged(bool)));
 		connect(hypNodeView.ui_.variantTableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(slotShowAssertionVariant(QTableWidgetItem*)));
 		connect(hypNodeView.ui_.expandNode, SIGNAL(clicked()), this, SLOT(slotExpandNode()));
@@ -243,10 +218,6 @@ namespace russell {
 		tree_->updateGeometry();
 		tree_->setContentsMargins(1, 1, 1, 1);
 		tree_->setMaximumWidth(100000);
-
-		//proofView_->setMaximumWidth(100000);
-		//proofView_->etSizePolicy (QSizePolicy::Expanding, QSizePolicy::Expanding);
-		//proofView_->setContentsMargins(1, 1, 1, 1);
 	}
 
 	void Proof::processInfo(QDomNode& outlineNode) {
@@ -257,6 +228,8 @@ namespace russell {
 					processInfoNode(outlineNode.firstChild());
 				} else if (outlineElement.tagName() == QLatin1String("children")) {
 					processInfoChildren(outlineNode.firstChild());
+				} else if (outlineElement.tagName() == QLatin1String("proofs")) {
+					processInfoProofs(outlineNode.firstChild());
 				}
 			}
 			outlineNode = outlineNode.nextSibling();
@@ -267,6 +240,32 @@ namespace russell {
 	}
 
 	void Proof::processInfoChildren(QDomNode outlineNode) {
+		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
+		hypNodeView.setVisible(true);
+		hypNodeView.propInfoVector.clear();
+		hypNodeView.ui_.variantTableWidget->setRowCount(0);
+		hypNodeView.ui_.assertionTextEdit->clear();
+		while (!outlineNode.isNull()) {
+			QDomElement outlineElement = outlineNode.toElement();
+			if (!outlineElement.isNull()) {
+				if (outlineElement.tagName() == QLatin1String("prop")) {
+					PropInfo info = infoProp(outlineNode);
+					int row = hypNodeView.ui_.variantTableWidget->rowCount();
+					hypNodeView.ui_.variantTableWidget->insertRow(row);
+					QTableWidgetItem* assertion = new QTableWidgetItem(info.name);
+					Qt::ItemFlags flags = assertion->flags();
+					assertion->setFlags(flags & ~Qt::ItemIsEditable);
+					hypNodeView.ui_.variantTableWidget->setItem(row, 0, assertion);
+					hypNodeView.propInfoVector.append(info);
+				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
+					HypInfo info = infoHyp(outlineNode);
+				}
+			}
+			outlineNode = outlineNode.nextSibling();
+		}
+	}
+
+	void Proof::processInfoProofs(QDomNode outlineNode) {
 		QString kind = outlineNode.toElement().attribute(QLatin1String("kind"));
 		hypNodeView.setVisible(true);
 		hypNodeView.propInfoVector.clear();
@@ -348,9 +347,9 @@ namespace russell {
 					buildTreeProp (outlineNode);
 				} else if (outlineElement.tagName() == QLatin1String("ref")) {
 					buildTreeRef (outlineNode);
-				} else if (outlineElement.tagName() == QLatin1String("top")) {
+				} /*else if (outlineElement.tagName() == QLatin1String("top")) {
 					buildTreeTop (outlineNode);
-				}
+				}*/
 			}
 			outlineNode = outlineNode.nextSibling();
 		}
@@ -462,322 +461,5 @@ namespace russell {
 		toolTip += QLatin1String("expression: ");
 		toolTip += expression;
 		item->setToolTip(0, toolTip);
-	}
-	void Proof::buildTreeTop(QDomNode& outlineNode) {
-		QDomElement outlineElement = outlineNode.toElement();
-		const QString reference = outlineElement.attribute(QLatin1String("reference"));
-		const QString types = outlineElement.attribute(QLatin1String("types"));
-		const bool hint = (outlineElement.attribute(QLatin1String("hint")) == QLatin1String("+"));
-		const int index = outlineElement.attribute(QLatin1String("index")).toInt();
-		const int downIndex = outlineElement.attribute(QLatin1String("down")).toInt();
-
-		QString expression;
-		QDomNode childNode = outlineNode.firstChild();
-		while (!childNode.isNull()) {
-			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QLatin1String("expression")) {
-				expression = childElement.text();
-			}
-			childNode = childNode.nextSibling();
-		}
-		QTreeWidgetItem* parent = treeItems_ [downIndex];
-		QTreeWidgetItem* item =	new QTreeWidgetItem(parent);
-		treeItems_ [index] = item;
-
-		item->setIcon(0, Icon::top());
-		item->setText(0, reference);
-		item->setText(1, QString::number(index));
-		item->setText(2, QLatin1String("top"));
-		QString toolTip;
-		if (hint) {
-			toolTip += QLatin1String("<<< HINT >>>\n");
-		}
-		toolTip += QLatin1String("index: ");
-		toolTip += QString::number (index);
-		toolTip += QLatin1String("\n");
-		toolTip += QLatin1String("types: ");
-		toolTip += types;
-		toolTip += QLatin1String("\n");
-		toolTip += QLatin1String("reference: ");
-		toolTip += reference;
-		toolTip += QLatin1String("\n");
-		toolTip += QLatin1String("expression: ");
-		toolTip += expression;
-		item->setToolTip(0, toolTip);
-	}
-	void Proof::buildRoot(QDomNode& outlineNode) {
-		while (!outlineNode.isNull()) {
-			QDomElement outlineElement = outlineNode.toElement();
-			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("proof" )) {
-					buildRootProof (outlineNode);
-				}
-			}
-			outlineNode = outlineNode.nextSibling();
-		}
-	}
-	void Proof::buildRootProof(QDomNode& outlineNode) {
-		//root->setIcon (1, Icon :: proved());
-		QDomElement outlineElement = outlineNode.toElement();
-		QString proof = outlineElement.text();
-		proofs_ << proof;
-		root_->setToolTip(0, proofs_.join(QLatin1String("\n")));
-	}
-
-	void Proof::buildNode(QDomNode& outlineNode) {
-		while (!outlineNode.isNull()) {
-			QDomElement outlineElement = outlineNode.toElement();
-			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("prop")) {
-					buildNodeProp (outlineNode);
-				} else if (outlineElement.tagName() == QLatin1String("hyp")) {
-					buildNodeHyp (outlineNode);
-				} else if (outlineElement.tagName() == QLatin1String("ref")) {
-					buildNodeRef (outlineNode);
-				} else if (outlineElement.tagName() == QLatin1String("root")) {
-					buildNodeRoot (outlineNode);
-				} else if (outlineElement.tagName() == QLatin1String("top")) {
-					buildNodeTop (outlineNode);
-				}
-			}
-			outlineNode = outlineNode.nextSibling();
-		}
-	}
-	void Proof::buildNodeRoot(QDomNode& outlineNode) {
-		buildNodeHyp (outlineNode);
-	}
-	void Proof::buildNodeHyp(QDomNode& outlineNode) {
-		QDomElement outlineElement = outlineNode.toElement();
-		const QString types = outlineElement.attribute(QLatin1String("types"));
-		const int index = outlineElement.attribute(QLatin1String("index")).toInt();
-		const bool hint = (outlineElement.attribute(QLatin1String("hint")) == QLatin1String("+"));
-
-		QString expression;
-		QDomNode childNode = outlineNode.firstChild();
-		while (!childNode.isNull()) {
-			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QLatin1String("expression")) {
-				expression = childElement.text();
-			}
-			childNode = childNode.nextSibling();
-		}
-
-		QDialog* infoBox = new QDialog(this);
-		QGridLayout* layout = new QGridLayout(infoBox);
-
-		QLabel*    indexLabel = new QLabel(QString(QLatin1String("index:")));
-		QLineEdit* indexText  = new QLineEdit(QString::number(index));
-		indexText->setReadOnly (true);
-		layout->addWidget(indexLabel, 0, 0, 1, 1);
-		layout->addWidget(indexText,  0, 1, 1, 1);
-
-		QLabel*    infoLabel = new QLabel(QString(QLatin1String("hypothesis:")));
-		QLineEdit* infoText  = new QLineEdit(expression);
-		infoText->setReadOnly (true);
-		layout->addWidget(infoLabel, 1, 0, 1, 1);
-		layout->addWidget(infoText,  1, 1, 1, 1);
-
-		QLabel*    typesLabel = new QLabel(QString(QLatin1String("types:")));
-		QLineEdit* typesText  = new QLineEdit(types);
-		typesText->setReadOnly(true);
-		layout->addWidget(typesLabel, 2, 0, 1, 1);
-		layout->addWidget(typesText,  2, 1, 1, 1);
-
-		QTableWidget* evidenceList = buildNodeEvidences(outlineNode);
-		layout->addWidget(evidenceList, 3, 0, 2, 5);
-		infoBox->setVisible(true);
-	}
-	void Proof::buildNodeProp(QDomNode& outlineNode) {
-		QDomElement outlineElement = outlineNode.toElement();
-		const QString name = outlineElement.attribute(QLatin1String("name"));
-		const int index = outlineElement.attribute(QLatin1String("index")).toInt();
-		const bool hint = (outlineElement.attribute(QLatin1String("hint")) == QLatin1String("+"));
-
-		QString assertion;
-		QDomNode childNode = outlineNode.firstChild();
-		while (!childNode.isNull()) {
-			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QLatin1String("assertion")) {
-				assertion = childElement.text();
-			}
-			childNode = childNode.nextSibling();
-		}
-
-		QDialog* infoBox = new QDialog (this);
-		QGridLayout* layout = new QGridLayout (infoBox);
-
-		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
-		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
-		indexText->setReadOnly (true);
-		layout->addWidget (indexLabel, 0, 0, 1, 1);
-		layout->addWidget (indexText,  0, 1, 1, 1);
-
-		QLabel*    infoLabel = new QLabel (QString(QLatin1String("proposition:")));
-		QLineEdit* infoText  = new QLineEdit (name);
-		infoText->setReadOnly (true);
-		layout->addWidget (infoLabel, 1, 0, 1, 1);
-		layout->addWidget (infoText,  1, 1, 1, 1);
-
-		QTableWidget* evidenceList = buildNodeEvidences (outlineNode);
-		layout->addWidget (evidenceList, 2, 0, 2, 5);
-		layout->setEnabled (true);
-		infoBox->setVisible (true);
-	}
-	void Proof::buildNodeRef(QDomNode& outlineNode) {
-		QDomElement outlineElement = outlineNode.toElement();
-		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
-		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
-
-		QString expression;
-		QDomNode childNode = outlineNode.firstChild();
-		while (!childNode.isNull()) {
-			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QLatin1String("expression")) {
-				expression = childElement.text();
-			}
-			childNode = childNode.nextSibling();
-		}
-
-		QDialog* infoBox = new QDialog (this);
-		QGridLayout* layout = new QGridLayout (infoBox);
-
-		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
-		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
-		indexText->setReadOnly (true);
-		layout->addWidget (indexLabel, 0, 0, 1, 1);
-		layout->addWidget (indexText,  0, 1, 1, 1);
-
-		QLabel*    infoLabel = new QLabel (QString(QLatin1String("reference to:")));
-		QLineEdit* infoText  = new QLineEdit (expression);
-		infoText->setReadOnly (true);
-		layout->addWidget (infoLabel, 1, 0, 1, 1);
-		layout->addWidget (infoText,  1, 1, 1, 1);
-
-		QTableWidget* evidenceList = buildNodeEvidences (outlineNode);
-		layout->addWidget (evidenceList, 2, 0, 2, 5);
-		infoBox->setVisible (true);
-	}
-	void Proof::buildNodeTop(QDomNode& outlineNode) {
-		QDomElement outlineElement = outlineNode.toElement();
-		const QString types = outlineElement.attribute (QLatin1String("types"));
-		const int index = outlineElement.attribute (QLatin1String("index")).toInt();
-		const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
-		const QString reference = outlineElement.attribute (QLatin1String("reference"));
-
-		QString expression;
-		QDomNode childNode = outlineNode.firstChild();
-		while (!childNode.isNull()) {
-			QDomElement childElement = childNode.toElement();
-			if (childElement.tagName() == QLatin1String("expression")) {
-				expression = childElement.text();
-			}
-			childNode = childNode.nextSibling();
-		}
-
-		QDialog* infoBox = new QDialog (this);
-		QGridLayout* layout = new QGridLayout (infoBox);
-
-		QLabel*    indexLabel = new QLabel (QString(QLatin1String("index:")));
-		QLineEdit* indexText  = new QLineEdit (QString :: number (index));
-		indexText->setReadOnly (true);
-		layout->addWidget (indexLabel, 0, 0, 1, 1);
-		layout->addWidget (indexText,  0, 1, 1, 1);
-
-		QLabel*    typesLabel = new QLabel (QString(QLatin1String("types:")));
-		QLineEdit* typesText  = new QLineEdit (types);
-		typesText->setReadOnly (true);
-		layout->addWidget (typesLabel, 1, 0, 1, 1);
-		layout->addWidget (typesText,  1, 1, 1, 1);
-
-		QLabel*    refInfoLabel = new QLabel (QString(QLatin1String("reference to:")));
-		QLineEdit* refInfoText  = new QLineEdit (reference);
-		refInfoText->setReadOnly (true);
-		layout->addWidget (refInfoLabel, 2, 0, 1, 1);
-		layout->addWidget (refInfoText,  2, 1, 1, 1);
-
-		QLabel*    expInfoLabel = new QLabel (QString(QLatin1String("expression:")));
-		QLineEdit* expInfoText  = new QLineEdit (expression);
-		expInfoText->setReadOnly (true);
-		layout->addWidget (expInfoLabel, 3, 0, 1, 1);
-		layout->addWidget (expInfoText,  3, 1, 1, 1);
-
-		QTableWidget* evidenceList = buildNodeEvidences (outlineNode);
-		layout->addWidget (evidenceList, 4, 0, 2, 5);
-		infoBox->setVisible (true);
-	}
-	QTableWidget* Proof::buildNodeEvidences(QDomNode& outlineNode) {
-		int rowCount = 0;
-		QDomNode countingNode = outlineNode.firstChild();
-		while (!countingNode.isNull()) {
-			QDomElement outlineElement = countingNode.toElement();
-			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("evidence")) {
-					++ rowCount;
-				}
-			}
-			countingNode = countingNode.nextSibling();
-		}
-		QTableWidget* evidenceList = new QTableWidget (rowCount, 4);
-		evidenceList->setHorizontalHeaderItem (0, new QTableWidgetItem (QString(QLatin1String("hint"))));
-		evidenceList->setHorizontalHeaderItem (1, new QTableWidgetItem (QString(QLatin1String("proof"))));
-		evidenceList->setHorizontalHeaderItem (2, new QTableWidgetItem (QString(QLatin1String("expression"))));
-		evidenceList->setHorizontalHeaderItem (3, new QTableWidgetItem (QString(QLatin1String("types"))));
-		evidenceList->setHorizontalHeaderItem (4, new QTableWidgetItem (QString(QLatin1String("substitution"))));
-		//evidenceList->setSizePolicy(QSizePolicy (QSizePolicy :: Maximum, QSizePolicy :: Maximum));
-		QDomNode evidenceNode = outlineNode.firstChild();
-		int row = 0;
-		int maxProofSize = 0;
-		int maxExprSize = 0;
-		Qt::ItemFlags flags;
-		flags |= Qt::ItemIsEnabled;
-		while (!evidenceNode.isNull()) {
-			QDomElement outlineElement = evidenceNode.toElement();
-			if (!outlineElement.isNull()) {
-				if (outlineElement.tagName() == QLatin1String("evidence")) {
-					const bool hint = (outlineElement.attribute (QLatin1String("hint")) == QLatin1String("+"));
-					const QString proof = outlineElement.attribute (QLatin1String("proof"));
-					const QString types = outlineElement.attribute (QLatin1String("types"));
-
-					QString expression;
-					QString substitution;
-					QDomNode childNode = outlineElement.firstChild();
-					while (!childNode.isNull()) {
-						QDomElement childElement = childNode.toElement();
-						if (childElement.tagName() == QLatin1String("expression")) {
-							expression = childElement.text();
-						}
-						if (childElement.tagName() == QLatin1String("substitution")) {
-							substitution = childElement.text();
-						}
-						childNode = childNode.nextSibling();
-					}
-
-					QTableWidgetItem* hintItem = new QTableWidgetItem (hint ? QString(QLatin1String("<<HINT>>")) : QLatin1String(""));
-					QTableWidgetItem* proofItem = new QTableWidgetItem (proof);
-					QTableWidgetItem* expressionItem = new QTableWidgetItem (expression);
-					QTableWidgetItem* typesItem = new QTableWidgetItem (types);
-					QTableWidgetItem* substitutionItem = new QTableWidgetItem (substitution);
-					proofItem->setFlags (flags);
-					expressionItem->setFlags (flags);
-					typesItem->setFlags (flags);
-					substitutionItem->setFlags (flags);
-					maxProofSize = (maxProofSize < proof.size()) ? proof.size() : maxProofSize;
-					maxExprSize  = (maxExprSize < expression.size()) ? expression.size() : maxExprSize;
-					evidenceList->setItem (row, 0, hintItem);
-					evidenceList->setItem (row, 1, proofItem);
-					evidenceList->setItem (row, 2, expressionItem);
-					evidenceList->setItem (row, 3, typesItem);
-					evidenceList->setItem (row, 4, substitutionItem);
-					++ row;
-				}
-			}
-			evidenceNode = evidenceNode.nextSibling();
-		}
-		//const int stetchFactor = 10;
-		//evidenceList->setColumnWidth (0, maxProofSize * stetchFactor);
-		//evidenceList->setColumnWidth (1, maxExprSize * stetchFactor);
-		evidenceList->setVisible (true);
-		evidenceList->adjustSize();
-		return evidenceList;
 	}
 }

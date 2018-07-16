@@ -40,7 +40,7 @@ set (syntaxhighlighting
 	syntax/mm.xml
 )
 
-ki18n_wrap_ui(katerussell_SRC BottomTab.ui RussellConfig.ui ProjectsTab.ui HypNode.ui)
+ki18n_wrap_ui(katerussell_SRC BottomTab.ui RussellConfig.ui ProjectsTab.ui HypNode.ui ProofsView.ui)
 
 qt5_add_resources(katerussell_SRC plugin.qrc)
 

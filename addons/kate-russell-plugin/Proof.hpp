@@ -47,16 +47,14 @@ Q_SIGNALS:
 
 public Q_SLOTS:
 	void slotShowContextMenu(const QPoint&);
-	void slotExpandTree();
 	void slotExpandNode();
 	void slotDeleteNode();
-	void slotDoNothing();
 
 	// Proof tree cultivation
 	void slotStartProving(const QString& file, int line, int col);
-	void slotGrowTree(QTreeWidgetItem*);
+	void slotChooseVariant(QTreeWidgetItem*);
 	void stopProving();
-	void slotInfo();
+	void slotProofsInfo();
 	void slotShow();
 	void slotHide();
 	void slotVisibilityChanged(bool visible);
@@ -67,11 +65,13 @@ private :
 	void setupSlotsAndSignals();
 	void setupLayout();
 
-	void processInfo(QDomNode&);
-	void processInfoNode(QDomNode);
 	HypInfo infoHyp(QDomNode&);
 	PropInfo infoProp(QDomNode&);
+
+	void processInfo(QDomNode&);
+	void processInfoNode(QDomNode);
 	void processInfoChildren(QDomNode);
+	void processInfoProofs(QDomNode);
 
 	// Building up a tree structure
 	void buildTree      (QDomNode&);
@@ -84,14 +84,6 @@ private :
 	void buildRoot      (QDomNode&);
 	void buildRootProof (QDomNode&);
 
-	// Showing a node
-	void buildNode     (QDomNode&);
-	void buildNodeRoot (QDomNode&);
-	void buildNodeHyp  (QDomNode&);
-	void buildNodeProp (QDomNode&);
-	void buildNodeRef  (QDomNode&);
-	void buildNodeTop  (QDomNode&);
-	QTableWidget* buildNodeEvidences (QDomNode&);
 
 	typedef
 		std :: map<int, QTreeWidgetItem*>
