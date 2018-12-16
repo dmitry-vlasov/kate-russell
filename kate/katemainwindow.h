@@ -190,6 +190,7 @@ private Q_SLOTS:
     void slotEditToolbars();
     void slotNewToolbarConfig();
     void slotUpdateOpenWith();
+    void slotUpdateActionsNeedingUrl();
     void slotOpenDocument(QUrl);
 
     void slotDropEvent(QDropEvent *);
@@ -281,6 +282,14 @@ public:
 
     void setModNotificationEnabled(bool e) {
         m_modNotification = e;
+    }
+
+    bool modCloseAfterLast() const {
+        return m_modCloseAfterLast;
+    }
+
+    void setModCloseAfterLast(bool e) {
+        m_modCloseAfterLast = e;
     }
 
     KRecentFilesAction *fileOpenRecent() const {
@@ -378,7 +387,7 @@ public Q_SLOTS:
     }
 
     /**
-     * Split current view space according to @orientation
+     * Split current view space according to \p orientation
      * \param orientation in which line split the view
      */
     void splitView(Qt::Orientation orientation)
@@ -388,7 +397,7 @@ public Q_SLOTS:
 
     /**
      * Try to create a view bar for the given view.
-     * @param view view for which we want an view bar
+     * Its parameter is the view for which we want a view bar
      * @return suitable widget that can host view bars widgets or nullptr
     */
     QWidget *createViewBar(KTextEditor::View *) {
@@ -491,6 +500,11 @@ private:
     bool m_modNotification;
 
     /**
+     * Shutdown Kate after last file is closed
+     */
+    bool m_modCloseAfterLast;
+
+    /**
      * stacked widget containing the central area, aka view manager, quickopen, ...
      */
     QStackedWidget *m_mainStackedWidget;
@@ -523,6 +537,7 @@ private:
     KToggleAction *m_paShowMenuBar;
     KToggleAction *m_paShowStatusBar;
     KToggleAction *m_paShowTabBar;
+
     QWidget *m_bottomViewBarContainer;
     KateContainerStackedLayout *m_bottomContainerStack;
 

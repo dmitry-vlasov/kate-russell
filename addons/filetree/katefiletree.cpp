@@ -62,7 +62,6 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
     // handle activated (e.g. for pressing enter) + clicked (to avoid to need to do double-click e.g. on Windows)
     connect(this, &KateFileTree::activated, this, &KateFileTree::mouseClicked);
     connect(this, &KateFileTree::clicked, this, &KateFileTree::mouseClicked);
-    connect(this, &KateFileTree::pressed, this, &KateFileTree::mouseClicked);
 
     m_filelistReloadDocument = new QAction(QIcon::fromTheme(QLatin1String("view-refresh")), i18nc("@action:inmenu", "Reloa&d"), this);
     connect(m_filelistReloadDocument, &QAction::triggered, this, &KateFileTree::slotDocumentReload);
@@ -84,9 +83,9 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
     connect(m_filelistCloseOtherDocument, &QAction::triggered, this, &KateFileTree::slotDocumentCloseOther);
     m_filelistCloseOtherDocument->setWhatsThis(i18n("Close other documents in this folder."));
 
-    m_filelistCopyFilename = new QAction(QIcon::fromTheme(QLatin1String("edit-copy")), i18nc("@action:inmenu", "Copy Filename"), this);
+    m_filelistCopyFilename = new QAction(QIcon::fromTheme(QLatin1String("edit-copy")), i18nc("@action:inmenu", "Copy File Path"), this);
     connect(m_filelistCopyFilename, &QAction::triggered, this, &KateFileTree::slotCopyFilename);
-    m_filelistCopyFilename->setWhatsThis(i18n("Copy the filename of the file."));
+    m_filelistCopyFilename->setWhatsThis(i18n("Copy path and filename to the clipboard."));
 
     m_filelistRenameFile = new QAction(QIcon::fromTheme(QLatin1String("edit-rename")), i18nc("@action:inmenu", "Rename File"), this);
     connect(m_filelistRenameFile, &QAction::triggered, this, &KateFileTree::slotRenameFile);
@@ -203,13 +202,9 @@ void KateFileTree::slotCurrentChanged(const QModelIndex &current, const QModelIn
 
 void KateFileTree::mouseClicked(const QModelIndex &index)
 {
-    KTextEditor::Document *doc = model()->data(index, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
-    if (doc) {
+    if (auto doc = model()->data(index, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>()) {
         emit activateDocument(doc);
-    } else {
-        setExpanded(index, !isExpanded(index));
     }
-
 }
 
 void KateFileTree::contextMenuEvent(QContextMenuEvent *event)
@@ -425,6 +420,10 @@ void KateFileTree::slotDocumentReload()
 void KateFileTree::slotCopyFilename()
 {
     KTextEditor::Document *doc = model()->data(m_indexContextMenu, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
+
+    // TODO: the following code was improved in kate/katefileactions.cpp and should be reused here
+    //       (make sure that the mentioned bug 381052 does not reappear)
+
     if (doc) {
         // ensure we prefer native separators, bug 381052
         if (doc->url().isLocalFile()) {
@@ -437,6 +436,9 @@ void KateFileTree::slotCopyFilename()
 
 void KateFileTree::slotRenameFile() {
     KTextEditor::Document *doc = model()->data(m_indexContextMenu, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
+
+    // TODO: the following code was improved in kate/katefileactions.cpp and should be reused here
+
     if (!doc) {
         return;
     }
@@ -680,6 +682,8 @@ void KateFileTree::slotResetHistory()
 void KateFileTree::slotDocumentDelete()
 {
     KTextEditor::Document *doc = model()->data(m_indexContextMenu, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
+
+    // TODO: the following code was improved in kate/katefileactions.cpp and should be reused here
 
     if (!doc) {
         return;

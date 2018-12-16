@@ -131,16 +131,17 @@ private Q_SLOTS:
     void toggleOptions(bool show);
 
     void searchContextMenu(const QPoint& pos);
+    void replaceContextMenu(const QPoint& pos);
 
     void searchPlaceChanged();
     void startSearchWhileTyping();
 
     void folderFileListChanged();
 
-    void matchFound(const QString &url, const QString &fileName, int line, int column,
-                    const QString &lineContent, int matchLen);
+    void matchFound(const QString &url, const QString &fileName,
+                    const QString &lineContent, int matchLen, int startLine, int startColumn, int endLine, int endColumn);
 
-    void addMatchMark(KTextEditor::Document* doc, int line, int column, int len);
+    void addMatchMark(KTextEditor::Document* doc, QTreeWidgetItem *item);
 
     void searchDone();
     void searchWhileTypingDone();
@@ -197,9 +198,11 @@ private:
     bool                               m_switchToProjectModeWhenAvailable;
     bool                               m_searchDiskFilesDone;
     bool                               m_searchOpenFilesDone;
+    bool                               m_isSearchAsYouType;
     QString                            m_resultBaseDir;
     QList<KTextEditor::MovingRange*>   m_matchRanges;
     QTimer                             m_changeTimer;
+    QTimer                             m_updateSumaryTimer;
     QPointer<KTextEditor::Message>     m_infoMessage;
 
     /**

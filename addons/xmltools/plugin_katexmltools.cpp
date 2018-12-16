@@ -148,7 +148,7 @@ PluginKateXMLToolsView::~PluginKateXMLToolsView()
 {
     m_mainWindow->guiFactory()->removeClient(this);
 
-    //qDebug() << "xml tools descructor 1...";
+    //qDebug() << "xml tools destructor 1...";
     //TODO: unregister the model
 }
 
@@ -476,10 +476,9 @@ void PluginKateXMLToolsCompletionModel::getDTD()
         m_viewToAssignTo = kv;
 
         QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-        KIO::Job *job = KIO::get(url);
-        connect(job, &KIO::Job::result, this, &PluginKateXMLToolsCompletionModel::slotFinished);
-        connect(job, SIGNAL(data(KIO::Job *, QByteArray)),
-                 this, SLOT(slotData(KIO::Job *, QByteArray)));
+        KIO::TransferJob *job = KIO::get(url);
+        connect(job, &KIO::TransferJob::result, this, &PluginKateXMLToolsCompletionModel::slotFinished);
+        connect(job, &KIO::TransferJob::data, this, &PluginKateXMLToolsCompletionModel::slotData);
     }
     qDebug() << "XMLTools::getDTD: Documents: " << m_docDtds.count() << ", DTDs: " << m_dtds.count();
 }
@@ -980,7 +979,7 @@ QString PluginKateXMLToolsCompletionModel::getParentElement(KTextEditor::View &k
 bool PluginKateXMLToolsCompletionModel::isOpeningTag(const QString &tag)
 {
     return (!isClosingTag(tag) && !isEmptyTag(tag) &&
-            !tag.startsWith("<?") && !tag.startsWith("<!"));
+            !tag.startsWith(QLatin1String("<?")) && !tag.startsWith("<!"));
 }
 
 /**
@@ -989,7 +988,7 @@ bool PluginKateXMLToolsCompletionModel::isOpeningTag(const QString &tag)
  */
 bool PluginKateXMLToolsCompletionModel::isClosingTag(const QString &tag)
 {
-    return (tag.startsWith("</"));
+    return (tag.startsWith(QLatin1String("</")));
 }
 
 bool PluginKateXMLToolsCompletionModel::isEmptyTag(const QString &tag)

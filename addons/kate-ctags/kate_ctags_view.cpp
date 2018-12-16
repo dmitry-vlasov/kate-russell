@@ -20,6 +20,8 @@
  */
 
 #include "kate_ctags_view.h"
+#include "kate_ctags_plugin.h"
+#include "kate_ctags_debug.h"
 
 #include <QFileInfo>
 #include <QFileDialog>
@@ -65,6 +67,29 @@ KateCTagsView::KateCTagsView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
     lookup->setText(i18n("Lookup Current Text"));
     connect(lookup, &QAction::triggered, this, &KateCTagsView::lookupTag);
 
+    QAction *updateDB = actionCollection()->addAction(QLatin1String("ctags_update_global_db"));
+    updateDB->setText(i18n("Configure ..."));
+    connect(updateDB, &QAction::triggered, this, [this, plugin] (bool) {
+        if (m_mWin) {
+            KateCTagsPlugin *p = static_cast<KateCTagsPlugin*>(plugin);
+            QDialog *confWin = new QDialog(m_mWin->window());
+            confWin->setAttribute(Qt::WA_DeleteOnClose);
+            auto confPage = p->configPage(0, confWin);
+            auto controls = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, confWin);
+            connect(confWin, &QDialog::accepted, confPage, &KTextEditor::ConfigPage::apply);
+            connect(controls, &QDialogButtonBox::accepted, confWin, &QDialog::accept);
+            connect(controls, &QDialogButtonBox::rejected, confWin, &QDialog::reject);
+            auto layout = new QVBoxLayout(confWin);
+            layout->addWidget(confPage);
+            layout->addWidget(controls);
+            confWin->setLayout(layout);
+            confWin->setWindowTitle(i18nc("@title:window", "Configure CTags Plugin"));
+            confWin->setWindowIcon(confPage->icon());
+            confWin->show();
+            confWin->exec();
+        }
+    });
+
     // popup menu
     m_menu = new KActionMenu(i18n("CTags"), this);
     actionCollection()->addAction(QLatin1String("popup_ctags"), m_menu);
@@ -75,7 +100,7 @@ KateCTagsView::KateCTagsView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 
     connect(m_menu->menu(), &QMenu::aboutToShow, this, &KateCTagsView::aboutToShow);
 
-    QWidget *ctagsWidget = new QWidget(m_toolView);
+    QWidget *ctagsWidget = new QWidget(m_toolView.data());
     m_ctagsUi.setupUi(ctagsWidget);
     m_ctagsUi.cmdEdit->setText(DEFAULT_CTAGS_CMD);
 
@@ -113,6 +138,7 @@ KateCTagsView::KateCTagsView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 
     connect(m_mWin, &KTextEditor::MainWindow::unhandledShortcutOverride, this, &KateCTagsView::handleEsc);
 
+    m_toolView->layout()->addWidget(ctagsWidget);
     m_toolView->installEventFilter(this);
 
     m_mWin->guiFactory()->addClient(this);
@@ -124,9 +150,13 @@ KateCTagsView::KateCTagsView(KTextEditor::Plugin *plugin, KTextEditor::MainWindo
 /******************************************************************/
 KateCTagsView::~KateCTagsView()
 {
-    m_mWin->guiFactory()->removeClient( this );
+    if (m_mWin && m_mWin->guiFactory()) {
+        m_mWin->guiFactory()->removeClient( this );
+    }
 
-    delete m_toolView;
+    if (m_toolView) {
+        delete m_toolView;
+    }
 }
 
 /******************************************************************/
@@ -270,7 +300,7 @@ void KateCTagsView::gotoTagForTypes(const QString &word, const QStringList &type
     Tags::TagList list = Tags::getMatches(m_ctagsUi.tagsFile->text(), word, false, types);
     if (list.size() == 0) list = Tags::getMatches(m_commonDB, word, false, types);
 
-    //qDebug() << "found" << list.count() << word << types;
+    //qCDebug(KTECTAGS) << "found" << list.count() << word << types;
     setNewLookupText(word);
 
     if ( list.count() < 1) {
@@ -348,7 +378,7 @@ QString KateCTagsView::currentWord( )
 {
     KTextEditor::View *kv = m_mWin->activeView();
     if (!kv) {
-        qDebug() << "no KTextEditor::View" << endl;
+        qCDebug(KTECTAGS) << "no KTextEditor::View" << endl;
         return QString();
     }
 
@@ -357,7 +387,7 @@ QString KateCTagsView::currentWord( )
     }
 
     if (!kv->cursorPosition().isValid()) {
-        qDebug() << "cursor not valid!" << endl;
+        qCDebug(KTECTAGS) << "cursor not valid!" << endl;
         return QString();
     }
 
@@ -382,7 +412,7 @@ QString KateCTagsView::currentWord( )
         endPos++;
     }
     if  (startPos == endPos) {
-        qDebug() << "no word found!" << endl;
+        qCDebug(KTECTAGS) << "no word found!" << endl;
         return QString();
     }
 
@@ -396,7 +426,7 @@ QString KateCTagsView::currentWord( )
         linestr.remove(0, 1);
     }
 
-    //qDebug() << linestr;
+    //qCDebug(KTECTAGS) << linestr;
     return linestr;
 }
 
@@ -440,7 +470,7 @@ void KateCTagsView::jumpToTag(const QString &file, const QString &pattern, const
 
     // open/activate the new file
     QFileInfo fInfo(file);
-    //qDebug() << pattern << file << fInfo.absoluteFilePath();
+    //qCDebug(KTECTAGS) << pattern << file << fInfo.absoluteFilePath();
     m_mWin->openUrl(QUrl::fromLocalFile(fInfo.absoluteFilePath()));
 
     // any view active?

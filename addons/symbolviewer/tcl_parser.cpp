@@ -37,7 +37,7 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
  QPixmap mcr( ( const char** ) macro_xpm );
  QPixmap cls( ( const char** ) class_xpm );
 
- if(m_plugin->treeOn)
+ if(m_treeOn->isChecked())
   {
    clsNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Functions") ) );
    mcrNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Globals") ) );
@@ -47,7 +47,7 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
    lastMcrNode = mcrNode;
    lastClsNode = clsNode;
 
-   if (m_plugin->expandedOn)
+   if (m_expandOn->isChecked())
       {
        m_symbols->expandItem(clsNode);
        m_symbols->expandItem(mcrNode);
@@ -82,7 +82,7 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
       {
        if(currline.startsWith(varStr) && block == 0)
          {
-          if (macro_on == true) // not really a macro, but a variable
+          if (m_macro->isChecked()) // not really a macro, but a variable
             {
              stripped = currline.right(currline.length() - 3);
              stripped = stripped.simplified();
@@ -90,7 +90,7 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
              //fnd = stripped.indexOf(QLatin1Char(';'));
              if(fnd > 0) stripped = stripped.left(fnd);
 
-             if (m_plugin->treeOn)
+             if (m_treeOn->isChecked())
                {
                 node = new QTreeWidgetItem(mcrNode, lastMcrNode);
                 lastMcrNode = node;
@@ -129,9 +129,9 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
                           if (args_par == 0)
                             {
                              //stripped = stripped.simplified();
-                             if(func_on == true)
+                             if(m_func->isChecked())
                                {
-                                if (m_plugin->treeOn)
+                                if (m_treeOn->isChecked())
                                   {
                                    node = new QTreeWidgetItem(clsNode, lastClsNode);
                                    lastClsNode = node;
@@ -148,7 +148,7 @@ void KatePluginSymbolViewerView::parseTclSymbols(void)
                          }
                     } // block = 0
                   } // for j loop
-               }//func_on
+               }//m_func->isChecked()
       } // not a comment
     } //for i loop
 

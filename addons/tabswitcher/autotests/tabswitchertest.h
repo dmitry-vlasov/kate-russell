@@ -1,6 +1,6 @@
 /* This file is part of the KDE project
  *
- *  Copyright (C) 2005 Christoph Cullmann <cullmann@kde.org>
+ *  Copyright (C) 2018 Gregor Mi <codestruct@posteo.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -18,45 +18,20 @@
  *  Boston, MA 02110-1301, USA.
  */
 
-#ifndef __KATE_SESSION_OPEN_DIALOG_H__
-#define __KATE_SESSION_OPEN_DIALOG_H__
+#pragma once
 
-#include <QDialog>
+#include <QObject>
 
-class QPushButton;
-class QTreeWidget;
-class QTreeWidgetItem;
-
-#include "katesession.h"
-
-class KateSessionOpenDialog : public QDialog
+class KateTabSwitcherTest : public QObject
 {
     Q_OBJECT
 
-public:
-    KateSessionOpenDialog(QWidget *parent);
-    ~KateSessionOpenDialog() override;
+public Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
 
-    KateSession::Ptr selectedSession();
-
-    enum {
-        resultOk,
-        resultCancel
-    };
-
-protected Q_SLOTS:
-    void slotCanceled();
-    void slotOpen();
-
-    /**
-     * selection has changed
-     */
-    void selectionChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
-
-private:
-    QTreeWidget *m_sessions;
-    QPushButton *m_openButton;
+private Q_SLOTS:
+    void testLongestCommonPrefix();
+    void testLongestCommonPrefix_data();
 };
-
-#endif
 

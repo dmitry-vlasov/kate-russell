@@ -45,7 +45,7 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
  //kdDebug(13000)<<"Lines counted :"<<kv->numLines()<<endl;
 
 
- if(m_plugin->treeOn)
+ if(m_treeOn->isChecked())
    {
     mcrNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Params") ) );
     sctNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Variables") ) );
@@ -54,7 +54,7 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
     sctNode->setIcon(0, QIcon(sct));
     clsNode->setIcon(0, QIcon(cls));
 
-    if (m_plugin->expandedOn) 
+    if (m_expandOn->isChecked())
       {
        m_symbols->expandItem(mcrNode);
        m_symbols->expandItem(sctNode);
@@ -85,12 +85,12 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
      if (comment==1) { continue; }
      if (templ==1) { continue; }
 
-     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:param "))) == 0 && macro_on)
+     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:param "))) == 0 && m_macro->isChecked())
        {
         QString stripped = cl.remove(QRegExp(QLatin1String("^<xsl:param +name=\"")));
         stripped = stripped.remove(QRegExp(QLatin1String("\".*")));
 
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
           {
            node = new QTreeWidgetItem(mcrNode, lastMcrNode);
            lastMcrNode = node;
@@ -101,12 +101,12 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
         node->setText(1, QString::number( i, 10));
        }
 
-     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:variable "))) == 0 && struct_on)
+     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:variable "))) == 0 && m_struct->isChecked())
        {
         QString stripped = cl.remove(QRegExp(QLatin1String("^<xsl:variable +name=\"")));
         stripped = stripped.remove(QRegExp(QLatin1String("\".*")));
 
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
           {
            node = new QTreeWidgetItem(sctNode, lastSctNode);
            lastSctNode = node;
@@ -117,12 +117,12 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
         node->setText(1, QString::number( i, 10));
        }
 
-     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:template +match="))) == 0 && func_on)
+     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:template +match="))) == 0 && m_func->isChecked())
        {
         QString stripped = cl.remove(QRegExp(QLatin1String("^<xsl:template +match=\"")));
         stripped = stripped.remove(QRegExp(QLatin1String("\".*")));
 
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
           {
            node = new QTreeWidgetItem(clsNode, lastClsNode);
            lastClsNode = node;
@@ -133,12 +133,12 @@ void KatePluginSymbolViewerView::parseXsltSymbols(void)
         node->setText(1, QString::number( i, 10));
        }
 
-     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:template +name="))) == 0 && func_on)
+     if(cl.indexOf(QRegExp(QLatin1String("^<xsl:template +name="))) == 0 && m_func->isChecked())
        {
         QString stripped = cl.remove(QRegExp(QLatin1String("^<xsl:template +name=\"")));
         stripped = stripped.remove(QRegExp(QLatin1String("\".*")));
 
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
           {
            node = new QTreeWidgetItem(clsNode, lastClsNode);
            lastClsNode = node;

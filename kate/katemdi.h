@@ -45,7 +45,7 @@ class KConfigBase;
 namespace KTextEditor
 {
 class ConfigPageInterface;
-};
+}
 
 namespace KateMDI
 {
@@ -116,7 +116,7 @@ protected:
 
 public:
     /**
-     * destuct me, this is allowed for all, will care itself that the toolview is removed
+     * destruct me, this is allowed for all, will care itself that the toolview is removed
      * from the mainwindow and sidebar
      */
     ~ToolView() override;
@@ -287,6 +287,7 @@ public:
 
     /**
      * add a given widget to the given sidebar if possible, name is very important
+     * @param plugin pointer to the plugin
      * @param identifier unique identifier for this toolview
      * @param pos position for the toolview, if we are in session restore, this is only a preference
      * @param icon icon to use for the toolview
@@ -389,7 +390,6 @@ public:
 
     /**
      * save the current session config to given object and group
-     * @param config config object to use
      * @param group config group to use
      */
     void saveSession(KConfigGroup &group);

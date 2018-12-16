@@ -247,8 +247,9 @@ void KateViewManager::slotDocumentOpen()
         }
     }
     if (!fileListWithTooLargeFiles.isEmpty()) {
-        const QString text = i18n("<p>You are attempting to open one or more large files:</p><ul>%1</ul><p>Do you want to proceed?</p><p><strong>Beware that kate may stop responding for some time when opening large files.</strong></p>");
-        const auto ret = KMessageBox::warningYesNo(this, text.arg(fileListWithTooLargeFiles), i18n("Opening Large File"), KStandardGuiItem::cont(), KStandardGuiItem::stop());
+        const QString text = i18n("<p>You are attempting to open one or more large files:</p><ul>%1</ul><p>Do you want to proceed?</p><p><strong>Beware that kate may stop responding for some time when opening large files.</strong></p>"
+                                 , fileListWithTooLargeFiles);
+        const auto ret = KMessageBox::warningYesNo(this, text, i18n("Opening Large File"), KStandardGuiItem::cont(), KStandardGuiItem::stop());
         if (ret == KMessageBox::No) {
             return;
         }
@@ -264,18 +265,12 @@ void KateViewManager::slotDocumentOpen()
 
 void KateViewManager::slotDocumentClose(KTextEditor::Document *document)
 {
-// prevent close document if only one view alive and the document of
-    // it is not modified and empty !!!
-    if ((KateApp::self()->documentManager()->documentList().size() == 1)
-            && !document->isModified()
-            && document->url().isEmpty()
-            && document->documentEnd() == KTextEditor::Cursor::start()) {
-        document->closeUrl();
-        return;
-    }
+    bool shutdownKate = m_mainWindow->modCloseAfterLast() && KateApp::self()->documentManager()->documentList().size() == 1;
 
     // close document
-    KateApp::self()->documentManager()->closeDocument(document);
+    if (KateApp::self()->documentManager()->closeDocument(document) && shutdownKate) {
+        KateApp::self()->shutdownKate(m_mainWindow);
+    }
 }
 
 void KateViewManager::slotDocumentClose()
@@ -321,7 +316,7 @@ KTextEditor::Document *KateViewManager::openUrls(const QList<QUrl> &urls,
         }
     }
 
-    return docs.isEmpty() ? 0 : docs.last();
+    return docs.isEmpty() ? nullptr : docs.last();
 }
 
 KTextEditor::View *KateViewManager::openUrlWithView(const QUrl &url, const QString &encoding)
@@ -1026,6 +1021,14 @@ void KateViewManager::restoreViewConfiguration(const KConfigGroup &config)
      * delete mapping of now deleted views
      */
     m_views.clear();
+    
+    /**
+     * kill all previous existing sub-splitters, just to be sure
+     * e.g. important if one restores a config in an existing window with some splitters
+     */
+    while (count() > 0) {
+        delete widget(0);
+    }
 
     // reset lru history, too!
     m_minAge = 0;

@@ -22,16 +22,31 @@
 #include "tabswitcher.h"
 
 #include <QKeyEvent>
+#include <QDebug>
 
 TabSwitcherTreeView::TabSwitcherTreeView()
-    : QListView()
+    : QTreeView()
 {
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
-    setUniformItemSizes(true);
+    //setUniformItemSizes(true);
     setTextElideMode(Qt::ElideMiddle);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setHeaderHidden(true);
+    setRootIsDecorated(false);
+}
+
+int TabSwitcherTreeView::sizeHintWidth() const
+{
+    return sizeHintForColumn(0) + sizeHintForColumn(1);
+}
+
+void TabSwitcherTreeView::resizeColumnsToContents()
+{
+    resizeColumnToContents(0);
+    resizeColumnToContents(1);
 }
 
 void TabSwitcherTreeView::keyReleaseEvent(QKeyEvent * event)
@@ -41,7 +56,7 @@ void TabSwitcherTreeView::keyReleaseEvent(QKeyEvent * event)
         event->accept();
         hide();
     } else {
-        QListView::keyReleaseEvent(event);
+        QTreeView::keyReleaseEvent(event);
     }
 }
 
@@ -51,6 +66,12 @@ void TabSwitcherTreeView::keyPressEvent(QKeyEvent * event)
         event->accept();
         hide();
     } else {
-        QListView::keyPressEvent(event);
+        QTreeView::keyPressEvent(event);
     }
+}
+
+void TabSwitcherTreeView::showEvent(QShowEvent* event)
+{
+    resizeColumnsToContents();
+    QTreeView::showEvent(event);
 }

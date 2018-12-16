@@ -98,8 +98,8 @@ private:
     void jumpToTag(const QString &file, const QString &pattern, const QString &word);
     
 
-    KTextEditor::MainWindow *m_mWin;
-    QWidget               *m_toolView;
+    QPointer<KTextEditor::MainWindow> m_mWin;
+    QPointer<QWidget>      m_toolView;
     Ui::kateCtags          m_ctagsUi;
 
     QPointer<KActionMenu>  m_menu;

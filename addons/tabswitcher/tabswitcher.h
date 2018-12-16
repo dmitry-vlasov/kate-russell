@@ -34,6 +34,9 @@ class TabSwitcherPluginView;
 class TabSwitcherTreeView;
 class QStandardItemModel;
 class QModelIndex;
+namespace detail {
+    class TabswitcherFilesModel;
+}
 
 class TabSwitcherPlugin : public KTextEditor::Plugin
 {
@@ -98,7 +101,7 @@ public Q_SLOTS:
     void updateDocumentName(KTextEditor::Document * document);
 
     /**
-     * Raise @p view in a lru fasion.
+     * Raise @p view in a lru fashion.
      */
     void raiseView(KTextEditor::View * view);
 
@@ -136,7 +139,7 @@ protected:
 private:
     TabSwitcherPlugin *m_plugin;
     KTextEditor::MainWindow *m_mainWindow;
-    QStandardItemModel * m_model;
+    detail::TabswitcherFilesModel * m_model;
     QSet<KTextEditor::Document *> m_documents;
     TabSwitcherTreeView * m_treeView;
 };

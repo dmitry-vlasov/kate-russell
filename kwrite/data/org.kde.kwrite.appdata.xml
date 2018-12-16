@@ -16,6 +16,7 @@
   <name xml:lang="en-GB">KWrite</name>
   <name xml:lang="es">KWrite</name>
   <name xml:lang="et">KWrite</name>
+  <name xml:lang="eu">KWrite</name>
   <name xml:lang="fi">KWrite</name>
   <name xml:lang="fr">KWrite</name>
   <name xml:lang="gl">KWrite</name>
@@ -40,7 +41,7 @@
   <name xml:lang="sr-Latn">K‑pisanje</name>
   <name xml:lang="sr-ijekavian">К‑писање</name>
   <name xml:lang="sr-ijekavianlatin">K‑pisanje</name>
-  <name xml:lang="sv">Kwrite</name>
+  <name xml:lang="sv"> Kwrite</name>
   <name xml:lang="tr">KWrite</name>
   <name xml:lang="uk">KWrite</name>
   <name xml:lang="x-test">xxKWritexx</name>
@@ -59,6 +60,7 @@
   <summary xml:lang="en-GB">Text Editor</summary>
   <summary xml:lang="es">Editor de texto</summary>
   <summary xml:lang="et">Tekstiredaktor</summary>
+  <summary xml:lang="eu">Testu-editorea</summary>
   <summary xml:lang="fi">Tekstimuokkain</summary>
   <summary xml:lang="fr">Éditeur de texte</summary>
   <summary xml:lang="gl">Editor de textos</summary>
@@ -93,6 +95,7 @@
     <p>
       KWrite is a text editor by KDE, based on the Kate's editor component.
     </p>
+    <p xml:lang="ast">KWrite ye un editor de testu fechu por KDE, básase nel componente del editor Kate.</p>
     <p xml:lang="ca">El KWrite és un editor de text, creat per la comunitat KDE, basat en el component d'edició del Kate.</p>
     <p xml:lang="ca-valencia">El KWrite és un editor de text, creat per la comunitat KDE, basat en el component d'edició del Kate.</p>
     <p xml:lang="cs">KWrite je textový editor od KDE založený na komponentě editoru Kate.</p>
@@ -101,6 +104,7 @@
     <p xml:lang="el">Το KWrite είναι ένας επεξεργαστής κειμένου από το KDE, με βάση το συστατικό του επεξεργαστή Kate.</p>
     <p xml:lang="en-GB">KWrite is a text editor by KDE, based on the Kate's editor component.</p>
     <p xml:lang="es">KWrite es un editor de texto creado por KDE basado en el componente de edición de Kate.</p>
+    <p xml:lang="eu">Kwrite KDEk eginiko testu-editore bat da, Kate-ren editore osagaian oinarritua.</p>
     <p xml:lang="fi">KWrite on KDE:n tekstimuokkain, joka perustuu Katen muokkainosaan.</p>
     <p xml:lang="fr">KWrite est un éditeur de texte fait par KDE et s'appuyant sur le composant éditeur de Kate.</p>
     <p xml:lang="gl">KWrite é un editor de texto creado por KDE baseado no compoñente de editor de Kate.</p>
@@ -138,6 +142,7 @@
     <p xml:lang="en-GB">Features:</p>
     <p xml:lang="es">Funcionalidades:</p>
     <p xml:lang="et">Omadused:</p>
+    <p xml:lang="eu">Eginbideak:</p>
     <p xml:lang="fi">Ominaisuuksia:</p>
     <p xml:lang="fr">Fonctionnalités :</p>
     <p xml:lang="gl">Funcionalidades:</p>
@@ -171,6 +176,7 @@
     <ul>
       <li>Syntax highlighting according to the file type</li>
       <li xml:lang="ar">إبراز الصّياغة حسب نوع الملفّ</li>
+      <li xml:lang="ast">Rescamplíu de sintaxis acordies cola triba del ficheru</li>
       <li xml:lang="ca">Ressaltat de sintaxi d'acord amb el tipus de fitxer</li>
       <li xml:lang="ca-valencia">Ressaltat de sintaxi d'acord amb el tipus de fitxer</li>
       <li xml:lang="cs">Zvýraznění syntaxe podle typu souboru</li>
@@ -180,6 +186,7 @@
       <li xml:lang="en-GB">Syntax highlighting according to the file type</li>
       <li xml:lang="es">Resaltado de sintaxis según el tipo de archivo</li>
       <li xml:lang="et">Süntaksi esiletõstmine vastavalt failitüübile</li>
+      <li xml:lang="eu">Sintaxi nabarmentzea fitxategi motaren arabera</li>
       <li xml:lang="fi">Syntaksin korostus tiedostotyypin perusteella</li>
       <li xml:lang="fr">Coloration syntaxique selon le type de fichier</li>
       <li xml:lang="gl">Realce de sintaxe segundo o tipo do ficheiro.</li>
@@ -222,6 +229,7 @@
       <li xml:lang="en-GB">Word completion</li>
       <li xml:lang="es">Comletado de palabras</li>
       <li xml:lang="et">Sõnalõpetus</li>
+      <li xml:lang="eu">Hitz-osatzea</li>
       <li xml:lang="fi">Sanantäydennys</li>
       <li xml:lang="fr">Auto-complétion des mots</li>
       <li xml:lang="gl">Completado de palabras.</li>
@@ -254,6 +262,7 @@
       <li xml:lang="zh-TW">文字補完</li>
       <li>Auto-indentation</li>
       <li xml:lang="ar">الإزاحة الآليّة</li>
+      <li xml:lang="ast">Sangráu automáticu</li>
       <li xml:lang="bs">Automatsko uvlačenje</li>
       <li xml:lang="ca">Sagnat automàtic</li>
       <li xml:lang="ca-valencia">Sagnat automàtic</li>
@@ -264,6 +273,7 @@
       <li xml:lang="en-GB">Auto-indentation</li>
       <li xml:lang="es">Sangrado automático</li>
       <li xml:lang="et">Automaatne taandus</li>
+      <li xml:lang="eu">Koskatze automatikoa</li>
       <li xml:lang="fi">Automaattinen sisennys</li>
       <li xml:lang="fr">Indentation automatique</li>
       <li xml:lang="gl">Sangrado automático.</li>
@@ -296,7 +306,7 @@
       <li xml:lang="zh-TW">自動縮排</li>
       <li>Plugin support</li>
       <li xml:lang="ar">دعم الملحقات</li>
-      <li xml:lang="ast">Sofitu de complementos</li>
+      <li xml:lang="ast">Sofitu pa plugins</li>
       <li xml:lang="ca">Admet connectors</li>
       <li xml:lang="ca-valencia">Admet connectors</li>
       <li xml:lang="cs">Podpora modulů</li>
@@ -306,6 +316,7 @@
       <li xml:lang="en-GB">Plugin support</li>
       <li xml:lang="es">Uso de complementos</li>
       <li xml:lang="et">Pluginate toetus</li>
+      <li xml:lang="eu">Pluginak onartzen ditu</li>
       <li xml:lang="fi">Liitännäistuki</li>
       <li xml:lang="fr">Gestion des extensions</li>
       <li xml:lang="gl">Compatibilidade con complementos.</li>
@@ -349,13 +360,14 @@
       <li xml:lang="en-GB">Vi input mode</li>
       <li xml:lang="es">Modo de entrada Vi</li>
       <li xml:lang="et">Vi sisestusrežiim</li>
+      <li xml:lang="eu">Vi sarrera modua</li>
       <li xml:lang="fi">VI-syöttötila</li>
       <li xml:lang="fr">Mode d'entrée Vi</li>
       <li xml:lang="gl">Modo de entrada de Vi.</li>
       <li xml:lang="hi">Vi इनपुट पद्दति</li>
       <li xml:lang="hu">Vi beviteli mód</li>
       <li xml:lang="ia">Modo de ingresso de Vi</li>
-      <li xml:lang="id">Mode masukan Vi</li>
+      <li xml:lang="id">Mode intput Vi</li>
       <li xml:lang="it">Modalità di inserimento Vi.</li>
       <li xml:lang="ko">VI 입력 모드</li>
       <li xml:lang="lt">Vi įvesties režimas</li>
@@ -384,8 +396,29 @@
   <url type="homepage">http://kate-editor.org/</url>
   <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?format=guided&amp;product=kwrite</url>
   <url type="help">http://docs.kde.org/stable/en/applications/kwrite/index.html</url>
+  <url type="donation">https://www.kde.org/community/donations/?app=kwrite&amp;source=appdata</url>
   <screenshots>
     <screenshot type="default">
+      <caption>Editing code with KWrite</caption>
+      <caption xml:lang="ca">Edició de codi amb el KWrite</caption>
+      <caption xml:lang="ca-valencia">Edició de codi amb el KWrite</caption>
+      <caption xml:lang="de">Bearbeitung von Quelltext mit KWrite</caption>
+      <caption xml:lang="el">Επεξεργασία κικα με το KWrite</caption>
+      <caption xml:lang="en-GB">Editing code with KWrite</caption>
+      <caption xml:lang="es">Edición de código con KWrite</caption>
+      <caption xml:lang="fi">Koodin muokkaus KWritella</caption>
+      <caption xml:lang="gl">Editando código con KWrite</caption>
+      <caption xml:lang="it">Modificare il codice con KWrite</caption>
+      <caption xml:lang="nl">Broncode bewerken met KWrite</caption>
+      <caption xml:lang="nn">Redigering av kjeldekode med KWrite</caption>
+      <caption xml:lang="pl">Edytowanie kodu z KWrite</caption>
+      <caption xml:lang="pt">Edição de código com o KWrite</caption>
+      <caption xml:lang="pt-BR">Editando código no KWrite</caption>
+      <caption xml:lang="sv">Redigera kod med Kwrite</caption>
+      <caption xml:lang="uk">Редагування коду за допомогою KWrite</caption>
+      <caption xml:lang="x-test">xxEditing code with KWritexx</caption>
+      <caption xml:lang="zh-CN">使用 Kwrite 编辑代码</caption>
+      <caption xml:lang="zh-TW">使用 KWrite 編輯程式碼</caption>
       <image>http://kde.org/images/screenshots/kwrite.png</image>
     </screenshot>
   </screenshots>

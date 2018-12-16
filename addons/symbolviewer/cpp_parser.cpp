@@ -44,7 +44,7 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
  KTextEditor::Document *kv = m_mainWindow->activeView()->document();
 
  //qDebug(13000)<<"Lines counted :"<<kv->lines();
- if(m_plugin->treeOn)
+ if(m_treeOn->isChecked())
    {
     mcrNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Macros") ) );
     sctNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Structures") ) );
@@ -52,7 +52,7 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
     mcrNode->setIcon(0, QIcon(mcr));
     sctNode->setIcon(0, QIcon(sct));
     clsNode->setIcon(0, QIcon(cls));
-    if (m_plugin->expandedOn)
+    if (m_expandOn->isChecked())
       {
        m_symbols->expandItem(mcrNode);
        m_symbols->expandItem(sctNode);
@@ -108,9 +108,9 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
              {
               //stripped.replace(0x9, QLatin1String(" "));
               stripped = stripped.trimmed();
-              if (macro_on == true)
+              if (m_macro->isChecked())
                  {
-                  if (m_plugin->treeOn)
+                  if (m_treeOn->isChecked())
                     {
                      node = new QTreeWidgetItem(mcrNode, lastMcrNode);
                      lastMcrNode = node;
@@ -146,12 +146,12 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
               if(cl.at(j)==QLatin1Char('{')) { mclass = 4; break;}
               stripped += cl.at(j);
              }
-          if(func_on == true)
+          if(m_func->isChecked())
             {
-             if (m_plugin->treeOn)
+             if (m_treeOn->isChecked())
                {
                 node = new QTreeWidgetItem(clsNode, lastClsNode);
-                if (m_plugin->expandedOn) m_symbols->expandItem(node);
+                if (m_expandOn->isChecked()) m_symbols->expandItem(node);
                 lastClsNode = node;
                 mtdNode = lastClsNode;
                 lastMtdNode = lastClsNode;
@@ -240,10 +240,10 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
                       (cl.at(j)==QLatin1Char('{') && structure == false && cl.indexOf(QLatin1Char('}')) > (int)j))
                      {
                       stripped.replace(0x9, QLatin1String(" "));
-                      if(func_on == true)
+                      if(m_func->isChecked())
                         {
                          QString strippedWithTypes = stripped;
-                         if (m_plugin->typesOn == false)
+                         if (!m_typesOn->isChecked())
                            {
                             while (stripped.indexOf(QLatin1Char('(')) >= 0)
                               stripped = stripped.left(stripped.indexOf(QLatin1Char('(')));
@@ -260,7 +260,7 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
                                   )
                               ) stripped=stripped.right(stripped.length()-1);
                            }
-                         if (m_plugin->treeOn)
+                         if (m_treeOn->isChecked())
                            {
                             if (mclass == 4)
                               {
@@ -322,9 +322,9 @@ void KatePluginSymbolViewerView::parseCppSymbols(void)
                       //stripped.replace(0x9, QLatin1String(" "));
                       stripped.remove(QLatin1Char('{'));
                       stripped.replace(QLatin1Char('}'), QLatin1String(" "));
-                      if(struct_on == true)
+                      if(m_struct->isChecked())
                         {
-                         if (m_plugin->treeOn)
+                         if (m_treeOn->isChecked())
                            {
                             node = new QTreeWidgetItem(sctNode, lastSctNode);
                             lastSctNode = node;

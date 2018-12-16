@@ -1,6 +1,6 @@
 /* This file is part of the KDE libraries
    Copyright (C) 2001 Christoph Cullmann <cullmann@kde.org>
-   Copyright (C) 2005 Dominik Haumann (dhdev@gmx.de) (documentation)
+   Copyright (C) 2005 Dominik Haumann (dhaumann@kde.org) (documentation)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -18,8 +18,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef TEST_DOCUMENT_H
-#define TEST_DOCUMENT_H
+#ifndef DOCUMENT_DUMMY_H
+#define DOCUMENT_DUMMY_H
 
 #include <KTextEditor/Document>
 #include <KTextEditor/ModificationInterface>

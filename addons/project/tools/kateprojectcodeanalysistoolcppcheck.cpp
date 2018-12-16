@@ -34,18 +34,30 @@ KateProjectCodeAnalysisToolCppcheck::~KateProjectCodeAnalysisToolCppcheck()
 
 }
 
-QString KateProjectCodeAnalysisToolCppcheck::name()
+QString KateProjectCodeAnalysisToolCppcheck::name() const
 {
-    return i18n("cppcheck");
+    return i18n("Cppcheck (C++)");
 }
 
-QStringList KateProjectCodeAnalysisToolCppcheck::filter(const QStringList &files)
+QString KateProjectCodeAnalysisToolCppcheck::description() const
+{
+    return i18n("Cppcheck is a static analysis tool for C/C++ code");
+}
+
+QString KateProjectCodeAnalysisToolCppcheck::fileExtensions() const
+{
+    return QStringLiteral("cpp|cxx|cc|c++|c|tpp|txx");
+}
+
+QStringList KateProjectCodeAnalysisToolCppcheck::filter(const QStringList &files) const
 {
     // c++ files
-    return files.filter(QRegularExpression(QStringLiteral("\\.(cpp|cxx|cc|c\\+\\+|c|tpp|txx)$")));
+    return files.filter(QRegularExpression(QStringLiteral("\\.(")
+    + fileExtensions().replace(QStringLiteral("+"), QStringLiteral("\\+"))
+    + QStringLiteral(")$")));
 }
 
-QString KateProjectCodeAnalysisToolCppcheck::path()
+QString KateProjectCodeAnalysisToolCppcheck::path() const
 {
     return QStringLiteral("cppcheck");
 }
@@ -63,12 +75,12 @@ QStringList KateProjectCodeAnalysisToolCppcheck::arguments()
     return _args;
 }
 
-QString KateProjectCodeAnalysisToolCppcheck::notInstalledMessage()
+QString KateProjectCodeAnalysisToolCppcheck::notInstalledMessage() const
 {
     return i18n("Please install 'cppcheck'.");
 }
 
-QStringList KateProjectCodeAnalysisToolCppcheck::parseLine(const QString &line)
+QStringList KateProjectCodeAnalysisToolCppcheck::parseLine(const QString &line) const
 {
     return line.split(QRegExp(QStringLiteral("////")), QString::SkipEmptyParts);
 }
@@ -81,5 +93,7 @@ QString KateProjectCodeAnalysisToolCppcheck::stdinMessages()
         return QString();
     }
 
-    return filter(m_project->files()).join(QStringLiteral("\n"));
+    auto&& fileList = filter(m_project->files());
+    setActualFilesCount(fileList.size());
+    return fileList.join(QStringLiteral("\n"));
 }

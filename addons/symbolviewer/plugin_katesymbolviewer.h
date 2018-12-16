@@ -86,22 +86,18 @@ class KatePluginSymbolViewerView :  public QObject, public KXMLGUIClient
 {
   Q_OBJECT
 
+  friend class KatePluginSymbolViewer;
+
   public:
-    KatePluginSymbolViewerView (KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mw);
+    KatePluginSymbolViewerView (KatePluginSymbolViewer *plugin, KTextEditor::MainWindow *mw);
     ~KatePluginSymbolViewerView () override;
 
-    void parseSymbols(void);
-
   public Q_SLOTS:
-    void slotRefreshSymbol();
-    void slotChangeMode();
-    void slotEnableSorting();
+    void displayOptionChanged();
+    void parseSymbols();
     void slotDocChanged();
     void goToSymbol(QTreeWidgetItem *);
     void slotShowContextMenu(const QPoint&);
-    void toggleShowMacros(void);
-    void toggleShowStructures(void);
-    void toggleShowFunctions(void);
     void cursorPositionChanged();
     QTreeWidgetItem *newActveItem(int &currMinLine, int currLine, QTreeWidgetItem *item);
     void updateCurrTreeItem();
@@ -116,11 +112,17 @@ class KatePluginSymbolViewerView :  public QObject, public KXMLGUIClient
     QMenu       *m_popup;
     QWidget     *m_toolview;
     QTreeWidget *m_symbols;
-    QAction *m_macro, *m_struct, *m_func, *m_sort;
-    bool macro_on, struct_on, func_on;
+    QAction     *m_treeOn; // FIXME Rename other actions accordingly
+    QAction     *m_sort;   // m_sortOn etc
+    QAction     *m_macro;
+    QAction     *m_struct;
+    QAction     *m_func;
+    QAction     *m_typesOn;
+    QAction     *m_expandOn;
 
     QTimer m_updateTimer;
     QTimer m_currItemTimer;
+    int    m_oldCursorLine;
 
     void updatePixmapScroll();
 
@@ -152,11 +154,8 @@ class KatePluginSymbolViewer : public KTextEditor::Plugin
   public Q_SLOTS:
     void applyConfig( KatePluginSymbolViewerConfigPage* p );
 
-  public:
-    bool typesOn;
-    bool expandedOn;
-    bool treeOn;
-    bool sortOn;
+  private:
+    KatePluginSymbolViewerView* m_view = nullptr;
 };
 
 /* XPM */

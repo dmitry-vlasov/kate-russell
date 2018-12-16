@@ -187,9 +187,17 @@ public:
      * used by kate if --use given
      * @param url filename
      * @param encoding encoding name
+     * @param isTempFile whether the file is temporary
      * @return success
      */
     bool openUrl(const QUrl &url, const QString &encoding, bool isTempFile);
+
+    /**
+     * checks if the current instance is in a given activity
+     * @param activity activity to check
+     * @return true if the window is in the given activity, false otherwise
+     */
+    bool isOnActivity(const QString &activity);
 
     KTextEditor::Document *openDocUrl(const QUrl &url, const QString &encoding, bool isTempFile);
 

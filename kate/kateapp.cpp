@@ -29,6 +29,7 @@
 #include <KLocalizedString>
 #include <KConfigGui>
 #include <KConfigGroup>
+#include <KWindowInfo>
 
 #include <QCommandLineParser>
 #include <QFileInfo>
@@ -104,7 +105,7 @@ bool KateApp::init()
         // let us handle our command line args and co ;)
         // we can exit here if session chooser decides
         if (!startupKate()) {
-            // session chooser telled to exit kate
+            // session chooser told to exit kate
             return false;
         }
     }
@@ -174,7 +175,10 @@ bool KateApp::startupKate()
     KTextEditor::Document *doc = nullptr;
     const QString codec_name = codec ? QString::fromLatin1(codec->name()) : QString();
 
-    Q_FOREACH(const QString positionalArgument, m_args.positionalArguments()) {
+    //  Bug 397913: Reverse the order here so the new tabs are opened in same order as the files were passed in on the command line
+    QString positionalArgument;
+    for (int i = m_args.positionalArguments().count() - 1; i >= 0; --i) {
+        positionalArgument = m_args.positionalArguments().at(i);
         UrlInfo info(positionalArgument);
 
         // this file is no local dir, open it, else warn
@@ -270,6 +274,19 @@ KateSessionManager *KateApp::sessionManager()
 bool KateApp::openUrl(const QUrl &url, const QString &encoding, bool isTempFile)
 {
     return openDocUrl(url, encoding, isTempFile);
+}
+
+bool KateApp::isOnActivity(const QString &activity)
+{
+    for (const auto& window : m_mainWindows) {
+        const KWindowInfo info(window->winId(), nullptr, NET::WM2Activities);
+        const auto activities = info.activities();
+        // handle special case of "on all activities"
+        if (activities.isEmpty() || activities.contains(activity))
+            return true;
+    }
+
+    return false;
 }
 
 KTextEditor::Document *KateApp::openDocUrl(const QUrl &url, const QString &encoding, bool isTempFile)
@@ -453,8 +470,11 @@ void KateApp::remoteMessageReceived(const QString &message, QObject *)
         }
 
     }
-    if (activeKateMainWindow()) {
-        activeKateMainWindow()->activateWindow();
-        activeKateMainWindow()->raise();
+
+    if (auto win = activeKateMainWindow()) {
+        // like QtSingleApplication
+        win->setWindowState(win->windowState() & ~Qt::WindowMinimized);
+        win->raise();
+        win->activateWindow();
     }
 }

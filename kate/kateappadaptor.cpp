@@ -38,13 +38,10 @@ void KateAppAdaptor::activate()
         return;
     }
 
-    win->show();
-    win->activateWindow();
+    // like QtSingleApplication
+    win->setWindowState(win->windowState() & ~Qt::WindowMinimized);
     win->raise();
-
-    KWindowSystem::forceActiveWindow(win->winId());
-    KWindowSystem::raiseWindow(win->winId());
-    KWindowSystem::demandAttention(win->winId());
+    win->activateWindow();
 }
 
 bool KateAppAdaptor::openUrl(QString url, QString encoding)
@@ -57,6 +54,10 @@ bool KateAppAdaptor::openUrl(QString url, QString encoding, bool isTempFile)
     qCDebug(LOG_KATE) << "openURL";
 
     return m_app->openUrl(QUrl(url), encoding, isTempFile);
+}
+
+bool KateAppAdaptor::isOnActivity(const QString &activity) {
+    return m_app->isOnActivity(activity);
 }
 
 //-----------

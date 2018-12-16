@@ -20,22 +20,22 @@ set (KATE_LIBRARY_SRCS
    kateconfigdialog.cpp
    kateconfigplugindialogpage.cpp
    katedocmanager.cpp
+   katefileactions.cpp
    katemainwindow.cpp
    katepluginmanager.cpp
    kateviewmanager.cpp
    kateviewspace.cpp
    katesavemodifieddialog.cpp
    katemwmodonhddialog.cpp
-
+   katecolorschemechooser.cpp
+   katequickopenmodel.cpp
    katetabbutton.cpp
    katetabbar.cpp
 
    # session
-   session/katesessionchooser.cpp
    session/katesessionsaction.cpp
    session/katesessionmanager.cpp
    session/katesessionmanagedialog.cpp
-   session/katesessionopendialog.cpp
    session/katesession.cpp
 
    katemdi.cpp
@@ -46,6 +46,7 @@ set (KATE_LIBRARY_SRCS
 
 ki18n_wrap_ui(KATE_LIBRARY_SRCS
     ui/sessionconfigwidget.ui
+    session/katesessionmanagedialog.ui
 )
 
 qt5_add_resources( KATE_LIBRARY_SRCS data/kate.qrc )
@@ -148,4 +149,6 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/org.kde.kate.appdata.xml DESTINAT
 ecm_install_icons(ICONS ${KATE_ICONS_PNG} ${KATE_ICONS_SVG} DESTINATION ${ICON_INSTALL_DIR} THEME hicolor)
 
 # automatic unit tests
-ecm_optional_add_subdirectory (autotests)
+if (BUILD_TESTING)
+    add_subdirectory(autotests)
+endif()

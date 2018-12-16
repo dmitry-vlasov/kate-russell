@@ -15,10 +15,11 @@
  *  the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301, USA.
  */
+#include "filetree_model_test.h"
+
 #include "katefiletreemodel.h"
 
 #include "document_dummy.h"
-#include "filetree_model_test.h"
 
 #include <QtTest>
 QTEST_GUILESS_MAIN(FileTreeModelTest)
@@ -86,7 +87,7 @@ class ResultNode
     QList<ResultNode> children;
 };
 
-Q_DECLARE_METATYPE(ResultNode);
+Q_DECLARE_METATYPE(ResultNode)
 
 namespace QTest {
 inline bool qCompare(const ResultNode &t1, const ResultNode &t2, const char *actual, const char *expected,

@@ -36,6 +36,8 @@
 #include "katequickopen.h"
 #include "kateupdatedisabler.h"
 #include "katedebug.h"
+#include "katecolorschemechooser.h"
+#include "katefileactions.h"
 
 #include <KActionMenu>
 #include <KAboutApplicationDialog>
@@ -79,6 +81,7 @@
 #include <QDir>
 
 #include <ktexteditor/sessionconfiginterface.h>
+
 //END
 
 KateMwModOnHdDialog *KateMainWindow::s_modOnHdDialog = nullptr;
@@ -229,6 +232,9 @@ void KateMainWindow::setupImportantActions()
     connect(m_paShowPath, SIGNAL(toggled(bool)), this, SLOT(updateCaption()));
     m_paShowPath->setWhatsThis(i18n("Show the complete document path in the window caption"));
 
+    // Load themes
+    actionCollection()->addAction(QStringLiteral("colorscheme_menu"), new KateColorSchemeChooser(actionCollection()));
+
     QAction * a = actionCollection()->addAction(KStandardAction::Back, QStringLiteral("view_prev_tab"));
     a->setText(i18n("&Previous Tab"));
     a->setWhatsThis(i18n("Focus the previous tab."));
@@ -301,6 +307,64 @@ void KateMainWindow::setupActions()
     connect(a, SIGNAL(triggered()), KateApp::self()->documentManager(), SLOT(reloadAll()));
     a->setWhatsThis(i18n("Reload all open documents."));
 
+    a = actionCollection()->addAction(QStringLiteral("file_copy_filepath"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("edit-copy")));
+    a->setText(i18n("Copy File &Path"));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                auto&& view = viewManager()->activeView();
+                KateFileActions::copyFilePathToClipboard(view->document());
+            });
+    a->setWhatsThis(i18n("Copies the file path of the current file to clipboard."));
+
+    a = actionCollection()->addAction(QStringLiteral("file_open_containing_folder"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("document-open-folder")));
+    a->setText(i18n("&Open Containing Folder"));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                auto&& view = viewManager()->activeView();
+                KateFileActions::openContainingFolder(view->document());
+            });
+    a->setWhatsThis(i18n("Copies the file path of the current file to clipboard."));
+
+    a = actionCollection()->addAction(QStringLiteral("file_rename"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("edit-rename")));
+    a->setText(i18nc("@action:inmenu", "Rename File..."));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                auto&& view = viewManager()->activeView();
+                KateFileActions::renameDocumentFile(this, view->document());
+            });
+    a->setWhatsThis(i18n("Renames the file belonging to the current document."));
+
+    a = actionCollection()->addAction(QStringLiteral("file_delete"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("edit-delete-shred")));
+    a->setText(i18nc("@action:inmenu", "Delete File"));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                auto&& view = viewManager()->activeView();
+                KateFileActions::deleteDocumentFile(this, view->document());
+            });
+    a->setWhatsThis(i18n("Deletes the file belonging to the current document."));
+
+    a = actionCollection()->addAction(QStringLiteral("file_properties"));
+    a->setIcon(QIcon::fromTheme(QStringLiteral("dialog-object-properties")));
+    a->setText(i18n("Properties"));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                auto&& view = viewManager()->activeView();
+                KateFileActions::openFilePropertiesDialog(view->document());
+            });
+    a->setWhatsThis(i18n("Deletes the file belonging to the current document."));
+
+    a = actionCollection()->addAction(QStringLiteral("file_compare"));
+    a->setText(i18n("Compare"));
+    connect(a, &QAction::triggered, KateApp::self()->documentManager(),
+            [this]() {
+                QMessageBox::information(this, i18n("Compare"), i18n("Use the Tabbar context menu to compare two documents"));
+            });
+    a->setWhatsThis(i18n("Shows a hint how to compare documents."));
+
     a = actionCollection()->addAction(QStringLiteral("file_close_orphaned"));
     a->setText(i18n("Close Orphaned"));
     connect(a, SIGNAL(triggered()), KateApp::self()->documentManager(), SLOT(closeOrphaned()));
@@ -363,6 +427,7 @@ void KateMainWindow::setupActions()
 
     connect(m_viewManager, SIGNAL(viewChanged(KTextEditor::View*)), this, SLOT(slotWindowActivated()));
     connect(m_viewManager, SIGNAL(viewChanged(KTextEditor::View*)), this, SLOT(slotUpdateOpenWith()));
+    connect(m_viewManager, &KateViewManager::viewChanged, this, &KateMainWindow::slotUpdateActionsNeedingUrl);
     connect(m_viewManager, SIGNAL(viewChanged(KTextEditor::View*)), this, SLOT(slotUpdateBottomViewBar()));
 
     // re-route signals to our wrapper
@@ -378,11 +443,6 @@ void KateMainWindow::setupActions()
     a->setText(i18nc("Menu entry Session->New", "&New"));
     // Qt::QueuedConnection to avoid deletion of code that is executed when reducing the amount of mainwindows. (bug #227008)
     connect(a, SIGNAL(triggered()), KateApp::self()->sessionManager(), SLOT(sessionNew()), Qt::QueuedConnection);
-    a = actionCollection()->addAction(QStringLiteral("sessions_open"));
-    a->setIcon(QIcon::fromTheme(QStringLiteral("document-open")));
-    a->setText(i18n("&Open Session"));
-    // Qt::QueuedConnection to avoid deletion of code that is executed when reducing the amount of mainwindows. (bug #227008)
-    connect(a, SIGNAL(triggered()), KateApp::self()->sessionManager(), SLOT(sessionOpen()), Qt::QueuedConnection);
     a = actionCollection()->addAction(QStringLiteral("sessions_save"));
     a->setIcon(QIcon::fromTheme(QStringLiteral("document-save")));
     a->setText(i18n("&Save Session"));
@@ -530,7 +590,7 @@ void KateMainWindow::slotNewToolbarConfig()
 {
     applyMainWindowSettings(KConfigGroup(KSharedConfig::openConfig(), "MainWindow"));
 
-    // we neeed to relod all View's XML Gui from disk to ensure toolbar
+    // we need to reload all View's XML Gui from disk to ensure toolbar
     // changes are applied to all views.
     reloadXmlGui();
 }
@@ -559,6 +619,7 @@ void KateMainWindow::readOptions()
 
     const KConfigGroup generalGroup(config, "General");
     m_modNotification = generalGroup.readEntry("Modified Notification", false);
+    m_modCloseAfterLast = generalGroup.readEntry("Close After Last", false);
     KateApp::self()->documentManager()->setSaveMetaInfos(generalGroup.readEntry("Save Meta Infos", true));
     KateApp::self()->documentManager()->setDaysMetaInfos(generalGroup.readEntry("Days Meta Infos", 30));
 
@@ -661,6 +722,19 @@ void KateMainWindow::slotUpdateOpenWith()
     } else {
         documentOpenWith->setEnabled(false);
     }
+}
+
+void KateMainWindow::slotUpdateActionsNeedingUrl()
+{
+
+    auto&& view = viewManager()->activeView();
+    const bool hasUrl = view && !view->document()->url().isEmpty();
+
+    action("file_copy_filepath")->setEnabled(hasUrl);
+    action("file_open_containing_folder")->setEnabled(hasUrl);
+    action("file_rename")->setEnabled(hasUrl);
+    action("file_delete")->setEnabled(hasUrl);
+    action("file_properties")->setEnabled(hasUrl);
 }
 
 void KateMainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -1101,7 +1175,7 @@ QObject *KateMainWindow::pluginView(const QString &name)
         return nullptr;
     }
 
-    return m_pluginViews.contains(plugin) ? m_pluginViews.value(plugin) : 0;
+    return m_pluginViews.contains(plugin) ? m_pluginViews.value(plugin) : nullptr;
 }
 
 void KateMainWindow::mousePressEvent(QMouseEvent *e)
@@ -1133,6 +1207,15 @@ void KateMainWindow::slotFocusNextTab()
 
 void KateMainWindow::slotQuickOpen()
 {
+    /**
+     * toggle back to view manager when when quick open is already shown
+     */
+    if (m_mainStackedWidget->currentWidget() == m_quickOpen) {
+        m_mainStackedWidget->setCurrentWidget(m_viewManager);
+        centralWidget()->setFocusProxy(m_viewManager);
+        return;
+    }
+
     /**
      * show quick open and pass focus to it
      */

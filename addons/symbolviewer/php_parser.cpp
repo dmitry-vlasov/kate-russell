@@ -36,7 +36,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
 
     KTextEditor::Document *kv = m_mainWindow->activeView()->document();
 
-    if (m_plugin->treeOn)
+    if (m_treeOn->isChecked())
     {
       namespaceNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Namespaces") ) );
       defineNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Defines") ) );
@@ -48,7 +48,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       classNode->setIcon(0, QIcon( classPix ) );
       functionNode->setIcon(0, QIcon( functionPix ) );
 
-      if (m_plugin->expandedOn)
+      if (m_expandOn->isChecked())
       {
         m_symbols->expandItem(namespaceNode);
         m_symbols->expandItem(defineNode);
@@ -156,10 +156,10 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       // detect NameSpaces
       if (namespaceRegExp.indexIn(line) != -1)
       {
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
         {
           node = new QTreeWidgetItem(namespaceNode, lastNamespaceNode);
-          if (m_plugin->expandedOn)
+          if (m_expandOn->isChecked())
           {
             m_symbols->expandItem(node);
           }
@@ -177,7 +177,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       // detect defines
       if (defineRegExp.indexIn(lineWithliterals) != -1)
       {
-          if (m_plugin->treeOn)
+          if (m_treeOn->isChecked())
           {
             node = new QTreeWidgetItem(defineNode, lastDefineNode);
             lastDefineNode = node;
@@ -196,10 +196,10 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       isInterface = interfaceRegExp.indexIn(line) != -1;
       if (isClass || isInterface)
       {
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
         {
           node = new QTreeWidgetItem(classNode, lastClassNode);
-          if (m_plugin->expandedOn)
+          if (m_expandOn->isChecked())
           {
             m_symbols->expandItem(node);
           }
@@ -211,7 +211,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
         }
         if (isClass)
         {
-          if (m_plugin->typesOn) {
+          if (m_typesOn->isChecked()) {
             if (!classRegExp.cap(1).trimmed().isEmpty() && !classRegExp.cap(4).trimmed().isEmpty())
             {
               nameWithTypes = classRegExp.cap(3)+QLatin1String(" [")+classRegExp.cap(1).trimmed()+QLatin1Char(',')+classRegExp.cap(4).trimmed()+QLatin1Char(']');
@@ -233,7 +233,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
         }
         else
         {
-          if (m_plugin->typesOn)
+          if (m_typesOn->isChecked())
           {
             nameWithTypes = interfaceRegExp.cap(1) + QLatin1String(" [interface]");
             node->setText(0, nameWithTypes);
@@ -253,7 +253,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       // detect class constants
       if (constantRegExp.indexIn(line) != -1)
       {
-        if (m_plugin->treeOn)
+        if (m_treeOn->isChecked())
         {
           node = new QTreeWidgetItem(lastClassNode);
         }
@@ -271,7 +271,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       {
         if (varRegExp.indexIn(line) != -1)
         {
-          if (m_plugin->treeOn && inClass)
+          if (m_treeOn->isChecked() && inClass)
           {
             node = new QTreeWidgetItem(lastClassNode);
           }
@@ -288,11 +288,11 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
       // detect functions
       if (functionRegExp.indexIn(line) != -1)
       {
-        if (m_plugin->treeOn && inClass)
+        if (m_treeOn->isChecked() && inClass)
         {
           node = new QTreeWidgetItem(lastClassNode);
         }
-        else if (m_plugin->treeOn)
+        else if (m_treeOn->isChecked())
         {
           node = new QTreeWidgetItem(lastFunctionNode);
         }
@@ -312,7 +312,7 @@ void KatePluginSymbolViewerView::parsePhpSymbols(void)
         }
         
         nameWithTypes = functionRegExp.cap(4) + QLatin1Char('(') + functionArgsList.join(QLatin1String(", ")) + QLatin1Char(')');
-        if (m_plugin->typesOn)
+        if (m_typesOn->isChecked())
         {
           node->setText(0, nameWithTypes);
         }

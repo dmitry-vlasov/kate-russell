@@ -149,6 +149,7 @@ KateConsole::KateConsole (KateKonsolePlugin* plugin, KTextEditor::MainWindow *mw
   a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_toggle_focus"));
   a->setIcon(QIcon::fromTheme(QStringLiteral("utilities-terminal")));
   a->setText(i18nc("@action", "&Focus Terminal"));
+  actionCollection()->setDefaultShortcut(a, QKeySequence(Qt::Key_F4));
   connect(a, &QAction::triggered, this, &KateConsole::slotToggleFocus);
 
   m_mw->guiFactory()->addClient (this);
@@ -389,7 +390,7 @@ void KateConsole::slotToggleFocus()
 void KateConsole::readConfig()
 {
   disconnect(m_mw, &KTextEditor::MainWindow::viewChanged, this, &KateConsole::slotSync);
-  if ( KConfigGroup(KSharedConfig::openConfig(), "Konsole").readEntry("AutoSyncronize", false) ) {
+  if ( KConfigGroup(KSharedConfig::openConfig(), "Konsole").readEntry("AutoSyncronize", true) ) {
     connect(m_mw, &KTextEditor::MainWindow::viewChanged, this, &KateConsole::slotSync);
   }
 
@@ -489,7 +490,7 @@ void KateKonsoleConfigPage::apply()
 void KateKonsoleConfigPage::reset()
 {
   KConfigGroup config(KSharedConfig::openConfig(), "Konsole");
-  cbAutoSyncronize->setChecked(config.readEntry("AutoSyncronize", false));
+  cbAutoSyncronize->setChecked(config.readEntry("AutoSyncronize", true));
   cbRemoveExtension->setChecked(config.readEntry("RemoveExtension", false));
   lePrefix->setText(config.readEntry("RunPrefix", ""));
   cbSetEditor->setChecked(config.readEntry("SetEditor", false));

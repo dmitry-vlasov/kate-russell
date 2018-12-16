@@ -23,9 +23,10 @@
 #include "kateprojectcodeanalysistool.h"
 #include "tools/kateprojectcodeanalysisselector.h"
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QFileInfo>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QToolTip>
 
 #include <klocalizedstring.h>
 #include <kmessagewidget.h>
@@ -63,8 +64,11 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
     m_treeView->sortByColumn(2, Qt::AscendingOrder);
 
     /**
-     * attach model to code analysis selector
+     * Connect selection change callback
+     * and attach model to code analysis selector
      */
+    connect(m_toolSelector, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &KateProjectInfoViewCodeAnalysis::slotToolSelectionChanged);
     m_toolSelector->setModel(KateProjectCodeAnalysisSelector::model(this));
 
     /**
@@ -72,13 +76,22 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
      */
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setSpacing(0);
-    layout->addWidget(m_treeView);
+    // top: selector and buttons...
     QHBoxLayout *hlayout = new QHBoxLayout;
     layout->addLayout(hlayout);
     hlayout->setSpacing(0);
-    hlayout->addStretch();
     hlayout->addWidget(m_toolSelector);
+    auto infoButton = new QPushButton(QIcon::fromTheme(QStringLiteral("documentinfo")), QString(), this);
+    infoButton->setFocusPolicy(Qt::FocusPolicy::TabFocus);
+    connect(infoButton, &QPushButton::clicked, this,
+            [this]() {
+                QToolTip::showText(QCursor::pos(), m_toolInfoText);
+            });
+    hlayout->addWidget(infoButton);
     hlayout->addWidget(m_startStopAnalysis);
+    hlayout->addStretch();
+    // below: result list...
+    layout->addWidget(m_treeView);
     setLayout(layout);
 
     /**
@@ -90,6 +103,14 @@ KateProjectInfoViewCodeAnalysis::KateProjectInfoViewCodeAnalysis(KateProjectPlug
 
 KateProjectInfoViewCodeAnalysis::~KateProjectInfoViewCodeAnalysis()
 {
+}
+
+void KateProjectInfoViewCodeAnalysis::slotToolSelectionChanged(int)
+{
+    m_analysisTool = m_toolSelector->currentData(Qt::UserRole + 1).value<KateProjectCodeAnalysisTool*>();
+    m_toolInfoText = i18n("%1<br/><br/>The tool will be run on all project files which match this list of file extensions:<br/><br/><b>%2</b>",
+                        m_analysisTool->description(),
+                        m_analysisTool->fileExtensions());
 }
 
 void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
@@ -106,7 +127,7 @@ void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
     m_model->removeRows(0, m_model->rowCount(), QModelIndex());
 
     /**
-     * launch cppcheck
+     * launch selected tool
      */
     m_analyzer = new QProcess(this);
     m_analyzer->setProcessChannelMode(QProcess::MergedChannels);
@@ -128,10 +149,13 @@ void KateProjectInfoViewCodeAnalysis::slotStartStopClicked()
         m_messageWidget->setMessageType(KMessageWidget::Warning);
         m_messageWidget->setWordWrap(false);
         m_messageWidget->setText(m_analysisTool->notInstalledMessage());
-        static_cast<QVBoxLayout *>(layout())->insertWidget(0, m_messageWidget);
+        static_cast<QVBoxLayout *>(layout())->addWidget(m_messageWidget);
         m_messageWidget->animatedShow();
         return;
     }
+
+    m_startStopAnalysis->setEnabled(false);
+
     /**
      * write files list and close write channel
      */
@@ -210,19 +234,22 @@ void KateProjectInfoViewCodeAnalysis::slotClicked(const QModelIndex &index)
 
 void KateProjectInfoViewCodeAnalysis::finished(int exitCode, QProcess::ExitStatus)
 {
+    m_startStopAnalysis->setEnabled(true);
+
   m_messageWidget = new KMessageWidget();
   m_messageWidget->setCloseButtonVisible(true);
   m_messageWidget->setWordWrap(false);
 
-  if (exitCode == 0) {
+  if (m_analysisTool->isSuccessfulExitCode(exitCode)) {
+    // normally 0 is successful but there are exceptions
     m_messageWidget->setMessageType(KMessageWidget::Information);
-    m_messageWidget->setText(i18n("Analysis finished."));
+    m_messageWidget->setText(i18np("Analysis on %1 file finished.", "Analysis on %1 files finished.", m_analysisTool->getActualFilesCount()));
   } else {
     // unfortunately, output was eaten by slotReadyRead()
     // TODO: get stderr output, show it here
     m_messageWidget->setMessageType(KMessageWidget::Warning);
-    m_messageWidget->setText(i18n("Analysis failed!"));
+    m_messageWidget->setText(i18np("Analysis on %1 file failed with exit code %2.", "Analysis on %1 files failed with exit code %2.", m_analysisTool->getActualFilesCount(), exitCode));
   }
-  static_cast<QVBoxLayout*>(layout ())->insertWidget(0, m_messageWidget);
-  m_messageWidget->animatedShow ();
+  static_cast<QVBoxLayout*>(layout())->addWidget(m_messageWidget);
+  m_messageWidget->animatedShow();
 }

@@ -96,6 +96,17 @@ KateConfigDialog::KateConfigDialog(KateMainWindow *parent, KTextEditor::View *vi
     connect(m_modNotifications, &QCheckBox::toggled, this, &KateConfigDialog::slotChanged);
 
     vbox->addWidget(m_modNotifications);
+
+    // Closing last file closes Kate
+    m_modCloseAfterLast = new QCheckBox(
+        i18n("Close Kate entirely when the last file is closed"), buttonGroup);
+    m_modCloseAfterLast->setChecked(parent->modCloseAfterLast());
+    m_modCloseAfterLast->setWhatsThis(i18n(
+                                         "If enabled, Kate will shutdown when the last file being edited is closed, "
+                                         "otherwise a blank page will open so that you can start a new file."));
+    connect(m_modCloseAfterLast, &QCheckBox::toggled, this, &KateConfigDialog::slotChanged);
+
+    vbox->addWidget(m_modCloseAfterLast);
     buttonGroup->setLayout(vbox);
 
     // GROUP with the one below: "Meta-information"
@@ -260,7 +271,7 @@ void KateConfigDialog::slotCurrentPageChanged(KPageWidgetItem *current, KPageWid
     if (info->pluginPage) {
         return;
     }
-    qCDebug(LOG_KATE) << "creating config page (shouldnt get here)";
+    qCDebug(LOG_KATE) << "creating config page (should not get here)";
     info->pluginPage = info->plugin->configPage(info->idInPlugin, info->pageParent);
     info->pageParent->layout()->addWidget(info->pluginPage);
     info->pluginPage->show();
@@ -319,6 +330,9 @@ void KateConfigDialog::slotApply()
 
         cg.writeEntry("Modified Notification", m_modNotifications->isChecked());
         m_mainWindow->setModNotificationEnabled(m_modNotifications->isChecked());
+
+        cg.writeEntry("Close After Last", m_modCloseAfterLast->isChecked());
+        m_mainWindow->setModCloseAfterLast(m_modCloseAfterLast->isChecked());
 
         // patch document modified warn state
         const QList<KTextEditor::Document *> &docs = KateApp::self()->documentManager()->documentList();

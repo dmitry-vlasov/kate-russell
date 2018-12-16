@@ -39,14 +39,14 @@ void KatePluginSymbolViewerView::parsePythonSymbols(void)
   KTextEditor::Document *kv = m_mainWindow->activeView()->document();
 
  //kdDebug(13000)<<"Lines counted :"<<kv->numLines()<<endl;
-  if(m_plugin->treeOn)
+  if(m_treeOn->isChecked())
     {
       clsNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Classes") ) );
       mcrNode = new QTreeWidgetItem(m_symbols, QStringList( i18n("Globals") ) );
       mcrNode->setIcon(0, QIcon(mcr));
       clsNode->setIcon(0, QIcon(cls));
   
-      if (m_plugin->expandedOn)
+      if (m_expandOn->isChecked())
         {
         m_symbols->expandItem(mcrNode);
         m_symbols->expandItem(clsNode);
@@ -109,12 +109,12 @@ for (int i=0; i<kv->lines(); i++)
         else //strip off the word "def "
             name = name.trimmed ().mid (4);
 
-          if (func_on == true && in_class == 1)
+          if (m_func->isChecked() && in_class == 1)
             {
-             if (m_plugin->treeOn)
+             if (m_treeOn->isChecked())
                {
                 node = new QTreeWidgetItem(clsNode, lastClsNode);
-                if (m_plugin->expandedOn) m_symbols->expandItem(node);
+                if (m_expandOn->isChecked()) m_symbols->expandItem(node);
                 lastClsNode = node;
                 mtdNode = lastClsNode;
                 lastMtdNode = lastClsNode;
@@ -126,9 +126,9 @@ for (int i=0; i<kv->lines(); i++)
              node->setText(1, QString::number( line, 10));
             }
 
-         if (struct_on == true && in_class == 2)
+         if (m_struct->isChecked() && in_class == 2)
            {
-            if (m_plugin->treeOn)
+            if (m_treeOn->isChecked())
               {
                node = new QTreeWidgetItem(mtdNode, lastMtdNode);
                lastMtdNode = node;
@@ -140,9 +140,9 @@ for (int i=0; i<kv->lines(); i++)
             node->setText(1, QString::number( line, 10));
            }
 
-          if (macro_on == true && in_class == 0)
+          if (m_macro->isChecked() && in_class == 0)
             {
-             if (m_plugin->treeOn)
+             if (m_treeOn->isChecked())
                {
                 node = new QTreeWidgetItem(mcrNode, lastMcrNode);
                 lastMcrNode = node;

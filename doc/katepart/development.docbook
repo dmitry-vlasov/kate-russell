@@ -12,10 +12,10 @@
 <title>Introduction</title>
 
 <para>Like any advanced text editor component, &katepart; offers a variety of
-ways to extend its functionality.  You can <link linkend="dev-scripting">write 
-simple scripts to add functionality with JavaScript</link>. 
+ways to extend its functionality.  You can <link linkend="dev-scripting">write
+simple scripts to add functionality with JavaScript</link>.
 Finally, once you have extended &katepart;, you are
-welcome to <ulink url="http://kate-editor.org/join-us/">join us</ulink> 
+welcome to <ulink url="http://kate-editor.org/join-us/">join us</ulink>
 and share your enhancements with the world!</para>
 
 </sect1>
@@ -37,17 +37,17 @@ helps the author to be more efficient and productive.</para>
 
 <mediaobject>
 <imageobject><imagedata format="PNG" fileref="highlighted.png"/></imageobject>
-<textobject><phrase>A Perl function, rendered with syntax
+<textobject><phrase>A C++ function, rendered with syntax
 highlighting.</phrase></textobject>
-<caption><para>A Perl function, rendered with syntax highlighting.</para>
+<caption><para>A C++ function, rendered with syntax highlighting.</para>
 </caption>
 </mediaobject>
 
 <mediaobject>
 <imageobject><imagedata format="PNG" fileref="unhighlighted.png"/></imageobject>
-<textobject><phrase>The same Perl function, without
+<textobject><phrase>The same C++ function, without
 highlighting.</phrase></textobject>
-<caption><para>The same Perl function, without highlighting.</para></caption>
+<caption><para>The same C++ function, without highlighting.</para></caption>
 </mediaobject>
 
 <para>Of the two examples, which is easiest to read?</para>
@@ -81,14 +81,6 @@ and in some cases the authors of the syntax rules will be proud if 98%
 of text gets correctly rendered, though most often you need a rare
 style to see the incorrect 2%.</para>
 </note>
-
-<tip>
-<para>You can download updated or additional syntax highlight
-definitions from the &kappname; website by clicking the
-<guibutton>Download Highlighting Files...</guibutton> button in the <link
-linkend="pref-open-save-modes-filetypes">Modes &amp; Filetypes</link> tab of the <link
-linkend="config-dialog">Config Dialog</link>.</para>
-</tip>
 
 </sect2>
 
@@ -276,6 +268,7 @@ Available attributes are:</term>
 <para><userinput>author</userinput> contains the name of the author and his email-address.</para>
 <para><userinput>license</userinput> contains the license, usually the MIT license for new syntax-highlighting files.</para>
 <para><userinput>style</userinput> contains the provided language and is used by the indenters for the attribute <literal>required-syntax-style</literal>.</para>
+<para><userinput>indenter</userinput> defines which indenter will be used by default. Available indenters are: <emphasis>ada, normal, cstyle, cmake, haskell, latex, lilypond, lisp, lua, pascal, python, replicode, ruby</emphasis> and <emphasis>xml</emphasis>.</para>
 <para><userinput>hidden</userinput> defines whether the name should appear in &kappname;'s menus.</para>
 <para>So the next line may look like this:</para>
 <programlisting>
@@ -390,9 +383,6 @@ to the context specified in fallthroughContext if no rule matches.
 Default: <emphasis>false</emphasis>.</para>
 <para><userinput>fallthroughContext</userinput> specifies the next context
 if no rule matches.</para>
-<para><userinput>dynamic</userinput> if <emphasis>true</emphasis>, the context
-remembers strings/placeholders saved by dynamic rules. This is needed for HERE
-documents for example. Default: <emphasis>false</emphasis>.</para>
 </listitem>
 </varlistentry>
 
@@ -482,22 +472,6 @@ Available attributes are:</term>
 <para><userinput>indentationsensitive</userinput> if <emphasis>true</emphasis>, the code folding markers
 will be added indentation based, as in the scripting language Python. Usually you
 do not need to set it, as it defaults to <emphasis>false</emphasis>.</para>
-</listitem>
-</varlistentry>
-
-
-<varlistentry>
-<term>The element <userinput>indentation</userinput> in the group
-<userinput>general</userinput> defines which indenter will be used. However, we strongly
-recommend you omit this element, as the indenter usually will be set by either defining
-a File Type or by adding a mode line to the text file. If you specify an indenter though,
-you will force a specific indentation on the user, which he might not like at all.
-Available attributes are:</term>
-
-<listitem>
-<para><userinput>mode</userinput> is the name of the indenter. Available indenters
-right now are: <emphasis>normal, cstyle, haskell, lilypond, lisp, python, ruby</emphasis>
-and <emphasis>xml</emphasis>.</para>
 </listitem>
 </varlistentry>
 
@@ -619,22 +593,8 @@ other context, e.g. <userinput>#pop#pop!OtherContext</userinput>.</para>
 </listitem>
 </itemizedlist>
 
-<para>Some rules can have <emphasis>child rules</emphasis> which are
-then evaluated only if the parent rule matched. The entire matched
-string will be given the attribute defined by the parent rule. A rule
-with child rules looks like this:</para>
-
-<programlisting>
-&lt;RuleName (attributes)&gt;
-  &lt;ChildRuleName (attributes) /&gt;
-  ...
-&lt;/RuleName&gt;
-</programlisting>
-
-
 <para>Rule specific attributes varies and are described in the
 following sections.</para>
-
 
 <itemizedlist>
 <title>Common attributes</title>
@@ -711,7 +671,7 @@ to match.</para>
 <term>Detect2Chars</term>
 <listitem>
 <para>Detect two specific characters in a defined order.</para>
-<programlisting>&lt;Detect2Chars char=&quot;(character)&quot; char1=&quot;(character)&quot; (common attributes) (dynamic) /&gt;</programlisting>
+<programlisting>&lt;Detect2Chars char=&quot;(character)&quot; char1=&quot;(character)&quot; (common attributes) /&gt;</programlisting>
 <para>The <userinput>char</userinput> attribute defines the first character to match,
 <userinput>char1</userinput> the second.</para>
 </listitem>
@@ -747,7 +707,7 @@ comparing is used.</para>
 such as a dot <userinput>'.'</userinput> or a whitespace on the beginning
 and the end of the word. Think of <userinput>\b&lt;string&gt;\b</userinput>
 in terms of a regular expression, but it is faster than the rule <userinput>RegExpr</userinput>.</para>
-<programlisting>&lt;WordDetect String=&quot;(string)&quot; [insensitive=&quot;true|false&quot;] (common attributes) (dynamic) /&gt;</programlisting>
+<programlisting>&lt;WordDetect String=&quot;(string)&quot; [insensitive=&quot;true|false&quot;] (common attributes) /&gt;</programlisting>
 <para>The <userinput>String</userinput> attribute defines the string
 to match. The <userinput>insensitive</userinput> attribute defaults to
 <emphasis>false</emphasis> and is passed to the string comparison
@@ -802,19 +762,8 @@ loose its delimiter property in all <emphasis>keyword</emphasis> rules.</para>
 <term>Int</term>
 <listitem>
 <para>Detect an integer number.</para>
-<para><programlisting>&lt;Int (common attributes) (dynamic) /&gt;</programlisting></para>
-<para>This rule has no specific attributes. Child rules are typically
-used to detect combinations of <userinput>L</userinput> and
-<userinput>U</userinput> after the number, indicating the integer type
-in program code. Actually all rules are allowed as child rules, though,
-the <acronym>DTD</acronym> only allows the child rule <userinput>StringDetect</userinput>.</para>
-<para>The following example matches integer numbers follows by the character 'L'.
-<programlisting>
-&lt;Int attribute="Decimal" context="#stay" &gt;
-  &lt;StringDetect attribute="Decimal" context="#stay" String="L" insensitive="true"/&gt;
-&lt;/Int&gt;
-</programlisting></para>
-
+<para><programlisting>&lt;Int (common attributes) /&gt;</programlisting></para>
+<para>This rule has no specific attributes.</para>
 </listitem>
 </varlistentry>
 
@@ -823,9 +772,7 @@ the <acronym>DTD</acronym> only allows the child rule <userinput>StringDetect</u
 <listitem>
 <para>Detect a floating point number.</para>
 <para><programlisting>&lt;Float (common attributes) /&gt;</programlisting></para>
-<para>This rule has no specific attributes. <userinput>AnyChar</userinput> is
-allowed as a child rule and typically used to detect combinations, see rule
-<userinput>Int</userinput> for reference.</para>
+<para>This rule has no specific attributes.</para>
 </listitem>
 </varlistentry>
 
@@ -1132,7 +1079,7 @@ itself works. The basic skeleton of the body looks like this:
 <programlisting>
 // required katepart js libraries, e.g. range.js if you use Range
 require ("range.js");
-  
+
 triggerCharacters = "{}/:;";
 function indent(line, indentWidth, ch)
 {
@@ -1374,7 +1321,7 @@ by <ulink url="mailto:kwrite-devel@kde.org">contacting the mailing list</ulink>.
 
 <para>
 The scripting API presented here is available to all scripts, &ie; indentation
-scripts and command line commands. 
+scripts and command line commands.
 The <classname>Cursor</classname> and <classname>Range</classname> classes are provided by library files in <filename>$<envar>XDG_DATA_DIRS</envar>/katepart5/libraries</filename>.
 If you want to use them in your script, which needs to use some of the <classname>Document</classname> or <classname>View</classname> functions, please include the necessary library by using:
 
@@ -1873,7 +1820,9 @@ can provide a better translation. The arguments <replaceable>arg1</replaceable>,
 <quote><literal>view</literal></quote> representing the current active editor
 view. The following is a list of all available View functions.
 
-<variablelist><varlistentry>
+<variablelist>
+
+<varlistentry>
 <term><synopsis>
 <function>Cursor view.cursorPosition()</function>
 </synopsis></term>
@@ -1982,7 +1931,26 @@ void view.clearSelection();
 <listitem><para>
 Clears the text selection without removing the text.
 </para></listitem>
-</varlistentry></variablelist>
+</varlistentry>
+
+<varlistentry>
+<term><synopsis>
+object view.executeCommand(<parameter>String <replaceable>command</replaceable></parameter>,
+                           <parameter>String <replaceable>args</replaceable></parameter>,
+                           <parameter>Range <replaceable>range</replaceable></parameter>);
+</synopsis></term>
+<listitem><para>
+Executes the <link linkend="advanced-editing-tools-commandline">command line command</link> <replaceable>command</replaceable>
+with the optional arguments <replaceable>args</replaceable> and the optional <replaceable>range</replaceable>.
+The returned <replaceable>object</replaceable> has a boolean property <replaceable>object.ok</replaceable>
+that indicates whether execution of the <replaceable>command</replaceable> was successful.
+In case of an error, the string <replaceable>object.status</replaceable> contains an error message.
+</para>
+<para>Since: &kde-frameworks; 5.50</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
 </para>
 </sect3>
 
@@ -1993,7 +1961,9 @@ Whenever a script is being executed, there is a global variable
 <quote><literal>document</literal></quote> representing the current active
 document. The following is a list of all available Document functions.
 
-<variablelist><varlistentry>
+<variablelist>
+
+<varlistentry>
 <term><synopsis>
 String document.fileName();
 </synopsis></term>
@@ -2834,9 +2804,58 @@ bool document.isOthers(<parameter>Cursor <replaceable>cursor</replaceable></para
     Returns <literal>true</literal>, if the attribute of the character at the cursor position
     is <literal>dsOthers</literal>, otherwise <literal>false</literal>.
 </para></listitem>
-</varlistentry></variablelist>
+</varlistentry>
+
+</variablelist>
 </para>
 
+</sect3>
+
+<sect3 id="dev-scripting-api-editor">
+<title>The Editor API</title>
+<para>
+In addition to the document and view API, there is a general editor API that
+provides functions for general editor scripting functionality.
+
+<variablelist>
+
+<varlistentry>
+<term><synopsis>
+String editor.clipboardText();
+</synopsis></term>
+<listitem><para>
+Returns the text that currently is in the global clipboard.
+</para>
+<para>Since: &kde-frameworks; 5.50</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><synopsis>
+String editor.clipboardHistory();
+</synopsis></term>
+<listitem><para>
+The editor holds a clipboard history that contains up to 10 clipboard entries.
+This function returns all entries that currently are in the clipboard history.
+</para>
+<para>Since: &kde-frameworks; 5.50</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><synopsis>
+void editor.setClipboardText(<parameter>String <replaceable>text</replaceable></parameter>);
+</synopsis></term>
+<listitem><para>
+Set the contents of the clipboard to <replaceable>text</replaceable>.
+The <replaceable>text</replaceable> will be added to the clipboard history.
+</para>
+<para>Since: &kde-frameworks; 5.50</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</para>
 </sect3>
 </sect2>
 

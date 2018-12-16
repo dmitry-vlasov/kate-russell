@@ -24,15 +24,13 @@
 #include "katewaiter.h"
 
 #include <KAboutData>
-#include <kcoreaddons_version.h> // for KAboutData::setDesktopFileName()
+#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KWindowSystem>
 #include <KStartupInfo>
 #include <kdbusservice.h>
-#include <kcrash_version.h>
-#if KCrash_VERSION >= QT_VERSION_CHECK(5, 15, 0)
 #include <KCrash>
-#endif // KCrash >= 5.15
+#include <KSharedConfig>
 
 #include <QByteArray>
 #include <QCommandLineParser>
@@ -99,9 +97,7 @@ int main(int argc, char **argv)
     /**
      * Enable crash handling through KCrash.
      */
-#if KCrash_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     KCrash::initialize();
-#endif
 
     /**
      * Connect application with translation catalogs
@@ -123,18 +119,19 @@ int main(int argc, char **argv)
     /**
      * desktop file association to make application icon work (e.g. in Wayland window decoration)
      */
-#if KCOREADDONS_VERSION >= QT_VERSION_CHECK(5, 16, 0)
     aboutData.setDesktopFileName(QStringLiteral("org.kde.kate"));
-#endif
 
+    /**
+     * authors & co.
+     */
     aboutData.addAuthor(i18n("Christoph Cullmann"), i18n("Maintainer"), QStringLiteral("cullmann@kde.org"), QStringLiteral("http://www.cullmann.io"));
+    aboutData.addAuthor(i18n("Dominik Haumann"), i18n("Core Developer"), QStringLiteral("dhaumann@kde.org"));
+    aboutData.addAuthor(i18n("Sven Brauch"), i18n("Developer"), QStringLiteral("mail@svenbrauch.de"));
+    aboutData.addAuthor(i18n("Kåre Särs"), i18n("Developer"), QStringLiteral("kare.sars@iki.fi"));
     aboutData.addAuthor(i18n("Anders Lund"), i18n("Core Developer"), QStringLiteral("anders@alweb.dk"), QStringLiteral("http://www.alweb.dk"));
     aboutData.addAuthor(i18n("Joseph Wenninger"), i18n("Core Developer"), QStringLiteral("jowenn@kde.org"), QStringLiteral("http://stud3.tuwien.ac.at/~e9925371"));
     aboutData.addAuthor(i18n("Hamish Rodda"), i18n("Core Developer"), QStringLiteral("rodda@kde.org"));
-    aboutData.addAuthor(i18n("Dominik Haumann"), i18n("Developer & Highlight wizard"), QStringLiteral("dhdev@gmx.de"));
-    aboutData.addAuthor(i18n("Kåre Särs"), i18n("Developer"), QStringLiteral("kare.sars@iki.fi"));
     aboutData.addAuthor(i18n("Alexander Neundorf"), i18n("Developer"), QStringLiteral("neundorf@kde.org"));
-    aboutData.addAuthor(i18n("Sven Brauch"), i18n("Developer"), QStringLiteral("mail@svenbrauch.de"));
     aboutData.addAuthor(i18n("Waldo Bastian"), i18n("The cool buffersystem"), QStringLiteral("bastian@kde.org"));
     aboutData.addAuthor(i18n("Charles Samuels"), i18n("The Editing Commands"), QStringLiteral("charles@kde.org"));
     aboutData.addAuthor(i18n("Matt Newell"), i18n("Testing, ..."), QStringLiteral("newellm@proaxis.com"));
@@ -184,8 +181,6 @@ int main(int argc, char **argv)
      */
     QCommandLineParser parser;
     aboutData.setupCommandLine(&parser);
-    parser.addHelpOption();
-    parser.addVersionOption();
 
     // -s/--start session option
     const QCommandLineOption startSessionOption(QStringList() << QStringLiteral("s") << QStringLiteral("start"), i18n("Start Kate with a given session."), i18n("session"));
@@ -273,7 +268,7 @@ int main(int argc, char **argv)
 
     /**
      * use dbus, if available for linux and co.
-     * allows for resuse of running Kate instances
+     * allows for reuse of running Kate instances
      */
 #ifndef USE_QT_SINGLE_APP
     if (QDBusConnectionInterface * const sessionBusInterface = QDBusConnection::sessionBus().interface()) {
@@ -285,10 +280,46 @@ int main(int argc, char **argv)
             return 1;
         }
 
+        QString currentActivity;
+        QDBusMessage m = QDBusMessage::createMethodCall(
+                                        QStringLiteral("org.kde.ActivityManager"),
+                                        QStringLiteral("/ActivityManager/Activities"), QStringLiteral("org.kde.ActivityManager.Activities"), QStringLiteral("CurrentActivity"));
+        QDBusMessage res = QDBusConnection::sessionBus().call(m);
+        QList<QVariant> answer = res.arguments();
+        if (answer.size() == 1) {
+            currentActivity = answer.at(0).toString();
+        }
+
         QStringList kateServices;
         for (KateRunningInstanceMap::const_iterator it = mapSessionRii.constBegin(); it != mapSessionRii.constEnd(); ++it) {
-            kateServices << (*it)->serviceName;
+            QString serviceName = (*it)->serviceName;
+
+            if (currentActivity.length() != 0) {
+                QDBusMessage m = QDBusMessage::createMethodCall(serviceName,
+                                        QStringLiteral("/MainApplication"), QStringLiteral("org.kde.Kate.Application"), QStringLiteral("isOnActivity"));
+
+                QList<QVariant> dbargs;
+
+                // convert to an url
+                dbargs.append(currentActivity);
+                m.setArguments(dbargs);
+
+                QDBusMessage res = QDBusConnection::sessionBus().call(m);
+                QList<QVariant> answer = res.arguments();
+                if (answer.size() == 1) {
+                    const bool canBeUsed = answer.at(0).toBool();
+
+                    // If the Kate instance is in a specific activity, add it to
+                    // the list of candidate reusable services
+                    if (canBeUsed) {
+                        kateServices << serviceName;
+                    }
+                }
+            } else {
+                kateServices << serviceName;
+            }
         }
+
         QString serviceName;
 
         QString start_session;
@@ -329,7 +360,6 @@ int main(int argc, char **argv)
         bool foundRunningService = false;
         if ((!force_new) && (serviceName.isEmpty())) {
             const int desktopnumber = KWindowSystem::currentDesktop();
-            int sessionDesktopNumber;
             for (int s = 0; s < kateServices.count(); s++) {
 
                 serviceName = kateServices[s];
@@ -338,8 +368,6 @@ int main(int argc, char **argv)
                     QDBusReply<bool> there = sessionBusInterface->isServiceRegistered(serviceName);
 
                     if (there.isValid() && there.value()) {
-                        sessionDesktopNumber = -1;
-
                         // query instance current desktop
                         QDBusMessage m = QDBusMessage::createMethodCall(serviceName,
                                          QStringLiteral("/MainApplication"), QStringLiteral("org.kde.Kate.Application"), QStringLiteral("desktopNumber"));
@@ -347,8 +375,9 @@ int main(int argc, char **argv)
                         QDBusMessage res = QDBusConnection::sessionBus().call(m);
                         QList<QVariant> answer = res.arguments();
                         if (answer.size() == 1) {
-                            sessionDesktopNumber = answer.at(0).toInt();
-                            if (sessionDesktopNumber ==  desktopnumber) {
+                            // special case: on all desktops! that is -1 aka NET::OnAllDesktops, see KWindowInfo::desktop() docs
+                            const int sessionDesktopNumber = answer.at(0).toInt();
+                            if (sessionDesktopNumber == desktopnumber || sessionDesktopNumber == NET::OnAllDesktops) {
                                 // stop searching. a candidate instance in the current desktop has been found
                                 foundRunningService = true;
                                 break;
@@ -387,7 +416,9 @@ int main(int argc, char **argv)
             QStringList tokens;
 
             // open given files...
-            foreach(const QString & url, urls) {
+            // Bug 397913: Reverse the order here so the new tabs are opened in same order as the files were passed in on the command line
+            for (int i = urls.size() - 1; i >= 0; --i) {
+                const QString &url = urls[i];
                 QDBusMessage m = QDBusMessage::createMethodCall(serviceName,
                                 QStringLiteral("/MainApplication"), QStringLiteral("org.kde.Kate.Application"), QStringLiteral("tokenOpenUrlAt"));
 
@@ -560,6 +591,17 @@ int main(int argc, char **argv)
     /**
      * if we arrive here, we need to start a new kate instance!
      */
+
+    /**
+     * set some KTextEditor defaults
+     */
+    {
+        KConfigGroup viewConfig(KSharedConfig::openConfig(), QStringLiteral("KTextEditor View"));
+        if (!viewConfig.exists()) {
+            viewConfig.writeEntry("Line Modification", true);
+            viewConfig.writeEntry("Line Numbers", true);
+        }
+    }
 
     /**
      * construct the real kate app object ;)

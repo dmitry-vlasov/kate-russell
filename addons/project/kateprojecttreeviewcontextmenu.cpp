@@ -21,21 +21,24 @@
 #include "kateprojecttreeviewcontextmenu.h"
 
 #include <klocalizedstring.h>
+#include <KIO/OpenFileManagerWindowJob>
 #include <KMimeTypeTrader>
+#include <KPropertiesDialog>
 #include <KRun>
 #include <KNS3/KMoreTools>
 #include <KNS3/KMoreToolsMenuFactory>
 
-#include <QMenu>
-#include <QStandardPaths>
-#include <QFileInfo>
-#include <QDir>
-#include <QIcon>
-#include <QProcess>
 #include <QApplication>
 #include <QClipboard>
-#include <QMimeType>
+#include <QDebug>
+#include <QDir>
+#include <QFileInfo>
+#include <QIcon>
+#include <QMenu>
 #include <QMimeDatabase>
+#include <QMimeType>
+#include <QProcess>
+#include <QStandardPaths>
 
 KateProjectTreeViewContextMenu::KateProjectTreeViewContextMenu()
 {
@@ -55,7 +58,7 @@ static bool isGit(const QString &filename)
     args << QStringLiteral("ls-files") << fi.fileName();
     git.start(QStringLiteral("git"), args);
     bool isGit = false;
-    if (git.waitForStarted() && git.waitForFinished()) {
+    if (git.waitForStarted() && git.waitForFinished(-1)) {
         QStringList files = QString::fromLocal8Bit(git.readAllStandardOutput()).split(QRegExp(QStringLiteral("[\n\r]")), QString::SkipEmptyParts);
         isGit = files.contains(fi.fileName());
     }
@@ -65,23 +68,23 @@ static bool isGit(const QString &filename)
 void KateProjectTreeViewContextMenu::exec(const QString &filename, const QPoint &pos, QWidget *parent)
 {
     /**
-     * create context menu
+     * Create context menu
      */
     QMenu menu;
 
-    QAction *copyAction = menu.addAction(QIcon::fromTheme(QStringLiteral("edit-copy")), i18n("Copy Filename"));
+    /**
+     * Copy Path
+     */
+    QAction *copyAction = menu.addAction(QIcon::fromTheme(QStringLiteral("edit-copy")), i18n("Copy File Path"));
 
     /**
-     * handle "open with"
+     * Handle "open with",
      * find correct mimetype to query for possible applications
      */
     QMenu *openWithMenu = menu.addMenu(i18n("Open With"));
     QMimeType mimeType = QMimeDatabase().mimeTypeForFile(filename);
     KService::List offers = KMimeTypeTrader::self()->query(mimeType.name(), QStringLiteral("Application"));
-
-    /**
-     * for each one, insert a menu item...
-     */
+    // For each one, insert a menu item...
     for (KService::List::Iterator it = offers.begin(); it != offers.end(); ++it) {
         KService::Ptr service = *it;
         if (service->name() == QStringLiteral("Kate")) {
@@ -90,21 +93,27 @@ void KateProjectTreeViewContextMenu::exec(const QString &filename, const QPoint 
         QAction *action = openWithMenu->addAction(QIcon::fromTheme(service->icon()), service->name());
         action->setData(service->entryPath());
     }
-
-    /**
-     * perhaps disable menu, if no entries!
-     */
+    // Perhaps disable menu, if no entries
     openWithMenu->setEnabled(!openWithMenu->isEmpty());
 
+    /**
+     * Open Containing folder
+     */
+    auto openContaingFolderAction = menu.addAction(QIcon::fromTheme(QStringLiteral("document-open-folder")), i18n("&Open Containing Folder"));
+
+    /**
+     * File Properties Dialog
+     */
+    auto filePropertiesAction = menu.addAction(QIcon::fromTheme(QStringLiteral("dialog-object-properties")), i18n("Properties"));
+
+    /**
+     * Git menu
+     */
     KMoreToolsMenuFactory menuFactory(QLatin1String("kate/addons/project/git-tools"));
-
     QMenu gitMenu; // must live as long as the maybe filled menu items should live
-
     if (isGit(filename)) {
-
         menuFactory.fillMenuFromGroupingNames(&gitMenu, { QLatin1String("git-clients-and-actions") },
                                                                QUrl::fromLocalFile(filename));
-
         menu.addSection(i18n("Git:"));
         Q_FOREACH(auto action, gitMenu.actions()) {
             menu.addAction(action);
@@ -114,12 +123,11 @@ void KateProjectTreeViewContextMenu::exec(const QString &filename, const QPoint 
     /**
      * run menu and handle the triggered action
      */
-    if (QAction *action = menu.exec(pos)) {
-
-        // handle apps
-        if (copyAction == action) {
+    if (QAction* const action = menu.exec(pos)) {
+        if (action == copyAction) {
             QApplication::clipboard()->setText(filename);
-        } else {
+        }
+        else if (action->parentWidget() == openWithMenu) {
             // handle "open with"
             const QString openWith = action->data().toString();
             if (KService::Ptr app = KService::serviceByDesktopPath(openWith)) {
@@ -127,6 +135,19 @@ void KateProjectTreeViewContextMenu::exec(const QString &filename, const QPoint 
                 list << QUrl::fromLocalFile(filename);
                 KRun::runService(*app, list, parent);
             }
+        }
+        else if (action == openContaingFolderAction) {
+            KIO::highlightInFileManager({ QUrl::fromLocalFile(filename) });
+        }
+        else if (action == filePropertiesAction) {
+            // code copied and adapted from frameworks/kio/src/filewidgets/knewfilemenu.cpp
+            KFileItem fileItem(QUrl::fromLocalFile(filename));
+            QDialog* dlg = new KPropertiesDialog(fileItem);
+            dlg->setAttribute(Qt::WA_DeleteOnClose);
+            dlg->show();
+        }
+        else {
+            // One of the git actions was triggered
         }
     }
 }
