@@ -82,6 +82,9 @@ private :
 	void buildTreeProp  (QDomNode&);
 	void buildTreeRef   (QDomNode&);
 
+	// Proofs are found
+	void finalizeProofs(QDomNode&);
+
 	typedef
 		std :: map<int, QTreeWidgetItem*>
 		TreeItemVector_;

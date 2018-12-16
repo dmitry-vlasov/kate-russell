@@ -192,6 +192,8 @@ namespace russell {
 			buildTree(node);
 		} else if (root.tagName() == QLatin1String("info")) {
 			processInfo(node);
+		} else if (root.tagName() == QLatin1String("proved")) {
+			finalizeProofs(node);
 		}
 	}
 
@@ -229,6 +231,27 @@ namespace russell {
 		tree_->setContentsMargins(1, 1, 1, 1);
 		tree_->setMaximumWidth(100000);
 	}
+
+	void Proof::finalizeProofs(QDomNode& outlineNode) {
+		QStringList proofs;
+		while (!outlineNode.isNull()) {
+			QDomElement outlineElement = outlineNode.toElement();
+			if (!outlineElement.isNull()) {
+				if (outlineElement.tagName() == QLatin1String("proof")) {
+					proofs << outlineElement.text();
+				}
+			}
+			outlineNode = outlineNode.nextSibling();
+		}
+		if (proofs.size() == 0) {
+			KMessageBox::sorry(0, QLatin1String("Something wrong: empty list of proofs"));
+		} else if (proofs.size() == 1) {
+			KMessageBox::information(this, proofs.first(), QLatin1String("Proof"));
+		} else {
+			// TODO
+		}
+	}
+
 
 	void Proof::processInfo(QDomNode& outlineNode) {
 		while (!outlineNode.isNull()) {
