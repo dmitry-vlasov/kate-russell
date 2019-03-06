@@ -37,6 +37,7 @@
 #include <KStandardAction>
 #include <KIO/DeleteJob>
 #include <KIO/CopyJob>
+#include <KIO/OpenFileManagerWindowJob>
 
 #include <QMimeDatabase>
 #include <QClipboard>
@@ -63,31 +64,35 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
     connect(this, &KateFileTree::activated, this, &KateFileTree::mouseClicked);
     connect(this, &KateFileTree::clicked, this, &KateFileTree::mouseClicked);
 
-    m_filelistReloadDocument = new QAction(QIcon::fromTheme(QLatin1String("view-refresh")), i18nc("@action:inmenu", "Reloa&d"), this);
+    m_filelistReloadDocument = new QAction(QIcon::fromTheme(QStringLiteral("view-refresh")), i18nc("@action:inmenu", "Reloa&d"), this);
     connect(m_filelistReloadDocument, &QAction::triggered, this, &KateFileTree::slotDocumentReload);
     m_filelistReloadDocument->setWhatsThis(i18n("Reload selected document(s) from disk."));
 
-    m_filelistCloseDocument = new QAction(QIcon::fromTheme(QLatin1String("document-close")), i18nc("@action:inmenu", "Close"), this);
+    m_filelistCloseDocument = new QAction(QIcon::fromTheme(QStringLiteral("document-close")), i18nc("@action:inmenu", "Close"), this);
     connect(m_filelistCloseDocument, &QAction::triggered, this, &KateFileTree::slotDocumentClose);
     m_filelistCloseDocument->setWhatsThis(i18n("Close the current document."));
 
-    m_filelistExpandRecursive = new QAction(QIcon::fromTheme(QLatin1String("view-list-tree")), i18nc("@action:inmenu", "Expand recursively"), this);
+    m_filelistExpandRecursive = new QAction(QIcon::fromTheme(QStringLiteral("view-list-tree")), i18nc("@action:inmenu", "Expand recursively"), this);
     connect(m_filelistExpandRecursive, &QAction::triggered, this, &KateFileTree::slotExpandRecursive);
     m_filelistExpandRecursive->setWhatsThis(i18n("Expand the file list sub tree recursively."));
 
-    m_filelistCollapseRecursive = new QAction(QIcon::fromTheme(QLatin1String("view-list-tree")), i18nc("@action:inmenu", "Collapse recursively"), this);
+    m_filelistCollapseRecursive = new QAction(QIcon::fromTheme(QStringLiteral("view-list-tree")), i18nc("@action:inmenu", "Collapse recursively"), this);
     connect(m_filelistCollapseRecursive, &QAction::triggered, this, &KateFileTree::slotCollapseRecursive);
     m_filelistCollapseRecursive->setWhatsThis(i18n("Collapse the file list sub tree recursively."));
 
-    m_filelistCloseOtherDocument = new QAction(QIcon::fromTheme(QLatin1String("document-close")), i18nc("@action:inmenu", "Close Other"), this);
+    m_filelistCloseOtherDocument = new QAction(QIcon::fromTheme(QStringLiteral("document-close")), i18nc("@action:inmenu", "Close Other"), this);
     connect(m_filelistCloseOtherDocument, &QAction::triggered, this, &KateFileTree::slotDocumentCloseOther);
     m_filelistCloseOtherDocument->setWhatsThis(i18n("Close other documents in this folder."));
 
-    m_filelistCopyFilename = new QAction(QIcon::fromTheme(QLatin1String("edit-copy")), i18nc("@action:inmenu", "Copy File Path"), this);
+    m_filelistOpenContainingFolder = new QAction(QIcon::fromTheme(QStringLiteral("document-open-folder")), i18nc("@action:inmenu", "Open Containing Folder"), this);
+    connect(m_filelistOpenContainingFolder, &QAction::triggered, this, &KateFileTree::slotOpenContainingFolder);
+    m_filelistOpenContainingFolder->setWhatsThis(i18n("Open the folder this file is located in."));
+
+    m_filelistCopyFilename = new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")), i18nc("@action:inmenu", "Copy File Path"), this);
     connect(m_filelistCopyFilename, &QAction::triggered, this, &KateFileTree::slotCopyFilename);
     m_filelistCopyFilename->setWhatsThis(i18n("Copy path and filename to the clipboard."));
 
-    m_filelistRenameFile = new QAction(QIcon::fromTheme(QLatin1String("edit-rename")), i18nc("@action:inmenu", "Rename File"), this);
+    m_filelistRenameFile = new QAction(QIcon::fromTheme(QStringLiteral("edit-rename")), i18nc("@action:inmenu", "Rename..."), this);
     connect(m_filelistRenameFile, &QAction::triggered, this, &KateFileTree::slotRenameFile);
     m_filelistRenameFile->setWhatsThis(i18n("Rename the selected file."));
 
@@ -97,17 +102,17 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
     m_filelistPrintDocumentPreview = KStandardAction::printPreview(this, SLOT(slotPrintDocumentPreview()), this);
     m_filelistPrintDocumentPreview->setWhatsThis(i18n("Show print preview of current document"));
 
-    m_filelistDeleteDocument = new QAction(QIcon::fromTheme(QLatin1String("edit-delete-shred")), i18nc("@action:inmenu", "Delete Document"), this);
+    m_filelistDeleteDocument = new QAction(QIcon::fromTheme(QStringLiteral("edit-delete")), i18nc("@action:inmenu", "Delete"), this);
     connect(m_filelistDeleteDocument, &QAction::triggered, this, &KateFileTree::slotDocumentDelete);
     m_filelistDeleteDocument->setWhatsThis(i18n("Close and delete selected file from storage."));
 
     QActionGroup *modeGroup = new QActionGroup(this);
 
-    m_treeModeAction = setupOption(modeGroup, QIcon::fromTheme(QLatin1String("view-list-tree")), i18nc("@action:inmenu", "Tree Mode"),
+    m_treeModeAction = setupOption(modeGroup, QIcon::fromTheme(QStringLiteral("view-list-tree")), i18nc("@action:inmenu", "Tree Mode"),
                                    i18n("Set view style to Tree Mode"),
                                    SLOT(slotTreeMode()), true);
 
-    m_listModeAction = setupOption(modeGroup, QIcon::fromTheme(QLatin1String("view-list-text")), i18nc("@action:inmenu", "List Mode"),
+    m_listModeAction = setupOption(modeGroup, QIcon::fromTheme(QStringLiteral("view-list-text")), i18nc("@action:inmenu", "List Mode"),
                                    i18n("Set view style to List Mode"),
                                    SLOT(slotListMode()), false);
 
@@ -125,7 +130,7 @@ KateFileTree::KateFileTree(QWidget *parent): QTreeView(parent)
                                         i18n("Sort by Opening Order"),
                                         SLOT(slotSortOpeningOrder()), false);
 
-    m_resetHistory = new QAction(QIcon::fromTheme(QLatin1String("edit-clear-history")), i18nc("@action:inmenu", "Clear History"), this);
+    m_resetHistory = new QAction(QIcon::fromTheme(QStringLiteral("edit-clear-history")), i18nc("@action:inmenu", "Clear History"), this);
     connect(m_resetHistory, &QAction::triggered, this, &KateFileTree::slotResetHistory);
     m_resetHistory->setWhatsThis(i18n("Clear edit/view history."));
 
@@ -237,6 +242,7 @@ void KateFileTree::contextMenuEvent(QContextMenuEvent *event)
     if (isFile) {
         menu.addAction(m_filelistCloseOtherDocument);
         menu.addSeparator();
+        menu.addAction(m_filelistOpenContainingFolder);
         menu.addAction(m_filelistCopyFilename);
         menu.addAction(m_filelistRenameFile);
         menu.addAction(m_filelistPrintDocument);
@@ -246,6 +252,7 @@ void KateFileTree::contextMenuEvent(QContextMenuEvent *event)
         connect(openWithMenu, &QMenu::triggered, this, &KateFileTree::slotOpenWithMenuAction);
 
         const bool hasFileName = doc->url().isValid();
+        m_filelistOpenContainingFolder->setEnabled(hasFileName);
         m_filelistCopyFilename->setEnabled(hasFileName);
         m_filelistRenameFile->setEnabled(hasFileName);
         m_filelistDeleteDocument->setEnabled(hasFileName);
@@ -257,7 +264,7 @@ void KateFileTree::contextMenuEvent(QContextMenuEvent *event)
     view_menu->addAction(m_treeModeAction);
     view_menu->addAction(m_listModeAction);
 
-    QMenu *sort_menu = menu.addMenu(QIcon::fromTheme(QLatin1String("view-sort-ascending")), i18nc("@action:inmenu", "Sort By"));
+    QMenu *sort_menu = menu.addMenu(QIcon::fromTheme(QStringLiteral("view-sort")), i18nc("@action:inmenu", "Sort By"));
     sort_menu->addAction(m_sortByFile);
     sort_menu->addAction(m_sortByPath);
     sort_menu->addAction(m_sortByOpeningOrder);
@@ -288,7 +295,7 @@ void KateFileTree::slotFixOpenWithMenu()
     QMimeType mime = db.mimeTypeForName(doc->mimeType());
 
     QAction *a = nullptr;
-    KService::List offers = KMimeTypeTrader::self()->query(mime.name(), QLatin1String("Application"));
+    KService::List offers = KMimeTypeTrader::self()->query(mime.name(), QStringLiteral("Application"));
     // for each one, insert a menu item...
     for (KService::List::Iterator it = offers.begin(); it != offers.end(); ++it) {
         KService::Ptr service = *it;
@@ -414,6 +421,14 @@ void KateFileTree::slotDocumentReload()
     QList<KTextEditor::Document *> docs = v.value<QList<KTextEditor::Document *> >();
     foreach(KTextEditor::Document * doc, docs) {
         doc->documentReload();
+    }
+}
+
+void KateFileTree::slotOpenContainingFolder()
+{
+    KTextEditor::Document *doc = model()->data(m_indexContextMenu, KateFileTreeModel::DocumentRole).value<KTextEditor::Document *>();
+    if (doc) {
+        KIO::highlightInFileManager({doc->url()});
     }
 }
 
@@ -694,7 +709,7 @@ void KateFileTree::slotDocumentDelete()
     bool go = (KMessageBox::warningContinueCancel(this,
                i18n("Do you really want to delete file \"%1\" from storage?", url.toDisplayString()),
                i18n("Delete file?"),
-               KStandardGuiItem::yes(), KStandardGuiItem::no(), QLatin1String("filetreedeletefile")
+               KStandardGuiItem::yes(), KStandardGuiItem::no(), QStringLiteral("filetreedeletefile")
                                                  ) == KMessageBox::Continue);
 
     if (!go) {

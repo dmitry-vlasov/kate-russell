@@ -96,7 +96,7 @@ KateApp *KateApp::self()
 bool KateApp::init()
 {
     // set KATE_PID for use in child processes
-    qputenv("KATE_PID", QString::fromLatin1("%1").arg(QCoreApplication::applicationPid()).toLatin1().constData());
+    qputenv("KATE_PID", QStringLiteral("%1").arg(QCoreApplication::applicationPid()).toLatin1().constData());
 
     // handle restore different
     if (qApp->isSessionRestored()) {
@@ -188,6 +188,21 @@ bool KateApp::startupKate()
             doc = openDocUrl(info.url, codec_name, tempfileSet);
             if (info.cursor.isValid()) {
                 setCursor(info.cursor.line(), info.cursor.column());
+            }
+            else if (info.url.hasQuery()) {
+                QUrlQuery q(info.url);
+                QString lineStr = q.queryItemValue(QStringLiteral("line"));
+                QString columnStr = q.queryItemValue(QStringLiteral("column"));
+
+                int line = lineStr.toInt();
+                if (line > 0)
+                    line--;
+
+                int column = columnStr.toInt();
+                if (column > 0)
+                    column--;
+
+                setCursor(line, column);
             }
         } else {
             KMessageBox::sorry(activeKateMainWindow(),

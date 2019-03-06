@@ -144,7 +144,7 @@ KateConsole::KateConsole (KateKonsolePlugin* plugin, KTextEditor::MainWindow *mw
 
   a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_run"));
   a->setText(i18nc("@action", "Run Current Document"));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotRun()));
+  connect(a, &QAction::triggered, this, &KateConsole::slotRun);
 
   a = actionCollection()->addAction(QStringLiteral("katekonsole_tools_toggle_focus"));
   a->setIcon(QIcon::fromTheme(QStringLiteral("utilities-terminal")));
@@ -406,6 +406,7 @@ KateKonsoleConfigPage::KateKonsoleConfigPage( QWidget* parent, KateKonsolePlugin
 {
   QVBoxLayout *lo = new QVBoxLayout( this );
   lo->setSpacing(QApplication::style()->pixelMetric(QStyle::PM_DefaultLayoutSpacing));
+  lo->setContentsMargins(0, 0, 0, 0);
 
   cbAutoSyncronize = new QCheckBox( i18n("&Automatically synchronize the terminal with the current document when possible"), this );
   lo->addWidget( cbAutoSyncronize );
@@ -450,7 +451,7 @@ KateKonsoleConfigPage::KateKonsoleConfigPage( QWidget* parent, KateKonsolePlugin
   reset();
   lo->addStretch();
   connect(cbAutoSyncronize, &QCheckBox::stateChanged, this, &KateKonsoleConfigPage::changed);
-  connect( cbRemoveExtension, SIGNAL(stateChanged(int)), SIGNAL(changed()) );
+  connect( cbRemoveExtension, &QCheckBox::stateChanged, this, &KTextEditor::ConfigPage::changed );
   connect( lePrefix, &QLineEdit::textChanged,
            this, &KateKonsoleConfigPage::changed );
   connect(cbSetEditor, &QCheckBox::stateChanged, this, &KateKonsoleConfigPage::changed);

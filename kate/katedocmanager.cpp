@@ -51,7 +51,6 @@ KateDocManager::KateDocManager(QObject *parent)
     , m_metaInfos(QStringLiteral("katemetainfos"), KConfig::NoGlobals)
     , m_saveMetaInfos(true)
     , m_daysMetaInfos(0)
-    , m_documentStillToRestore(0)
 {
     // set our application wrapper
     KTextEditor::Editor::instance()->setApplication(KateApp::self()->wrapper());
@@ -98,7 +97,7 @@ KTextEditor::Document *KateDocManager::createDoc(const KateDocumentInfo &docInfo
     m_docInfos.insert(doc, new KateDocumentInfo(docInfo));
 
     // connect internal signals...
-    connect(doc, SIGNAL(modifiedChanged(KTextEditor::Document*)), this, SLOT(slotModChanged1(KTextEditor::Document*)));
+    connect(doc, &KTextEditor::Document::modifiedChanged, this, &KateDocManager::slotModChanged1);
     connect(doc, SIGNAL(modifiedOnDisk(KTextEditor::Document*,bool,KTextEditor::ModificationInterface::ModifiedOnDiskReason)),
             this, SLOT(slotModifiedOnDisc(KTextEditor::Document*,bool,KTextEditor::ModificationInterface::ModifiedOnDiskReason)));
 
@@ -207,7 +206,7 @@ KTextEditor::Document *KateDocManager::openUrl(const QUrl &url, const QString &e
     return doc;
 }
 
-bool KateDocManager::closeDocuments(const QList<KTextEditor::Document *> documents, bool closeUrl)
+bool KateDocManager::closeDocuments(const QList<KTextEditor::Document *> &documents, bool closeUrl)
 {
     if (documents.isEmpty()) {
         return false;
@@ -424,7 +423,7 @@ void KateDocManager::saveDocumentList(KConfig *config)
 
     int i = 0;
     foreach(KTextEditor::Document * doc, m_docList) {
-        KConfigGroup cg(config, QString::fromLatin1("Document %1").arg(i));
+        KConfigGroup cg(config, QStringLiteral("Document %1").arg(i));
         doc->writeSessionConfig(cg);
         i++;
     }
@@ -446,10 +445,8 @@ void KateDocManager::restoreDocumentList(KConfig *config)
     progress.setCancelButton(nullptr);
     progress.setRange(0, count);
 
-    m_documentStillToRestore = count;
-    m_openingErrors.clear();
     for (unsigned int i = 0; i < count; i++) {
-        KConfigGroup cg(config, QString::fromLatin1("Document %1").arg(i));
+        KConfigGroup cg(config, QStringLiteral("Document %1").arg(i));
         KTextEditor::Document *doc = nullptr;
 
         if (i == 0) {
@@ -459,7 +456,7 @@ void KateDocManager::restoreDocumentList(KConfig *config)
         }
 
         connect(doc, SIGNAL(completed()), this, SLOT(documentOpened()));
-        connect(doc, SIGNAL(canceled(QString)), this, SLOT(documentOpened()));
+        connect(doc, &KParts::ReadOnlyPart::canceled, this, &KateDocManager::documentOpened);
 
         doc->readSessionConfig(cg);
 
@@ -583,30 +580,14 @@ void KateDocManager::documentOpened()
         return;    // should never happen, but who knows
     }
     disconnect(doc, SIGNAL(completed()), this, SLOT(documentOpened()));
-    disconnect(doc, SIGNAL(canceled(QString)), this, SLOT(documentOpened()));
-    if (doc->openingError()) {
-        m_openingErrors += QLatin1Char('\n') + doc->openingErrorMessage() + QStringLiteral("\n\n");
+    disconnect(doc, &KParts::ReadOnlyPart::canceled, this, &KateDocManager::documentOpened);
+
+    // Only set "no success" when doc is empty to avoid close of files
+    // with other trouble when do closeOrphaned()
+    if (doc->openingError() && doc->isEmpty()) {
         KateDocumentInfo *info = documentInfo(doc);
         if (info) {
             info->openSuccess = false;
         }
     }
-    --m_documentStillToRestore;
-
-    if (m_documentStillToRestore == 0) {
-        QTimer::singleShot(0, this, SLOT(showRestoreErrors()));
-    }
 }
-
-void KateDocManager::showRestoreErrors()
-{
-    if (!m_openingErrors.isEmpty()) {
-        KMessageBox::information(nullptr,
-                                 m_openingErrors,
-                                 i18n("Errors/Warnings while opening documents"));
-
-        // clear errors
-        m_openingErrors.clear();
-    }
-}
-

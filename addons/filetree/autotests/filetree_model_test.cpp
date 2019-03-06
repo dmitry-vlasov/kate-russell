@@ -34,7 +34,7 @@ class ResultNode
     ResultNode(const char *_name, const bool _dir = false) : ResultNode(QString::fromLatin1(_name), _dir) {}
     ResultNode(const QString &_name, const bool _dir = false) : name(_name), dir(_dir), children() {}
 
-    ResultNode &operator<<(ResultNode node) { children << node; return *this; }
+    ResultNode &operator<<(const ResultNode &node) { children << node; return *this; }
 
     bool operator!=(const ResultNode &other) const { return !(*this == other); }
     bool operator==(const ResultNode &other) const
@@ -50,7 +50,7 @@ class ResultNode
         s += QLatin1String("  ");
       }
 
-      const QString name = rootNode.name.isEmpty() ? QLatin1String("ROOT") : rootNode.name;
+      const QString name = rootNode.name.isEmpty() ? QStringLiteral("ROOT") : rootNode.name;
 
       s += QLatin1String("( ") + name;
       if (rootNode.dir) {
@@ -860,7 +860,7 @@ void FileTreeModelTest::rename_data()
 
   QTest::newRow("empty") << ( QList<DummyDocument *>()
     << new DummyDocument()
-  ) <<  0  << QString::fromLatin1("file:///a/foo.txt")
+  ) <<  0  << QStringLiteral("file:///a/foo.txt")
   << (
     ResultNode()
       << (ResultNode("a", true)
@@ -869,7 +869,7 @@ void FileTreeModelTest::rename_data()
 
   QTest::newRow("moving") << ( QList<DummyDocument *>()
     << new DummyDocument("file:///a/foo.txt")
-  ) <<  0  << QString::fromLatin1("file:///b/foo.txt")
+  ) <<  0  << QStringLiteral("file:///b/foo.txt")
   << (
     ResultNode()
       << (ResultNode("b", true)
@@ -879,7 +879,7 @@ void FileTreeModelTest::rename_data()
   QTest::newRow("splitting") << ( QList<DummyDocument *>()
     << new DummyDocument("file:///a/foo.txt")
     << new DummyDocument("file:///a/bar.txt")
-  ) <<  0  << QString::fromLatin1("file:///b/foo.txt")
+  ) <<  0  << QStringLiteral("file:///b/foo.txt")
   << (
     ResultNode()
       << (ResultNode("a", true)

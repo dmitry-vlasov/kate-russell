@@ -55,7 +55,7 @@ KateFileBrowser::KateFileBrowser(KTextEditor::MainWindow *mainWindow,
 {
 
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
-  mainLayout->setMargin(0);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
   mainLayout->setSpacing(0);
 
   m_toolbar = new KToolBar(this);
@@ -82,7 +82,12 @@ KateFileBrowser::KateFileBrowser(KTextEditor::MainWindow *mainWindow,
 
   // Mime filter for the KDirOperator
   QStringList filter;
-  filter << QStringLiteral("text/plain") << QStringLiteral("text/html") << QStringLiteral("inode/directory");
+
+  filter << QStringLiteral("text/plain")
+         << QStringLiteral("text/html")
+         << QStringLiteral("inode/directory")
+         << QStringLiteral("application/x-zerosize");
+
   m_dirOperator->setNewFileMenuSupportedMimeTypes(filter);
 
   setFocusProxy(m_dirOperator);
@@ -195,7 +200,7 @@ bool kateFileSelectorIsReadable (const QUrl& url)
   return dir.exists ();
 }
 
-void KateFileBrowser::setDir(QUrl u)
+void KateFileBrowser::setDir(const QUrl &u)
 {
   QUrl newurl;
 
